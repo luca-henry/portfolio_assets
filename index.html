@@ -8,9 +8,10 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,100..900&display=swap" rel="stylesheet">
 <style>
-@font-face{font-family:"Main";src:url("fonts/main_font.woff2") format("woff2"),url("fonts/main_font.woff") format("woff"),url("fonts/main_font.otf") format("opentype"),url("fonts/main_font.ttf") format("truetype");font-display:swap}
+/* font-weight range = the browser uses your file as-is instead of faking bold on top of it */
+@font-face{font-family:"Main";src:url("fonts/main_font.woff2") format("woff2"),url("fonts/main_font.woff") format("woff"),url("fonts/main_font.otf") format("opentype"),url("fonts/main_font.ttf") format("truetype");font-weight:100 900;font-style:normal;font-display:swap}
 @font-face{font-family:"Secondary";src:local("Helvetica Neue"),local("Helvetica"),url("fonts/secondary_font.woff2") format("woff2"),url("fonts/secondary_font.ttf") format("truetype");font-display:swap}
-:root{--u:min(1vw,1.7778svh);--bg:#fff;--fg:#000;--mute:#8c8c8c;--pad:calc(2.6 * var(--u));--bw:clamp(3px,calc(.45 * var(--u)),12px)}
+:root{--u:min(1vw,1.7778svh);--bg:#fff;--fg:#000;--mute:#8c8c8c;--pad:calc(2.6 * var(--u));--bw:clamp(3px,calc(.45 * var(--u)),12px);--ease:cubic-bezier(.76,0,.18,1);--out:cubic-bezier(.16,1,.3,1)}
 *{box-sizing:border-box;margin:0;padding:0}
 html{background:var(--bg)}
 body{min-height:100svh;display:flex;flex-direction:column;background:var(--bg);color:var(--fg);font-family:Secondary,"Helvetica Neue",Helvetica,Arial,sans-serif;letter-spacing:-.02em;-webkit-font-smoothing:antialiased}
@@ -21,7 +22,9 @@ a{color:inherit;text-decoration:none}
 nav{display:flex;align-items:center;gap:calc(1.7 * var(--u));padding:var(--pad) var(--pad) calc(1.8 * var(--u));font-size:clamp(16px,calc(2 * var(--u)),56px);line-height:1}
 nav a{white-space:nowrap}
 nav a.ln{flex:1;height:max(2px,calc(.28 * var(--u)));background:var(--fg)}
-nav a[aria-current]{font-weight:700;text-decoration:line-through;text-decoration-thickness:.1em}
+nav a[data-n]{background:linear-gradient(currentColor,currentColor) 0 55%/0 .1em no-repeat}
+nav a[data-n]:hover,nav a[aria-current]{background-size:100% .1em}
+nav a[aria-current]{font-weight:700}
 
 main{flex:1;display:flex;flex-direction:column}
 .view{display:none;padding:0 var(--pad) var(--pad)}
@@ -109,7 +112,6 @@ main{flex:1;display:flex;flex-direction:column}
  .ab p{padding:calc(4 * var(--u)) 0 0;font-size:calc(3.8 * var(--u))}
  .cb{height:calc(42 * var(--u));padding:calc(5 * var(--u))}.cl{margin-bottom:calc(5 * var(--u))}
 }
-@media (prefers-reduced-motion:no-preference){html{scroll-behavior:smooth}}
 
 /* fit every page to the window (desktop). The project page scrolls because its gallery is long. */
 main,.view.on{min-height:0}
@@ -118,7 +120,7 @@ main,.view.on{min-height:0}
  .logo{flex:1 1 0;min-height:0}
  .pl{flex:1 1 0;min-height:0;grid-template-rows:minmax(0,1fr)}
  #pv{aspect-ratio:auto;height:100%;min-height:0}
- #pl{min-height:0;overflow-y:auto;scrollbar-width:none}
+ #pl{min-height:0;overflow-y:auto;overflow-x:hidden;scrollbar-width:none}
  .at{flex:24.5 1 0;height:auto;min-height:0}
  .ab{flex:23 1 0;height:auto;min-height:0}
  .cl{display:flex;margin-bottom:calc(2.4 * var(--u));min-height:0}
@@ -126,6 +128,89 @@ main,.view.on{min-height:0}
  .cb{flex:21 1 0;height:auto;min-height:0}
 }
 @media (max-width:800px){.cl{flex:none!important;height:calc(10 * var(--u))}.cl .fb{height:100%;overflow:visible}}
+
+/* ───────── motion ─────────
+   One idea: everything is revealed by a wipe (clip-path), like a shutter.
+   Blocks wipe open, then the type inside wipes on, staggered with --d.
+   Individual transform properties (translate/scale) are used so they never fight fit(). */
+@media (prefers-reduced-motion:no-preference){
+ html{scroll-behavior:smooth}
+ @keyframes wipeX{from{clip-path:inset(-50% 110% -50% -10%)}to{clip-path:inset(-50% -10% -50% -10%)}}
+ @keyframes rise{from{clip-path:inset(150% -10% -50% -10%)}to{clip-path:inset(-50% -10% -50% -10%)}}
+ @keyframes blockX{from{clip-path:inset(0 100% 0 0)}to{clip-path:inset(0 0 0 0)}}
+ @keyframes blockY{from{clip-path:inset(100% 0 0 0)}to{clip-path:inset(0 0 0 0)}}
+ @keyframes up{from{opacity:0;translate:0 calc(2.4 * var(--u))}to{opacity:1;translate:0 0}}
+ @keyframes fromR{from{opacity:0;translate:calc(5 * var(--u)) 0}to{opacity:1;translate:0 0}}
+ @keyframes fromL{from{opacity:0;translate:calc(-5 * var(--u)) 0}to{opacity:1;translate:0 0}}
+ @keyframes lineX{from{transform:scaleX(0)}to{transform:scaleX(1)}}
+ @keyframes navIn{from{opacity:0;translate:0 -70%}to{opacity:1;translate:0 0}}
+ @keyframes imgIn{from{clip-path:inset(0 0 100% 0);scale:1.2}to{clip-path:inset(0 0 0 0);scale:1}}
+ @keyframes zoom{from{scale:1.25}to{scale:1}}
+ @keyframes blink{0%,49%{opacity:1}50%,100%{opacity:0}}
+ @keyframes drift{from{translate:-1.5cqw .8cqw}to{translate:1.5cqw -.8cqw}}
+
+ /* nav */
+ nav>*{animation:navIn .8s var(--out) backwards;animation-delay:calc(var(--k,0) * .08s)}
+ nav>:nth-child(2){--k:1}nav>:nth-child(3){--k:2}nav>:nth-child(4){--k:3}nav>:nth-child(5){--k:4}
+ nav a.ln{transform-origin:0 50%;animation-name:lineX;animation-duration:1s;animation-timing-function:var(--ease)}
+ nav a[data-n]{transition:background-size .5s var(--ease)}
+
+ /* display type: wipes on whenever a page opens; digits re-wipe when the clock changes */
+ .view.on .fit{animation:wipeX 1s var(--ease) var(--d,.2s) backwards}
+ .view.on .fit.tick{animation:rise .6s var(--ease) 0s backwards}
+ .logo,.banner,.blk,.meb,.cb{animation:blockX .9s var(--ease) backwards}
+
+ /* home */
+ .logo .r1{--d:.55s}.logo .r2{--d:.7s}
+ .stamp{animation:blockY .7s var(--ease) 1s backwards}
+ .stamp .fb:nth-child(1){--d:1.3s}.stamp .fb:nth-child(2){--d:1.42s}
+ .stamp::after{content:"";position:absolute;left:calc(.6 * var(--u));bottom:calc(.3 * var(--u));width:calc(.45 * var(--u));height:calc(.45 * var(--u));background:#000;animation:blink 1s linear infinite}
+
+ /* projects */
+ .banner .fb{--d:.4s}
+ #pv{animation:blockY .9s var(--ease) .3s backwards}
+ #pv img{animation:imgIn .8s var(--ease) backwards}
+ #pl li{animation:fromR .8s var(--out) backwards;animation-delay:calc(.35s + var(--i,0) * .07s)}
+ #pl a{transition:color .3s,background-color .3s}
+ #pl a.on .fit{animation:wipeX .45s var(--ease) 0s backwards}
+
+ /* project detail */
+ .dl h1{animation:rise .9s var(--ease) .1s backwards}
+ .ck{animation:wipeX .8s var(--ease) .35s backwards}
+ .dl p{animation:up .8s var(--out) backwards;animation-delay:calc(.5s + var(--i,0) * .12s)}
+ .ar a{animation:fromL .8s var(--out) .9s backwards;transition:background-color .3s}
+ .ar .r{animation-name:fromR}
+ .ar a:hover{background:#2a2a2a}
+ .ar svg{transition:translate .4s var(--out)}
+ .ar a:hover svg{translate:-7% 0}.ar .r:hover svg{translate:7% 0}
+
+ /* gallery tiles: reveal as they scroll into view (JS adds .vis) */
+ .rv{clip-path:inset(100% 0 0 0);transition:clip-path 1s var(--ease) var(--d,0s)}
+ .rv.vis{clip-path:inset(0 0 0 0)}
+ .rv img,.rv video{scale:1.2}
+ .rv.vis img,.rv.vis video{scale:1}
+ .ph img,.ph video{transition:scale 1.4s var(--out)}
+ .rv.vis:hover img,.rv.vis:hover video{scale:1.05}
+ .ph:not(.rv):hover img{scale:1.04}
+ .ph span{animation:drift 7s ease-in-out infinite alternate}
+
+ /* about */
+ .blk{--d:.5s}
+ .meb{animation-delay:.5s;--d:.9s}
+ .at>.shot{animation:blockY .9s var(--ease) .25s backwards}
+ .at>.inv{animation-delay:.4s}
+ .shot img{animation:zoom 1.6s var(--out) .3s backwards;transition:filter .8s var(--out),scale 1.4s var(--out)}
+ .shot:not(.inv):hover img{filter:grayscale(1) invert(1) contrast(1.1)}
+ .shot.inv:hover img{filter:grayscale(1)}
+ .ab p{animation:up .9s var(--out) .8s backwards}
+ .ab p+p{animation-delay:.95s}
+
+ /* contact */
+ .cl:nth-child(1){--d:.15s}.cl:nth-child(2){--d:.3s}.cl:nth-child(3){--d:.45s}
+ .cb{animation-delay:.55s;--d:.9s}
+ .cl .fit{transition:translate .6s var(--out)}
+ .cl:hover .fit{translate:1.4vw 0}
+}
 </style>
 </head>
 <body>
@@ -174,8 +259,8 @@ main,.view.on{min-height:0}
     </div>
     <div class="ab">
       <div class="meb" aria-hidden="true"><div class="fb"><span class="fit">ME</span></div></div>
-      <p>Lorem ipsum dolor sit amet consectetur adipiscing elit qui enim pariatur optio minim consequat consectetur tempor excepturi excepteur sint dolorem distinctio adipiscing dignissimos et mollitia laborum cillum placeat non distinctio repellendus non duis et optio sint qui minim lorem fuga laboris molestias voluptas eiusmod molestias imperdiet labore blanditiis quidem qui. Lorem ipsum dolor sit amet consectetur adipiscing elit qui enim pariatur optio minim consequat consectetur tempor excepturi excepteur sint dolorem distinctio adipiscing dignissimos et mollitia laborum cillum placeat non distinctio repellendus non duis et optio sint qui minim lorem fuga laboris molestias voluptas eiusmod molestias imperdiet labore blanditiis quidem qui.</p>
-      <p>Lorem ipsum dolor sit amet consectetur adipiscing elit qui enim pariatur optio minim consequat consectetur tempor excepturi excepteur sint dolorem distinctio adipiscing dignissimos et mollitia laborum cillum placeat non distinctio repellendus non duis et optio sint qui minim lorem fuga laboris molestias voluptas eiusmod molestias imperdiet labore blanditiis quidem qui. Lorem ipsum dolor sit amet consectetur adipiscing elit qui enim pariatur optio minim consequat consectetur tempor excepturi excepteur sint dolorem distinctio adipiscing dignissimos et mollitia laborum cillum placeat non distinctio repellendus non duis et optio sint qui minim.</p>
+      <p>Lorem ipsum dolor sit amet consectetur adipiscing elit qui enim pariatur optio minim consequat consectetur tempor excepturi excepteur sint dolorem distinctio adipiscing dignissimos et mollitia laborum cillum placeat non distinctio repellendus non duis et optio sint qui minim lorem fuga laboris molestias voluptas eiusmod molestias imperdiet labore blanditiis quidem qui.</p>
+      <p>Lorem ipsum dolor sit amet consectetur adipiscing elit qui enim pariatur optio minim consequat consectetur tempor excepturi excepteur sint dolorem distinctio adipiscing dignissimos et mollitia laborum cillum placeat non distinctio repellendus non duis et optio sint qui minim.</p>
     </div>
   </section>
 
@@ -194,15 +279,15 @@ const $=s=>document.querySelector(s);
 const esc=s=>String(s??"").replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
 const ARROW='<svg viewBox="0 0 300 130" aria-hidden="true"><path d="M8 65 100 8v34h190v46H100v34z" fill="#fff"/></svg>';
 const ROWS=[[16.4,[5,7]],[28.5,[7.25,4.3]],[16,[5.5,6.1]]]; // row height (vw) + column ratios, repeated as needed
-let P=[],cur=0,drawn=-1;
+let P=[],cur=0,drawn=-1,io;
 
-/* one tile: image, looping video, or PDF link. No file = placeholder */
-function tile(m){
-  const label="<span>WORK DISPLAY<br>PHOTO</span>";
-  if(!m)return `<div class="ph frame">${label}</div>`;
-  if(m.type==="video")return `<div class="ph frame"><video src="${m.src}" autoplay muted loop playsinline preload="metadata"></video>${label}</div>`;
-  if(m.type==="pdf")return `<div class="ph frame"><a class="pdf" href="${m.src}" target="_blank" rel="noopener">PDF</a></div>`;
-  return `<div class="ph frame"><img src="${m.src}" alt="" loading="lazy">${label}</div>`;
+/* one tile: image, looping video, or PDF link. No file = placeholder. .rv = revealed on scroll; ci staggers columns */
+function tile(m,ci=0){
+  const label="<span>WORK DISPLAY<br>PHOTO</span>",c=`class="ph frame rv" style="--d:${ci*.12}s"`;
+  if(!m)return `<div ${c}>${label}</div>`;
+  if(m.type==="video")return `<div ${c}><video src="${m.src}" autoplay muted loop playsinline preload="metadata"></video>${label}</div>`;
+  if(m.type==="pdf")return `<div ${c}><a class="pdf" href="${m.src}" target="_blank" rel="noopener">PDF</a></div>`;
+  return `<div ${c}><img src="${m.src}" alt="" loading="lazy">${label}</div>`;
 }
 
 function detail(i){
@@ -210,17 +295,27 @@ function detail(i){
   const items=[...(p.cover?[{src:p.cover,type:"image"}]:[]),...p.media];
   let rows="",k=0,r=0;
   do{const [h,cols]=ROWS[r++%ROWS.length];
-    rows+=`<div class="row" style="--h:${h}vw">${cols.map(c=>`<div style="flex:${c} 1 0;min-width:0">${tile(items[k++])}</div>`).join("")}</div>`;
+    rows+=`<div class="row" style="--h:${h}vw">${cols.map((c,ci)=>`<div style="flex:${c} 1 0;min-width:0">${tile(items[k++],ci)}</div>`).join("")}</div>`;
   }while(k<items.length||r<3);   // always at least the 3 design rows; empty slots show placeholders
-  const body=p.body.split(/\n\s*\n/).filter(Boolean).map(t=>`<p>${esc(t).replace(/\n/g,"<br>")}</p>`).join("");
-  return `<div class="dt"><div class="dl"><h1>${esc(p.title)}</h1><div class="ck">/ ${esc(p.category)}</div>${body}${p.note?`<p class="nt">${esc(p.note)}</p>`:""}
+  const paras=p.body.split(/\n\s*\n/).filter(Boolean);
+  const body=paras.map((t,j)=>`<p style="--i:${j}">${esc(t).replace(/\n/g,"<br>")}</p>`).join("");
+  return `<div class="dt"><div class="dl"><h1>${esc(p.title)}</h1><div class="ck">/ ${esc(p.category)}</div>${body}${p.note?`<p class="nt" style="--i:${paras.length}">${esc(p.note)}</p>`:""}
   <div class="ar"><a href="#project-${pv.slug}" aria-label="Previous project">${ARROW}</a><a class="r" href="#project-${nx.slug}" aria-label="Next project">${ARROW}</a></div></div>
   <div class="gl">${rows}</div></div>`;
 }
 
+/* gallery tiles open as they scroll into view */
+function reveal(){
+  const els=document.querySelectorAll("#project .rv");
+  if(io)io.disconnect();
+  if(!("IntersectionObserver" in window)){els.forEach(e=>e.classList.add("vis"));return}
+  io=new IntersectionObserver(es=>es.forEach(e=>{if(e.isIntersecting){e.target.classList.add("vis");io.unobserve(e.target)}}),{threshold:.12,rootMargin:"0px 0px -6% 0px"});
+  els.forEach(e=>io.observe(e));
+}
+
 function buildList(){
   drawn=-1;
-  $("#pl").innerHTML=P.length?P.map((p,i)=>`<li><a href="#project-${p.slug}" data-i="${i}">${esc(p.title)} / ${esc(p.category)}</a></li>`).join(""):"<li><a>no projects yet</a></li>";
+  $("#pl").innerHTML=P.length?P.map((p,i)=>`<li style="--i:${i}"><a href="#project-${p.slug}" data-i="${i}">${esc(p.title)} / ${esc(p.category)}</a></li>`).join(""):"<li><a>no projects yet</a></li>";
   if(P.length)setCur(0);
 }
 function setCur(i){
@@ -273,16 +368,32 @@ function route(){
   document.body.classList.toggle("fixed",v!=="project");
   const key=v==="project"?"projects":v;
   document.querySelectorAll("nav [data-n]").forEach(a=>{a.dataset.n===key?a.setAttribute("aria-current","page"):a.removeAttribute("aria-current")});
-  if(v==="project"){$("#project").innerHTML=detail(pi);document.title=P[pi].title+" — Luca Henry";setCur(pi)}
+  if(v==="project"){$("#project").innerHTML=detail(pi);document.title=P[pi].title+" — Luca Henry";setCur(pi);reveal()}
   else document.title=(v==="home"?"Luca Henry":key[0].toUpperCase()+key.slice(1)+" — Luca Henry");
   window.scrollTo(0,0);
   requestAnimationFrame(fit);
 }
 addEventListener("hashchange",route);
 addEventListener("resize",fit);
-document.fonts&&document.fonts.ready.then(fit);
 
-/* live 24-hour clock in the home stamp: hours over minutes */
+/* re-fit once the display font really arrives (fonts.ready can fire before it starts loading) */
+if(document.fonts){
+  document.fonts.ready.then(fit);
+  document.fonts.addEventListener("loadingdone",fit);
+  // font check: says in the console whether "Main" loaded, and if not, which file fails and why
+  (async()=>{
+    let ok=false;
+    try{ok=(await document.fonts.load("900 100px Main","LUCA")).length>0}catch(e){}
+    if(ok){console.info("[font] Main loaded");fit();return}
+    console.warn('[font] "Main" did not load, so Archivo is showing instead. Testing each file…');
+    for(const u of ["fonts/main_font.woff2","fonts/main_font.woff","fonts/main_font.otf","fonts/main_font.ttf"]){
+      try{await new FontFace("probe",`url(${u})`).load();console.warn("[font] readable: "+u+" (file is fine; the name or path in @font-face is the problem)")}
+      catch(e){console.warn("[font] cannot load: "+u+" — "+(e.message||e))}
+    }
+  })();
+}
+
+/* live 24-hour clock in the home stamp: hours over minutes. A digit that changes wipes in again. */
 const CLOCK_TZ="Australia/Melbourne"; // use undefined to show each visitor's own local time
 const clkFmt=new Intl.DateTimeFormat("en-GB",{hour:"2-digit",minute:"2-digit",hourCycle:"h23",timeZone:CLOCK_TZ});
 let clkLast="";
@@ -290,7 +401,14 @@ function tick(){
   const parts=clkFmt.formatToParts(new Date()),g=t=>parts.find(p=>p.type===t).value;
   const hm=g("hour")+g("minute");
   if(hm===clkLast)return;
-  clkLast=hm;$("#clk-h").textContent=g("hour");$("#clk-m").textContent=g("minute");fit();
+  const animate=clkLast!==""&&$("#home").classList.contains("on");
+  const set=(id,v)=>{
+    const el=$(id);if(el.textContent===v)return;
+    el.textContent=v;
+    if(animate){el.classList.remove("tick");void el.offsetWidth;el.classList.add("tick");
+      el.addEventListener("animationend",e=>{if(e.animationName==="rise")el.classList.remove("tick")},{once:true})}
+  };
+  clkLast=hm;set("#clk-h",g("hour"));set("#clk-m",g("minute"));fit();
 }
 tick();setInterval(tick,1000);
 
