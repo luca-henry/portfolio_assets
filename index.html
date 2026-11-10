@@ -343,6 +343,7 @@ function setCur(i){
    Every row is one piece of text. The selected row (t=1) is condensed, heavy, white and stretched to fill a black bar that grows from the right edge;
    the others (t=0) are light grey and small, right-aligned. t is tweened per row with a smooth ease-out and weight, width, size, colour, padding and stretch all follow it. */
 let T=[],A=[],lraf=0;
+const FR=100;   // ms per drawn frame (100 = 10fps). Higher = choppier, lower = smoother.
 const lerp=(a,b,t)=>a+(b-a)*t,smooth=x=>1-Math.pow(1-x,4);
 const kw=st=>st>=187?"ultra-expanded":st>=137?"extra-expanded":st>=118?"expanded":st>=106?"semi-expanded":st>=94?"normal":st>=81?"semi-condensed":st>=69?"condensed":st>=56?"extra-condensed":"ultra-condensed";
 const probe=document.createElement("div");probe.style.cssText="position:absolute;visibility:hidden;height:0;width:var(--u)";document.body.appendChild(probe);
@@ -372,7 +373,7 @@ function applyList(){
 }
 function tickList(now){
   let live=false;
-  A.forEach((an,j)=>{if(!an)return;const p=Math.min(1,(now-an.t0)/an.d);T[j]=lerp(an.from,an.to,smooth(p));if(p<1)live=true;else A[j]=null});
+  A.forEach((an,j)=>{if(!an)return;const e=now-an.t0,p=Math.min(1,e/an.d),q=Math.min(1,Math.ceil(e/FR)*FR/an.d);T[j]=lerp(an.from,an.to,smooth(q));if(p<1)live=true;else A[j]=null});
   applyList();lraf=live?requestAnimationFrame(tickList):0;
 }
 function retarget(sel,instant){
