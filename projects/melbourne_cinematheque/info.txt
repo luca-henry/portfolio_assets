@@ -1,6 +1,6 @@
 title: Melbourne Cinematheque
 category: brand identity
-order: 3
+order: 1
 note: Small italic line shown under the description.
 ---
 The main description text goes here, below the divider.
