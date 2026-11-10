@@ -42,7 +42,7 @@ main{flex:1;display:flex;flex-direction:column}
 .logo .fit{color:#fff}
 .logo .r1{margin-right:9.2%}
 .stamp{position:absolute;top:0;right:0;width:9.3%;height:47.8%;background:#fff;padding:calc(.5 * var(--u)) calc(.6 * var(--u)) calc(1 * var(--u)) 0;display:grid;grid-template-rows:1fr 1fr;gap:calc(1.1 * var(--u))}
-.stamp .fit{color:#000}
+.stamp .fit{color:#000;font-family:"Helvetica Neue",Helvetica,Arial,sans-serif;font-weight:700;letter-spacing:-.04em}
 
 /* placeholders / frames */
 .ph{position:relative;display:grid;place-items:center;overflow:hidden;container-type:size}
@@ -139,76 +139,79 @@ main,.view.on{min-height:0}
  @keyframes rise{from{clip-path:inset(150% -10% -50% -10%)}to{clip-path:inset(-50% -10% -50% -10%)}}
  @keyframes blockX{from{clip-path:inset(0 100% 0 0)}to{clip-path:inset(0 0 0 0)}}
  @keyframes blockY{from{clip-path:inset(100% 0 0 0)}to{clip-path:inset(0 0 0 0)}}
- @keyframes up{from{opacity:0;translate:0 calc(2.4 * var(--u))}to{opacity:1;translate:0 0}}
- @keyframes fromR{from{opacity:0;translate:calc(5 * var(--u)) 0}to{opacity:1;translate:0 0}}
- @keyframes fromL{from{opacity:0;translate:calc(-5 * var(--u)) 0}to{opacity:1;translate:0 0}}
+ @keyframes up{from{opacity:0;translate:0 calc(2 * var(--u))}to{opacity:1;translate:0 0}}
+ @keyframes fromR{from{opacity:0;translate:calc(4 * var(--u)) 0}to{opacity:1;translate:0 0}}
+ @keyframes fromL{from{opacity:0;translate:calc(-4 * var(--u)) 0}to{opacity:1;translate:0 0}}
  @keyframes lineX{from{transform:scaleX(0)}to{transform:scaleX(1)}}
  @keyframes navIn{from{opacity:0;translate:0 -70%}to{opacity:1;translate:0 0}}
- @keyframes imgIn{from{clip-path:inset(0 0 100% 0);scale:1.2}to{clip-path:inset(0 0 0 0);scale:1}}
- @keyframes zoom{from{scale:1.25}to{scale:1}}
- @keyframes blink{0%,49%{opacity:1}50%,100%{opacity:0}}
+ @keyframes imgIn{from{clip-path:inset(0 0 100% 0);scale:1.15}to{clip-path:inset(0 0 0 0);scale:1}}
+ @keyframes zoom{from{scale:1.2}to{scale:1}}
+ @keyframes rollIn{from{translate:0 calc(var(--bh,100px) * 1.1)}to{translate:0 0}}
+ @keyframes rollOut{from{translate:0 0}to{translate:0 calc(var(--bh,100px) * -1.1)}}
  @keyframes drift{from{translate:-1.5cqw .8cqw}to{translate:1.5cqw -.8cqw}}
 
  /* nav */
- nav>*{animation:navIn .8s var(--out) backwards;animation-delay:calc(var(--k,0) * .08s)}
+ nav>*{animation:navIn .5s var(--out) backwards;animation-delay:calc(var(--k,0) * .05s)}
  nav>:nth-child(2){--k:1}nav>:nth-child(3){--k:2}nav>:nth-child(4){--k:3}nav>:nth-child(5){--k:4}
- nav a.ln{transform-origin:0 50%;animation-name:lineX;animation-duration:1s;animation-timing-function:var(--ease)}
- nav a[data-n]{transition:background-size .5s var(--ease)}
+ nav a.ln{transform-origin:0 50%;animation-name:lineX;animation-duration:.6s;animation-timing-function:var(--ease)}
+ nav a[data-n]{transition:background-size .3s var(--ease)}
 
- /* display type: wipes on whenever a page opens; digits re-wipe when the clock changes */
- .view.on .fit{animation:wipeX 1s var(--ease) var(--d,.2s) backwards}
- .view.on .fit.tick{animation:rise .6s var(--ease) 0s backwards}
- .logo,.banner,.blk,.meb,.cb{animation:blockX .9s var(--ease) backwards}
+ /* display type: wipes on whenever a page opens */
+ .view.on .fit{animation:wipeX .6s var(--ease) var(--d,.1s) backwards}
+ .logo,.banner,.blk,.meb,.cb{animation:blockX .55s var(--ease) backwards}
 
  /* home */
- .logo .r1{--d:.55s}.logo .r2{--d:.7s}
- .stamp{animation:blockY .7s var(--ease) 1s backwards}
- .stamp .fb:nth-child(1){--d:1.3s}.stamp .fb:nth-child(2){--d:1.42s}
- .stamp::after{content:"";position:absolute;left:calc(.6 * var(--u));bottom:calc(.3 * var(--u));width:calc(.45 * var(--u));height:calc(.45 * var(--u));background:#000;animation:blink 1s linear infinite}
+ .logo .r1{--d:.3s}.logo .r2{--d:.4s}
+ .stamp{animation:blockY .45s var(--ease) .55s backwards}
+ .stamp .fb:nth-child(1){--d:.8s}.stamp .fb:nth-child(2){--d:.88s}
+ /* clock: Helvetica; a changing number rolls up like a flip counter; the bar ticks off the seconds */
+ .view.on .fit.tick{animation:rollIn .5s var(--ease) 0s backwards}
+ .view.on .fit.out{animation:rollOut .5s var(--ease) 0s both}
+ .stamp::after{content:"";position:absolute;left:0;right:calc(.6 * var(--u));bottom:calc(.3 * var(--u));height:calc(.4 * var(--u));background:#000;transform-origin:0 50%;transform:scaleX(calc(var(--s,0) / 60));transition:transform .35s var(--out)}
 
  /* projects */
- .banner .fb{--d:.4s}
- #pv{animation:blockY .9s var(--ease) .3s backwards}
- #pv img{animation:imgIn .8s var(--ease) backwards}
- #pl li{animation:fromR .8s var(--out) backwards;animation-delay:calc(.35s + var(--i,0) * .07s)}
- #pl a{transition:color .3s,background-color .3s}
- #pl a.on .fit{animation:wipeX .45s var(--ease) 0s backwards}
+ .banner .fb{--d:.25s}
+ #pv{animation:blockY .55s var(--ease) .2s backwards}
+ #pv img{animation:imgIn .5s var(--ease) backwards}
+ #pl li{animation:fromR .5s var(--out) backwards;animation-delay:calc(.2s + var(--i,0) * .04s)}
+ #pl a{transition:color .2s,background-color .2s}
+ #pl a.on .fit{animation:wipeX .3s var(--ease) 0s backwards}
 
  /* project detail */
- .dl h1{animation:rise .9s var(--ease) .1s backwards}
- .ck{animation:wipeX .8s var(--ease) .35s backwards}
- .dl p{animation:up .8s var(--out) backwards;animation-delay:calc(.5s + var(--i,0) * .12s)}
- .ar a{animation:fromL .8s var(--out) .9s backwards;transition:background-color .3s}
+ .dl h1{animation:rise .55s var(--ease) .05s backwards}
+ .ck{animation:wipeX .5s var(--ease) .2s backwards}
+ .dl p{animation:up .5s var(--out) backwards;animation-delay:calc(.3s + var(--i,0) * .07s)}
+ .ar a{animation:fromL .5s var(--out) .5s backwards;transition:background-color .2s}
  .ar .r{animation-name:fromR}
  .ar a:hover{background:#2a2a2a}
- .ar svg{transition:translate .4s var(--out)}
+ .ar svg{transition:translate .3s var(--out)}
  .ar a:hover svg{translate:-7% 0}.ar .r:hover svg{translate:7% 0}
 
  /* gallery tiles: reveal as they scroll into view (JS adds .vis) */
- .rv{clip-path:inset(100% 0 0 0);transition:clip-path 1s var(--ease) var(--d,0s)}
+ .rv{clip-path:inset(100% 0 0 0);transition:clip-path .6s var(--ease) var(--d,0s)}
  .rv.vis{clip-path:inset(0 0 0 0)}
- .rv img,.rv video{scale:1.2}
+ .rv img,.rv video{scale:1.15}
  .rv.vis img,.rv.vis video{scale:1}
- .ph img,.ph video{transition:scale 1.4s var(--out)}
+ .ph img,.ph video{transition:scale .9s var(--out)}
  .rv.vis:hover img,.rv.vis:hover video{scale:1.05}
  .ph:not(.rv):hover img{scale:1.04}
  .ph span{animation:drift 7s ease-in-out infinite alternate}
 
  /* about */
- .blk{--d:.5s}
- .meb{animation-delay:.5s;--d:.9s}
- .at>.shot{animation:blockY .9s var(--ease) .25s backwards}
- .at>.inv{animation-delay:.4s}
- .shot img{animation:zoom 1.6s var(--out) .3s backwards;transition:filter .8s var(--out),scale 1.4s var(--out)}
+ .blk{--d:.3s;animation-delay:.05s}
+ .meb{animation-delay:.3s;--d:.55s}
+ .at>.shot{animation:blockY .55s var(--ease) .15s backwards}
+ .at>.inv{animation-delay:.25s}
+ .shot img{animation:zoom 1s var(--out) .2s backwards;transition:filter .5s var(--out),scale .9s var(--out)}
  .shot:not(.inv):hover img{filter:grayscale(1) invert(1) contrast(1.1)}
  .shot.inv:hover img{filter:grayscale(1)}
- .ab p{animation:up .9s var(--out) .8s backwards}
- .ab p+p{animation-delay:.95s}
+ .ab p{animation:up .55s var(--out) .45s backwards}
+ .ab p+p{animation-delay:.55s}
 
  /* contact */
- .cl:nth-child(1){--d:.15s}.cl:nth-child(2){--d:.3s}.cl:nth-child(3){--d:.45s}
- .cb{animation-delay:.55s;--d:.9s}
- .cl .fit{transition:translate .6s var(--out)}
+ .cl:nth-child(1){--d:.1s}.cl:nth-child(2){--d:.18s}.cl:nth-child(3){--d:.26s}
+ .cb{animation-delay:.3s;--d:.5s}
+ .cl .fit{transition:translate .4s var(--out)}
  .cl:hover .fit{translate:1.4vw 0}
 }
 </style>
@@ -238,7 +241,7 @@ main,.view.on{min-height:0}
 
   <!-- PROJECTS INDEX -->
   <section id="projects" class="view">
-    <h1 class="banner" aria-label="Projects"><div class="fb"><span class="fit wide" aria-hidden="true">PROJECTS</span></div></h1>
+    <h1 class="banner" aria-label="Projects"><div class="fb"><span class="fit" aria-hidden="true">PROJECTS</span></div></h1>
     <div class="pl">
       <a class="ph frame" id="pv" href="#projects" aria-label="Open project"></a>
       <ul id="pl"></ul>
@@ -341,7 +344,7 @@ $("#pl").addEventListener("focusin",e=>{const a=e.target.closest("a[data-i]");if
 const cv=document.createElement("canvas").getContext("2d");
 function fit(){
   document.querySelectorAll(".view.on .fit").forEach(el=>{
-    const b=el.parentElement,cs=getComputedStyle(el);el.style.transform="none";
+    const b=el.parentElement,cs=getComputedStyle(el);el.style.transform="none";el.style.setProperty("--bh",b.clientHeight+"px");
     const W=el.offsetWidth,H=el.offsetHeight,fs=parseFloat(cs.fontSize);if(!W||!H)return;
     cv.font=`${cs.fontWeight} 200px ${cs.fontFamily}`;  // measure big, then scale down: small sizes round to whole pixels
     const st=parseFloat(cs.fontStretch)||100;           // measure at the same width as the page text
@@ -396,21 +399,28 @@ if(document.fonts){
 /* live 24-hour clock in the home stamp: hours over minutes. A digit that changes wipes in again. */
 const CLOCK_TZ="Australia/Melbourne"; // use undefined to show each visitor's own local time
 const clkFmt=new Intl.DateTimeFormat("en-GB",{hour:"2-digit",minute:"2-digit",hourCycle:"h23",timeZone:CLOCK_TZ});
-let clkLast="";
+let clkLast="",secLast=-1;
 function tick(){
-  const parts=clkFmt.formatToParts(new Date()),g=t=>parts.find(p=>p.type===t).value;
+  const now=new Date(),sec=now.getSeconds();
+  if(sec!==secLast){secLast=sec;$(".stamp").style.setProperty("--s",sec+1)}   // seconds bar
+  const parts=clkFmt.formatToParts(now),g=t=>parts.find(p=>p.type===t).value;
   const hm=g("hour")+g("minute");
   if(hm===clkLast)return;
   const animate=clkLast!==""&&$("#home").classList.contains("on");
   const set=(id,v)=>{
     const el=$(id);if(el.textContent===v)return;
-    el.textContent=v;
-    if(animate){el.classList.remove("tick");void el.offsetWidth;el.classList.add("tick");
-      el.addEventListener("animationend",e=>{if(e.animationName==="rise")el.classList.remove("tick")},{once:true})}
+    if(animate){                                  // old number rolls out, new one rolls in
+      const old=el.cloneNode(true);
+      old.removeAttribute("id");old.classList.add("out");old.setAttribute("aria-hidden","true");
+      el.parentElement.appendChild(old);
+      old.addEventListener("animationend",()=>old.remove(),{once:true});
+      el.textContent=v;el.classList.remove("tick");void el.offsetWidth;el.classList.add("tick");
+      el.addEventListener("animationend",e=>{if(e.animationName==="rollIn")el.classList.remove("tick")},{once:true});
+    }else el.textContent=v;
   };
   clkLast=hm;set("#clk-h",g("hour"));set("#clk-m",g("minute"));fit();
 }
-tick();setInterval(tick,1000);
+tick();setInterval(tick,500);
 
 fetch("projects/projects.json").then(r=>r.json()).then(d=>{P=d.projects||[]}).catch(()=>{P=[]}).finally(()=>{buildList();route()});
 </script>
