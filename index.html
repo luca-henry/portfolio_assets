@@ -60,8 +60,11 @@ main{flex:1;display:flex;flex-direction:column}
 #pv{aspect-ratio:1244/958;display:grid}
 #pl{list-style:none;display:flex;flex-direction:column;justify-content:space-between;align-items:stretch}
 #pl a{display:block;text-align:right;color:var(--mute);font-family:Archivo,"Helvetica Neue",Arial,sans-serif;font-stretch:75%;font-weight:400;font-size:calc(2.3 * var(--u));line-height:1.1;letter-spacing:-.03em;padding:calc(.5 * var(--u)) calc(1 * var(--u))}
-#pl a.on{background:#000;color:#fff;padding:calc(1.6 * var(--u)) calc(1.1 * var(--u))}
-#pl a.on .fb{display:block;height:calc(3.6 * var(--u))}
+#pl a.on{color:#fff;padding:calc(1.6 * var(--u)) calc(1.1 * var(--u))}
+#pl a.on .fb{display:block;height:calc(3.6 * var(--u));z-index:1}
+#pl a{position:relative;isolation:isolate}
+#pl a::before{content:"";position:absolute;inset:0;z-index:-1;background:#000;transform:scaleX(0);transform-origin:50% 50%}
+#pl a.on::before{transform:scaleX(1)}
 #pl .fit{font-family:Archivo,"Helvetica Neue",Arial,sans-serif;font-stretch:100%;font-weight:700;text-transform:uppercase;letter-spacing:-.02em}
 
 /* project detail */
@@ -133,6 +136,9 @@ main,.view.on{min-height:0}
  .cb{flex:21 1 0;height:auto;min-height:0}
 }
 @media (max-width:800px){.cl{flex:none!important;height:calc(10 * var(--u))}.cl .fb{height:100%;overflow:visible}}
+
+#sh{position:fixed;inset:0;z-index:50;pointer-events:none;display:flex;flex-direction:column;visibility:hidden}
+#sh i{flex:1;background:#000;transform:scaleX(0)}
 
 /* ───────── motion ─────────
    Brutalist: no easing, no fades. Everything moves in hard steps and snaps.
@@ -213,7 +219,10 @@ main,.view.on{min-height:0}
  /* contact: the highlight is black and stretches out from the centre in 5 jumps */
  .cl:nth-child(1){--d:.1s}.cl:nth-child(2){--d:.17s}.cl:nth-child(3){--d:.24s}
  .cb{animation-delay:.25s;--d:.45s}
- .cl::before{transition:transform .3s steps(5,end)}
+ .cl::before,#pl a::before{transition:transform .3s steps(5,end)}
+ /* opposite directions so the page doesn't all slide one way */
+ @keyframes wipeXr{from{clip-path:inset(-50% -10% -50% 110%)}to{clip-path:inset(-50% -10% -50% -10%)}}
+ .logo .r2 .fit,.cl:nth-child(2) .fit{animation-name:wipeXr}
 }
 </style>
 </head>
@@ -277,6 +286,8 @@ main,.view.on{min-height:0}
     <h1 class="cb" aria-label="Contact"><div class="fb"><span class="fit" aria-hidden="true">CONTACT</span></div></h1>
   </section>
 </main>
+
+<div id="sh" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i></div>
 
 <script>
 const $=s=>document.querySelector(s);
@@ -365,6 +376,7 @@ function fit(){
 /* hash routing: #home #projects #about #contact #project-<folder name> */
 const VIEWS=["home","projects","about","contact"];
 function route(){
+  document.querySelectorAll(".tick").forEach(e=>e.classList.remove("tick"));
   const h=decodeURIComponent(location.hash.slice(1))||"home";let v=h,pi=-1;
   if(h.startsWith("project-")){pi=P.findIndex(p=>"project-"+p.slug===h);v=pi<0?"projects":"project"}
   else if(!VIEWS.includes(h))v="home";
@@ -374,10 +386,34 @@ function route(){
   document.querySelectorAll("nav [data-n]").forEach(a=>{a.dataset.n===key?a.setAttribute("aria-current","page"):a.removeAttribute("aria-current")});
   if(v==="project"){$("#project").innerHTML=detail(pi);document.title=P[pi].title+" — Luca Henry";setCur(pi);reveal()}
   else document.title=(v==="home"?"Luca Henry":key[0].toUpperCase()+key.slice(1)+" — Luca Henry");
-  window.scrollTo(0,0);
+  window.scrollTo({top:0,left:0,behavior:"instant"});
   requestAnimationFrame(fit);
 }
-addEventListener("hashchange",route);
+let armed=false,busy=false;
+/* page change: six black slats slam shut in alternating directions, the page swaps underneath, they retract the other way */
+function shutter(fn){
+  if(!armed||busy||!matchMedia("(prefers-reduced-motion:no-preference)").matches){fn();return}
+  busy=true;const sh=$("#sh"),bars=[...sh.children],D=110,G=18,E="steps(3,end)";
+  sh.style.visibility="visible";
+  const shut=bars.map((b,i)=>{b.style.transformOrigin=i%2?"100% 50%":"0 50%";return b.animate([{transform:"scaleX(0)"},{transform:"scaleX(1)"}],{duration:D,delay:i*G,easing:E,fill:"both"})});
+  Promise.all(shut.map(a=>a.finished)).then(()=>{
+    fn();
+    const open=bars.map((b,i)=>{b.style.transformOrigin=i%2?"0 50%":"100% 50%";return b.animate([{transform:"scaleX(1)"},{transform:"scaleX(0)"}],{duration:D,delay:i*G,easing:E,fill:"both"})});
+    shut.forEach(a=>a.cancel());
+    Promise.all(open.map(a=>a.finished)).then(()=>{open.forEach(a=>a.cancel());sh.style.visibility="hidden";busy=false});
+  });
+}
+addEventListener("hashchange",()=>shutter(route));
+
+/* glitch: hovering a big title cuts it into slices that jump sideways */
+const GL=["inset(-50% -10% 60% -10%)","inset(30% -10% -50% -10%)","inset(-50% -10% 20% -10%)","inset(55% -10% -50% -10%)","inset(-50% -10% 70% -10%)","inset(-50% -10% -50% -10%)"],GX=[1,-1.4,.8,-.6,1.2,0];
+document.addEventListener("mouseover",e=>{
+  const fb=e.target.closest&&e.target.closest(".fb");
+  if(!fb||fb.closest(".stamp,.cl,#pl")||!matchMedia("(prefers-reduced-motion:no-preference)").matches)return;
+  const el=fb.querySelector(".fit");
+  if(!el||(el._g&&el._g.playState==="running"))return;
+  el._g=el.animate(GL.map((c,i)=>({clipPath:c,translate:GX[i]+"vw 0",easing:"steps(1,end)"})),{duration:360});
+});
 addEventListener("resize",fit);
 
 /* re-fit once the display font really arrives (fonts.ready can fire before it starts loading) */
@@ -416,14 +452,13 @@ function tick(){
       el.parentElement.appendChild(old);
       old.addEventListener("animationend",()=>old.remove(),{once:true});
       el.textContent=v;el.classList.remove("tick");void el.offsetWidth;el.classList.add("tick");
-      el.addEventListener("animationend",e=>{if(e.animationName==="rollIn")el.classList.remove("tick")},{once:true});
     }else el.textContent=v;
   };
   clkLast=hm;set("#clk-h",g("hour"));set("#clk-m",g("minute"));fit();
 }
 tick();setInterval(tick,500);
 
-fetch("projects/projects.json").then(r=>r.json()).then(d=>{P=d.projects||[]}).catch(()=>{P=[]}).finally(()=>{buildList();route()});
+fetch("projects/projects.json").then(r=>r.json()).then(d=>{P=d.projects||[]}).catch(()=>{P=[]}).finally(()=>{buildList();route();armed=true});
 </script>
 </body>
 </html>
