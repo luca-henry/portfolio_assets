@@ -63,8 +63,7 @@ main{flex:1;display:flex;flex-direction:column}
 #pl a.on{color:#fff;padding:calc(1.6 * var(--u)) calc(1.1 * var(--u))}
 #pl a.on .fb{display:block;height:calc(3.6 * var(--u));z-index:1}
 #pl a{position:relative;isolation:isolate}
-#pl a::before{content:"";position:absolute;inset:0;z-index:-1;background:#000;transform:scaleX(0);transform-origin:50% 50%}
-#pl a.on::before{transform:scaleX(1)}
+#pl a::before{content:"";position:absolute;inset:0;z-index:-1;background:#000;transform:scaleX(var(--t,0));transform-origin:50% 50%}
 #pl .fit{font-family:Archivo,"Helvetica Neue",Arial,sans-serif;font-stretch:100%;font-weight:700;text-transform:uppercase;letter-spacing:-.02em}
 
 /* project detail */
@@ -182,7 +181,7 @@ main,.view.on{min-height:0}
  #pv{animation:blockY .4s var(--ease) .15s backwards}
  #pv img{animation:imgIn .4s var(--ease) backwards}
  #pl li{animation:cutR .35s var(--ease) backwards;animation-delay:calc(.15s + var(--i,0) * .04s)}
- #pl a.on .fit{animation:wipeX .25s var(--ease) 0s backwards}
+ #pl .fit{--d:calc(.2s + var(--i,0) * .04s)}
 
  /* project detail */
  .dl h1{animation:rise .45s var(--ease) .05s backwards}
@@ -219,7 +218,7 @@ main,.view.on{min-height:0}
  /* contact: the highlight is black and stretches out from the centre in 5 jumps */
  .cl:nth-child(1){--d:.1s}.cl:nth-child(2){--d:.17s}.cl:nth-child(3){--d:.24s}
  .cb{animation-delay:.25s;--d:.45s}
- .cl::before,#pl a::before{transition:transform .3s steps(5,end)}
+ .cl::before{transition:transform .3s steps(5,end)}
  /* opposite directions so the page doesn't all slide one way */
  @keyframes wipeXr{from{clip-path:inset(-50% -10% -50% 110%)}to{clip-path:inset(-50% -10% -50% -10%)}}
  .logo .r2 .fit,.cl:nth-child(2) .fit{animation-name:wipeXr}
@@ -329,25 +328,61 @@ function reveal(){
 }
 
 function buildList(){
-  drawn=-1;
-  $("#pl").innerHTML=P.length?P.map((p,i)=>`<li style="--i:${i}"><a href="#project-${p.slug}" data-i="${i}">${esc(p.title)} / ${esc(p.category)}</a></li>`).join(""):"<li><a>no projects yet</a></li>";
+  drawn=-1;T=[];A=[];
+  $("#pl").innerHTML=P.length?P.map((p,i)=>`<li style="--i:${i}"><a href="#project-${p.slug}" data-i="${i}"><span class="fb"><span class="fit">${esc(p.title)} / ${esc(p.category)}</span></span></a></li>`).join(""):"<li><a>no projects yet</a></li>";
   if(P.length)setCur(0);
 }
 function setCur(i){
   cur=i;
-  if(i!==drawn&&P.length){
-    drawn=i;
-    // the selected title is stretched/squished to fill its black box
-    document.querySelectorAll("#pl a[data-i]").forEach((a,j)=>{
-      const t=esc(P[j].title+" / "+P[j].category);
-      a.classList.toggle("on",j===i);
-      a.innerHTML=j===i?`<span class="fb"><span class="fit">${t}</span></span>`:t;
-    });
-    requestAnimationFrame(fit);
-  }
+  if(i!==drawn&&P.length){const first=drawn===-1;drawn=i;retarget(i,first)}
   const pv=$("#pv"),p=P[i];if(!p)return;
   pv.href="#project-"+p.slug;pv.setAttribute("aria-label","Open "+p.title);
   pv.innerHTML=(p.cover?`<img src="${p.cover}" alt="">`:"")+"<span>WORK DISPLAY<br>PHOTO</span>";
+}
+/* PROJECT LIST MORPH
+   Every row is one piece of text. The selected row (t=1) is condensed, heavy, white and stretched to fill a black bar that grows from the centre;
+   the others (t=0) are light grey and small, right-aligned. t is tweened per row and weight, width, size, colour, padding and stretch all follow it. */
+let T=[],A=[],lraf=0;
+const lerp=(a,b,t)=>a+(b-a)*t,smooth=x=>x<.5?4*x*x*x:1-Math.pow(-2*x+2,3)/2;
+const kw=st=>st>=187?"ultra-expanded":st>=137?"extra-expanded":st>=118?"expanded":st>=106?"semi-expanded":st>=94?"normal":st>=81?"semi-condensed":st>=69?"condensed":st>=56?"extra-condensed":"ultra-condensed";
+const probe=document.createElement("div");probe.style.cssText="position:absolute;visibility:hidden;height:0;width:var(--u)";document.body.appendChild(probe);
+function applyList(){
+  const items=document.querySelectorAll("#pl a[data-i]");
+  if(!items.length||!$("#projects").classList.contains("on"))return;
+  const u=probe.getBoundingClientRect().width,M=matchMedia("(max-width:800px)").matches;
+  const G=M?{fs:6,py0:1.5,px0:2,py1:3,px1:2.5,h1:8}:{fs:2.3,py0:.5,px0:1,py1:1.6,px1:1.1,h1:3.6};
+  const fs=G.fs*u,h0=fs*1.1,h1=G.h1*u;
+  items.forEach(a=>{
+    const t=T[+a.dataset.i]||0,fb=a.firstElementChild,el=fb.firstElementChild,g=Math.round(lerp(140,255,t));
+    a.style.setProperty("--t",t);
+    a.style.padding=`${lerp(G.py0,G.py1,t)*u}px ${lerp(G.px0,G.px1,t)*u}px`;
+    a.style.color=`rgb(${g},${g},${g})`;
+    const h=lerp(h0,h1,t);fb.style.height=h+"px";
+    el.style.cssText=`font-size:${fs}px;font-weight:${lerp(400,700,t)};font-stretch:${lerp(75,100,t)}%;text-transform:${t>.4?"uppercase":"none"};transform:none`;
+    const bw=fb.clientWidth,W=el.offsetWidth,H=el.offsetHeight;if(!bw||!W)return;
+    const cs=getComputedStyle(el);
+    cv.font=`${cs.fontWeight} 200px ${cs.fontFamily}`;cv.fontStretch=kw(parseFloat(cs.fontStretch)||100);
+    const m=cv.measureText(cs.textTransform==="uppercase"?el.textContent.toUpperCase():el.textContent),k=fs/200;
+    const fa=(m.fontBoundingBoxAscent??180)*k,fd=(m.fontBoundingBoxDescent??44)*k;
+    const asc=m.actualBoundingBoxAscent*k,desc=m.actualBoundingBoxDescent*k,top=(H-(fa+fd))/2+fa-asc,ink=asc+desc;
+    const sx=bw/W*.99,sy=h/(ink*1.06);                       // fitted end state
+    const x=lerp(bw-W,bw*.005,t),y=lerp((h-H)/2,(h-ink*sy)/2-top*sy,t);  // right-aligned natural -> fitted
+    el.style.transform=`translate(${x}px,${y}px) scale(${lerp(1,sx,t)},${lerp(1,sy,t)})`;
+  });
+}
+function tickList(now){
+  let live=false;
+  A.forEach((an,j)=>{if(!an)return;const p=Math.min(1,(now-an.t0)/an.d);T[j]=lerp(an.from,an.to,smooth(p));if(p<1)live=true;else A[j]=null});
+  applyList();lraf=live?requestAnimationFrame(tickList):0;
+}
+function retarget(sel,instant){
+  const d=instant||!matchMedia("(prefers-reduced-motion:no-preference)").matches?0:480;
+  P.forEach((_,j)=>{
+    const to=j===sel?1:0;
+    if(d===0){T[j]=to;A[j]=null}
+    else if((A[j]?A[j].to:(T[j]||0))!==to)A[j]={from:T[j]||0,to,t0:performance.now(),d};
+  });
+  if(d===0)applyList();else if(!lraf)lraf=requestAnimationFrame(tickList);
 }
 $("#pl").addEventListener("mouseover",e=>{const a=e.target.closest("a[data-i]");if(a)setCur(+a.dataset.i)});
 $("#pl").addEventListener("focusin",e=>{const a=e.target.closest("a[data-i]");if(a)setCur(+a.dataset.i)});
@@ -355,7 +390,9 @@ $("#pl").addEventListener("focusin",e=>{const a=e.target.closest("a[data-i]");if
 /* stretch display type so its real ink fills the box exactly (nothing clipped) */
 const cv=document.createElement("canvas").getContext("2d");
 function fit(){
+  applyList();
   document.querySelectorAll(".view.on .fit").forEach(el=>{
+    if(el.closest("#pl"))return;
     const b=el.parentElement,cs=getComputedStyle(el);el.style.transform="none";el.style.setProperty("--bh",b.clientHeight+"px");
     const W=el.offsetWidth,H=el.offsetHeight,fs=parseFloat(cs.fontSize);if(!W||!H)return;
     cv.font=`${cs.fontWeight} 200px ${cs.fontFamily}`;  // measure big, then scale down: small sizes round to whole pixels
@@ -405,15 +442,15 @@ function shutter(fn){
 }
 addEventListener("hashchange",()=>shutter(route));
 
-/* glitch: hovering a big title cuts it into slices that jump sideways */
-const GL=["inset(-50% -10% 60% -10%)","inset(30% -10% -50% -10%)","inset(-50% -10% 20% -10%)","inset(55% -10% -50% -10%)","inset(-50% -10% 70% -10%)","inset(-50% -10% -50% -10%)"],GX=[1,-1.4,.8,-.6,1.2,0];
+/* hover jitter: a big title gives one small sideways shake (text stays fully visible) */
 document.addEventListener("mouseover",e=>{
   const fb=e.target.closest&&e.target.closest(".fb");
   if(!fb||fb.closest(".stamp,.cl,#pl")||!matchMedia("(prefers-reduced-motion:no-preference)").matches)return;
   const el=fb.querySelector(".fit");
   if(!el||(el._g&&el._g.playState==="running"))return;
-  el._g=el.animate(GL.map((c,i)=>({clipPath:c,translate:GX[i]+"vw 0",easing:"steps(1,end)"})),{duration:360});
+  el._g=el.animate(["0 0",".45vw 0","-.35vw 0",".2vw 0","0 0"].map(v=>({translate:v,easing:"steps(1,end)"})),{duration:220});
 });
+
 addEventListener("resize",fit);
 
 /* re-fit once the display font really arrives (fonts.ready can fire before it starts loading) */
