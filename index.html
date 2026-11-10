@@ -123,12 +123,12 @@ main{flex:1;display:flex;flex-direction:column}
 <main>
   <!-- HOME -->
   <section id="home" class="view" aria-label="Luca Henry">
-    <h1 class="logo" aria-label="Luca Henry 10 32">
+    <h1 class="logo" aria-label="Luca Henry">
       <div class="fb r1"><span class="fit" aria-hidden="true">LUCA</span></div>
       <div class="fb r2"><span class="fit" aria-hidden="true">HENRY</span></div>
       <div class="stamp" aria-hidden="true">
-        <div class="fb"><span class="fit">10</span></div>
-        <div class="fb"><span class="fit">32</span></div>
+        <div class="fb"><span class="fit" id="clk-h">10</span></div>
+        <div class="fb"><span class="fit" id="clk-m">32</span></div>
       </div>
     </h1>
   </section>
@@ -243,6 +243,18 @@ function route(){
 addEventListener("hashchange",route);
 addEventListener("resize",fit);
 document.fonts&&document.fonts.ready.then(fit);
+
+/* live 24-hour clock in the home stamp: hours over minutes */
+const CLOCK_TZ="Australia/Melbourne"; // use undefined to show each visitor's own local time
+const clkFmt=new Intl.DateTimeFormat("en-GB",{hour:"2-digit",minute:"2-digit",hourCycle:"h23",timeZone:CLOCK_TZ});
+let clkLast="";
+function tick(){
+  const parts=clkFmt.formatToParts(new Date()),g=t=>parts.find(p=>p.type===t).value;
+  const hm=g("hour")+g("minute");
+  if(hm===clkLast)return;
+  clkLast=hm;$("#clk-h").textContent=g("hour");$("#clk-m").textContent=g("minute");fit();
+}
+tick();setInterval(tick,1000);
 
 fetch("projects/projects.json").then(r=>r.json()).then(d=>{P=d.projects||[]}).catch(()=>{P=[]}).finally(()=>{buildList();route()});
 </script>
