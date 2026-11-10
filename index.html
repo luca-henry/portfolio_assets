@@ -57,7 +57,9 @@ main{flex:1;display:flex;flex-direction:column}
 #pv{aspect-ratio:1244/958;display:grid}
 #pl{list-style:none;display:flex;flex-direction:column;justify-content:space-between;align-items:stretch}
 #pl a{display:block;text-align:right;color:var(--mute);font-family:Archivo,"Helvetica Neue",Arial,sans-serif;font-stretch:75%;font-weight:400;font-size:2.3vw;line-height:1.1;letter-spacing:-.03em;padding:.5vw 1vw}
-#pl a.on{background:#000;color:#fff;text-transform:uppercase;font-weight:700;font-size:3.1vw;padding:1.2vw 1vw}
+#pl a.on{background:#000;color:#fff;padding:1.6vw 1.1vw}
+#pl a.on .fb{display:block;height:3.6vw}
+#pl .fit{font-family:Archivo,"Helvetica Neue",Arial,sans-serif;font-stretch:100%;font-weight:700;text-transform:uppercase;letter-spacing:-.02em}
 
 /* project detail */
 .dt{display:grid;grid-template-columns:44% 1fr;gap:2vw;align-items:start}
@@ -96,7 +98,7 @@ main{flex:1;display:flex;flex-direction:column}
  .logo{min-height:120vw;padding:4vw;gap:4vw}.stamp{width:15%;padding:1vw 1vw 2vw 0;gap:2vw}.logo .r1{margin-right:17%}
  .banner{height:15vw;padding:1vw 2vw}
  .pl{grid-template-columns:1fr;margin-top:6vw;gap:5vw}
- #pl{gap:1vw}#pl a{font-size:6vw;padding:1.5vw 2vw}#pl a.on{font-size:7vw;padding:2.5vw 2vw}
+ #pl{gap:1vw}#pl a{font-size:6vw;padding:1.5vw 2vw}#pl a.on{padding:3vw 2.5vw}#pl a.on .fb{height:8vw}
  .dt{grid-template-columns:1fr;gap:6vw}.dl{position:static}
  .dl h1{font-size:17vw}.ck{font-size:8vw;margin:4vw 0}.dl p{font-size:4vw}.dl .nt{font-size:3.2vw;margin-top:4vw}
  .ar{margin-top:6vw;gap:4vw}.ar a{padding:2vw}
@@ -176,7 +178,7 @@ const $=s=>document.querySelector(s);
 const esc=s=>String(s??"").replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
 const ARROW='<svg viewBox="0 0 300 130" aria-hidden="true"><path d="M8 65 100 8v34h190v46H100v34z" fill="#fff"/></svg>';
 const ROWS=[[16.4,[5,7]],[28.5,[7.25,4.3]],[16,[5.5,6.1]]]; // row height (vw) + column ratios, repeated as needed
-let P=[],cur=0;
+let P=[],cur=0,drawn=-1;
 
 /* one tile: image, looping video, or PDF link. No file = placeholder */
 function tile(m){
@@ -201,12 +203,22 @@ function detail(i){
 }
 
 function buildList(){
+  drawn=-1;
   $("#pl").innerHTML=P.length?P.map((p,i)=>`<li><a href="#project-${p.slug}" data-i="${i}">${esc(p.title)} / ${esc(p.category)}</a></li>`).join(""):"<li><a>no projects yet</a></li>";
   if(P.length)setCur(0);
 }
 function setCur(i){
   cur=i;
-  document.querySelectorAll("#pl a").forEach((a,j)=>a.classList.toggle("on",j===i));
+  if(i!==drawn&&P.length){
+    drawn=i;
+    // the selected title is stretched/squished to fill its black box
+    document.querySelectorAll("#pl a[data-i]").forEach((a,j)=>{
+      const t=esc(P[j].title+" / "+P[j].category);
+      a.classList.toggle("on",j===i);
+      a.innerHTML=j===i?`<span class="fb"><span class="fit">${t}</span></span>`:t;
+    });
+    requestAnimationFrame(fit);
+  }
   const pv=$("#pv"),p=P[i];if(!p)return;
   pv.href="#project-"+p.slug;pv.setAttribute("aria-label","Open "+p.title);
   pv.innerHTML=(p.cover?`<img src="${p.cover}" alt="">`:"")+"<span>WORK DISPLAY<br>PHOTO</span>";
