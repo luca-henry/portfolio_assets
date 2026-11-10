@@ -10,7 +10,7 @@
 <style>
 @font-face{font-family:"Main";src:url("fonts/main_font.woff2") format("woff2"),url("fonts/main_font.woff") format("woff"),url("fonts/main_font.otf") format("opentype"),url("fonts/main_font.ttf") format("truetype");font-display:swap}
 @font-face{font-family:"Secondary";src:local("Helvetica Neue"),local("Helvetica"),url("fonts/secondary_font.woff2") format("woff2"),url("fonts/secondary_font.ttf") format("truetype");font-display:swap}
-:root{--bg:#fff;--fg:#000;--mute:#8c8c8c;--pad:2.6vw;--bw:clamp(3px,.45vw,12px)}
+:root{--u:min(1vw,1.7778svh);--bg:#fff;--fg:#000;--mute:#8c8c8c;--pad:calc(2.6 * var(--u));--bw:clamp(3px,calc(.45 * var(--u)),12px)}
 *{box-sizing:border-box;margin:0;padding:0}
 html{background:var(--bg)}
 body{min-height:100svh;display:flex;flex-direction:column;background:var(--bg);color:var(--fg);font-family:Secondary,"Helvetica Neue",Helvetica,Arial,sans-serif;letter-spacing:-.02em;-webkit-font-smoothing:antialiased}
@@ -18,9 +18,9 @@ a{color:inherit;text-decoration:none}
 :focus-visible{outline:3px solid var(--fg);outline-offset:3px}
 
 /* nav */
-nav{display:flex;align-items:center;gap:1.7vw;padding:var(--pad) var(--pad) 1.8vw;font-size:clamp(16px,2vw,56px);line-height:1}
+nav{display:flex;align-items:center;gap:calc(1.7 * var(--u));padding:var(--pad) var(--pad) calc(1.8 * var(--u));font-size:clamp(16px,calc(2 * var(--u)),56px);line-height:1}
 nav a{white-space:nowrap}
-nav a.ln{flex:1;height:max(2px,.28vw);background:var(--fg)}
+nav a.ln{flex:1;height:max(2px,calc(.28 * var(--u)));background:var(--fg)}
 nav a[aria-current]{font-weight:700;text-decoration:line-through;text-decoration-thickness:.1em}
 
 main{flex:1;display:flex;flex-direction:column}
@@ -30,15 +30,15 @@ main{flex:1;display:flex;flex-direction:column}
 
 /* stretched display type: JS scales .fit to fill its .fb box */
 .fb{position:relative;overflow:hidden}
-.fit{position:absolute;left:0;top:50%;white-space:nowrap;transform-origin:0 50%;line-height:1;letter-spacing:-.02em;font-family:Main,Archivo,"Arial Black",Impact,sans-serif;font-weight:900;font-stretch:100%}
+.fit{position:absolute;left:0;top:0;white-space:nowrap;transform-origin:0 0;line-height:1;letter-spacing:-.02em;font-family:Main,Archivo,"Arial Black",Impact,sans-serif;font-weight:900;font-stretch:100%}
 .fit.wide{font-family:Archivo,"Helvetica Neue",Arial,sans-serif;font-stretch:125%;font-weight:500}
 .fit.wide.b{font-weight:800}
 
 /* home */
-.logo{flex:1 1 auto;min-height:45vw;position:relative;background:#000;padding:2vw;display:grid;grid-template-rows:1fr 1fr;gap:2vw}
+.logo{flex:1 1 auto;min-height:calc(45 * var(--u));position:relative;background:#000;padding:calc(2 * var(--u));display:grid;grid-template-rows:1fr 1fr;gap:calc(2 * var(--u))}
 .logo .fit{color:#fff}
 .logo .r1{margin-right:9.2%}
-.stamp{position:absolute;top:0;right:0;width:9.3%;height:47.8%;background:#fff;padding:.5vw .6vw 1vw 0;display:grid;grid-template-rows:1fr 1fr;gap:1.1vw}
+.stamp{position:absolute;top:0;right:0;width:9.3%;height:47.8%;background:#fff;padding:calc(.5 * var(--u)) calc(.6 * var(--u)) calc(1 * var(--u)) 0;display:grid;grid-template-rows:1fr 1fr;gap:calc(1.1 * var(--u))}
 .stamp .fit{color:#000}
 
 /* placeholders / frames */
@@ -47,69 +47,85 @@ main{flex:1;display:flex;flex-direction:column}
 .ph img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
 .ph img+span,.ph video+span{display:none}
 .ph video{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
-.ph a.pdf{position:absolute;inset:0;display:grid;place-items:center;font-size:3vw;font-weight:700}
+.ph a.pdf{position:absolute;inset:0;display:grid;place-items:center;font-size:calc(3 * var(--u));font-weight:700}
 .frame{border:var(--bw) solid var(--fg)}
 
 /* projects index */
-.banner{background:#000;height:6.8vw;padding:.45vw .8vw}
+.banner{background:#000;height:calc(6.8 * var(--u));padding:calc(.45 * var(--u)) calc(.8 * var(--u))}
 .banner .fb{height:100%}.banner .fit{color:#fff}
-.pl{display:grid;grid-template-columns:52% 1fr;gap:1.7vw;margin-top:3vw;align-items:stretch}
+.pl{display:grid;grid-template-columns:52% 1fr;gap:calc(1.7 * var(--u));margin-top:calc(3 * var(--u));align-items:stretch}
 #pv{aspect-ratio:1244/958;display:grid}
 #pl{list-style:none;display:flex;flex-direction:column;justify-content:space-between;align-items:stretch}
-#pl a{display:block;text-align:right;color:var(--mute);font-family:Archivo,"Helvetica Neue",Arial,sans-serif;font-stretch:75%;font-weight:400;font-size:2.3vw;line-height:1.1;letter-spacing:-.03em;padding:.5vw 1vw}
-#pl a.on{background:#000;color:#fff;padding:1.6vw 1.1vw}
-#pl a.on .fb{display:block;height:3.6vw}
+#pl a{display:block;text-align:right;color:var(--mute);font-family:Archivo,"Helvetica Neue",Arial,sans-serif;font-stretch:75%;font-weight:400;font-size:calc(2.3 * var(--u));line-height:1.1;letter-spacing:-.03em;padding:calc(.5 * var(--u)) calc(1 * var(--u))}
+#pl a.on{background:#000;color:#fff;padding:calc(1.6 * var(--u)) calc(1.1 * var(--u))}
+#pl a.on .fb{display:block;height:calc(3.6 * var(--u))}
 #pl .fit{font-family:Archivo,"Helvetica Neue",Arial,sans-serif;font-stretch:100%;font-weight:700;text-transform:uppercase;letter-spacing:-.02em}
 
 /* project detail */
-.dt{display:grid;grid-template-columns:44% 1fr;gap:2vw;align-items:start}
-.dl{position:sticky;top:1.5vw}
-.dl h1{font-family:Archivo,"Helvetica Neue",Arial,sans-serif;font-stretch:72%;font-weight:800;text-transform:uppercase;font-size:7.2vw;line-height:.86;letter-spacing:-.045em}
-.ck{margin:2.6vw 0 2.4vw;font-family:Archivo,sans-serif;font-stretch:72%;font-weight:700;font-size:3.7vw;letter-spacing:-.04em;color:#a6a6a6;line-height:1}
-.dl p{font-size:clamp(14px,1.1vw,30px);line-height:1.28;letter-spacing:.01em;max-width:62ch}
-.dl .nt{margin-top:2.2vw;font-size:clamp(12px,.82vw,22px);line-height:1.02;font-style:italic}
-.ar{display:flex;gap:2vw;margin-top:3.4vw}
-.ar a{flex:1;background:#000;aspect-ratio:2.9/1;display:grid;place-items:center;padding:.9vw 1vw}
+.dt{display:grid;grid-template-columns:44% 1fr;gap:calc(2 * var(--u));align-items:start}
+.dl{position:sticky;top:calc(1.5 * var(--u))}
+.dl h1{font-family:Archivo,"Helvetica Neue",Arial,sans-serif;font-stretch:72%;font-weight:800;text-transform:uppercase;font-size:calc(7.2 * var(--u));line-height:.86;letter-spacing:-.045em}
+.ck{margin:calc(2.6 * var(--u)) 0 calc(2.4 * var(--u));font-family:Archivo,sans-serif;font-stretch:72%;font-weight:700;font-size:calc(3.7 * var(--u));letter-spacing:-.04em;color:#a6a6a6;line-height:1}
+.dl p{font-size:clamp(14px,calc(1.1 * var(--u)),30px);line-height:1.28;letter-spacing:.01em;max-width:62ch}
+.dl .nt{margin-top:calc(2.2 * var(--u));font-size:clamp(12px,calc(.82 * var(--u)),22px);line-height:1.02;font-style:italic}
+.ar{display:flex;gap:calc(2 * var(--u));margin-top:calc(3.4 * var(--u))}
+.ar a{flex:1;background:#000;aspect-ratio:2.9/1;display:grid;place-items:center;padding:calc(.9 * var(--u)) calc(1 * var(--u))}
 .ar svg{width:100%;height:100%}
 .ar .r svg{transform:scaleX(-1)}
-.gl .row{display:flex;gap:1.7vw;margin-bottom:1.7vw;height:var(--h)}
+.gl .row{display:flex;gap:calc(1.7 * var(--u));margin-bottom:calc(1.7 * var(--u));height:var(--h)}
 .gl .ph{height:100%}
 
 /* about */
-.at{display:grid;grid-template-columns:48.3fr 27.4fr 20.1fr;gap:2vw;height:24.5vw}
-.blk{background:#000;padding:2.6vw 3.2vw 2.9vw 2.7vw}
+.at{display:grid;grid-template-columns:48.3fr 27.4fr 20.1fr;gap:calc(2 * var(--u));height:calc(24.5 * var(--u))}
+.blk{background:#000;padding:calc(2.6 * var(--u)) calc(3.2 * var(--u)) calc(2.9 * var(--u)) calc(2.7 * var(--u))}
 .blk .fb,.meb .fb{height:100%}.blk .fit,.meb .fit{color:#fff}
 .shot{height:100%;background:#eee}
 .shot img{filter:grayscale(1)}
 .shot.inv{background:#000}.shot.inv img{filter:grayscale(1) invert(1) contrast(1.1)}
 .shot span{font-size:9cqw}
-.ab{display:grid;grid-template-columns:29.5fr 35fr 35fr;height:23vw;margin-top:0}
-.meb{background:#000;padding:1.1vw 3.3vw 3vw;margin-top:-1px}
-.ab p{padding:1.1vw 0 0 2.1vw;font-size:clamp(13px,1.05vw,28px);line-height:1.28;letter-spacing:.01em}
+.ab{display:grid;grid-template-columns:29.5fr 35fr 35fr;height:calc(23 * var(--u));margin-top:0}
+.meb{background:#000;padding:calc(1.1 * var(--u)) calc(3.3 * var(--u)) calc(3 * var(--u));margin-top:-1px}
+.ab p{padding:calc(1.1 * var(--u)) 0 0 calc(2.1 * var(--u));font-size:clamp(13px,calc(1.05 * var(--u)),28px);line-height:1.28;letter-spacing:.01em}
 
 /* contact */
-.cl{display:block;margin-bottom:2.4vw}
-.cb{background:#000;height:21vw;padding:2.8vw 3.4vw}
+.cl{display:block;margin-bottom:calc(2.4 * var(--u))}
+.cb{background:#000;height:calc(21 * var(--u));padding:calc(2.8 * var(--u)) calc(3.4 * var(--u))}
 .cb .fb{height:100%}.cb .fit{color:#fff}
 
 @media (max-width:800px){
- :root{--pad:5vw}
- nav{font-size:4.4vw;gap:3vw}
- .logo{min-height:120vw;padding:4vw;gap:4vw}.stamp{width:15%;padding:1vw 1vw 2vw 0;gap:2vw}.logo .r1{margin-right:17%}
- .banner{height:15vw;padding:1vw 2vw}
- .pl{grid-template-columns:1fr;margin-top:6vw;gap:5vw}
- #pl{gap:1vw}#pl a{font-size:6vw;padding:1.5vw 2vw}#pl a.on{padding:3vw 2.5vw}#pl a.on .fb{height:8vw}
- .dt{grid-template-columns:1fr;gap:6vw}.dl{position:static}
- .dl h1{font-size:17vw}.ck{font-size:8vw;margin:4vw 0}.dl p{font-size:4vw}.dl .nt{font-size:3.2vw;margin-top:4vw}
- .ar{margin-top:6vw;gap:4vw}.ar a{padding:2vw}
- .gl .row{gap:3vw;margin-bottom:3vw;height:calc(var(--h)*2.1)}
- .at{grid-template-columns:1fr 1fr;height:auto;gap:3vw}
- .blk{grid-column:1/3;height:55vw;padding:5vw}.shot{aspect-ratio:1;height:auto}
- .ab{grid-template-columns:1fr;height:auto}.meb{height:55vw;padding:5vw}
- .ab p{padding:4vw 0 0;font-size:3.8vw}
- .cb{height:42vw;padding:5vw}.cl{margin-bottom:5vw}
+ :root{--u:1vw;--pad:calc(5 * var(--u))}
+ nav{font-size:calc(4.4 * var(--u));gap:calc(3 * var(--u))}
+ .logo{min-height:calc(120 * var(--u));padding:calc(4 * var(--u));gap:calc(4 * var(--u))}.stamp{width:15%;padding:calc(1 * var(--u)) calc(1 * var(--u)) calc(2 * var(--u)) 0;gap:calc(2 * var(--u))}.logo .r1{margin-right:17%}
+ .banner{height:calc(15 * var(--u));padding:calc(1 * var(--u)) calc(2 * var(--u))}
+ .pl{grid-template-columns:1fr;margin-top:calc(6 * var(--u));gap:calc(5 * var(--u))}
+ #pl{gap:calc(1 * var(--u))}#pl a{font-size:calc(6 * var(--u));padding:calc(1.5 * var(--u)) calc(2 * var(--u))}#pl a.on{padding:calc(3 * var(--u)) calc(2.5 * var(--u))}#pl a.on .fb{height:calc(8 * var(--u))}
+ .dt{grid-template-columns:1fr;gap:calc(6 * var(--u))}.dl{position:static}
+ .dl h1{font-size:calc(17 * var(--u))}.ck{font-size:calc(8 * var(--u));margin:calc(4 * var(--u)) 0}.dl p{font-size:calc(4 * var(--u))}.dl .nt{font-size:calc(3.2 * var(--u));margin-top:calc(4 * var(--u))}
+ .ar{margin-top:calc(6 * var(--u));gap:calc(4 * var(--u))}.ar a{padding:calc(2 * var(--u))}
+ .gl .row{gap:calc(3 * var(--u));margin-bottom:calc(3 * var(--u));height:calc(var(--h)*2.1)}
+ .at{grid-template-columns:1fr 1fr;height:auto;gap:calc(3 * var(--u))}
+ .blk{grid-column:1/3;height:calc(55 * var(--u));padding:calc(5 * var(--u))}.shot{aspect-ratio:1;height:auto}
+ .ab{grid-template-columns:1fr;height:auto}.meb{height:calc(55 * var(--u));padding:calc(5 * var(--u))}
+ .ab p{padding:calc(4 * var(--u)) 0 0;font-size:calc(3.8 * var(--u))}
+ .cb{height:calc(42 * var(--u));padding:calc(5 * var(--u))}.cl{margin-bottom:calc(5 * var(--u))}
 }
 @media (prefers-reduced-motion:no-preference){html{scroll-behavior:smooth}}
+
+/* fit every page to the window (desktop). The project page scrolls because its gallery is long. */
+main,.view.on{min-height:0}
+@media (min-width:801px){
+ body.fixed{height:100svh;overflow:hidden}
+ .logo{flex:1 1 0;min-height:0}
+ .pl{flex:1 1 0;min-height:0;grid-template-rows:minmax(0,1fr)}
+ #pv{aspect-ratio:auto;height:100%;min-height:0}
+ #pl{min-height:0;overflow-y:auto;scrollbar-width:none}
+ .at{flex:24.5 1 0;height:auto;min-height:0}
+ .ab{flex:23 1 0;height:auto;min-height:0}
+ .cl{display:flex;margin-bottom:calc(2.4 * var(--u));min-height:0}
+ .cl .fb{flex:1;overflow:visible}
+ .cb{flex:21 1 0;height:auto;min-height:0}
+}
+@media (max-width:800px){.cl{flex:none!important;height:calc(10 * var(--u))}.cl .fb{height:100%;overflow:visible}}
 </style>
 </head>
 <body>
@@ -165,10 +181,10 @@ main{flex:1;display:flex;flex-direction:column}
 
   <!-- CONTACT -->
   <section id="contact" class="view">
-    <a class="cl" href="mailto:hfash000@gmail.com"><div class="fb"><span class="fit wide" data-m="w">HFASH000@GMAIL.COM</span></div></a>
-    <a class="cl" href="tel:+61404211905"><div class="fb"><span class="fit wide b" data-m="w">+61 0404 211 905</span></div></a>
+    <a class="cl" style="flex:4.4 1 0" href="mailto:hfash000@gmail.com"><div class="fb"><span class="fit wide">HFASH000@GMAIL.COM</span></div></a>
+    <a class="cl" style="flex:4 1 0" href="tel:+61404211905"><div class="fb"><span class="fit wide b">+61 0404 211 905</span></div></a>
     <!-- Update the handle link if it's not Instagram -->
-    <a class="cl" href="https://www.instagram.com/hfash_/" target="_blank" rel="noopener"><div class="fb"><span class="fit wide" data-m="w">@HFASH_</span></div></a>
+    <a class="cl" style="flex:4.7 1 0" href="https://www.instagram.com/hfash_/" target="_blank" rel="noopener"><div class="fb"><span class="fit wide">@HFASH_</span></div></a>
     <h1 class="cb" aria-label="Contact"><div class="fb"><span class="fit" aria-hidden="true">CONTACT</span></div></h1>
   </section>
 </main>
@@ -195,7 +211,7 @@ function detail(i){
   let rows="",k=0,r=0;
   do{const [h,cols]=ROWS[r++%ROWS.length];
     rows+=`<div class="row" style="--h:${h}vw">${cols.map(c=>`<div style="flex:${c} 1 0;min-width:0">${tile(items[k++])}</div>`).join("")}</div>`;
-  }while(k<items.length);
+  }while(k<items.length||r<3);   // always at least the 3 design rows; empty slots show placeholders
   const body=p.body.split(/\n\s*\n/).filter(Boolean).map(t=>`<p>${esc(t).replace(/\n/g,"<br>")}</p>`).join("");
   return `<div class="dt"><div class="dl"><h1>${esc(p.title)}</h1><div class="ck">/ ${esc(p.category)}</div>${body}${p.note?`<p class="nt">${esc(p.note)}</p>`:""}
   <div class="ar"><a href="#project-${pv.slug}" aria-label="Previous project">${ARROW}</a><a class="r" href="#project-${nx.slug}" aria-label="Next project">${ARROW}</a></div></div>
@@ -226,15 +242,24 @@ function setCur(i){
 $("#pl").addEventListener("mouseover",e=>{const a=e.target.closest("a[data-i]");if(a)setCur(+a.dataset.i)});
 $("#pl").addEventListener("focusin",e=>{const a=e.target.closest("a[data-i]");if(a)setCur(+a.dataset.i)});
 
-/* stretch display type to fill its box */
+/* stretch display type so its real ink fills the box exactly (nothing clipped) */
+const cv=document.createElement("canvas").getContext("2d");
 function fit(){
   document.querySelectorAll(".view.on .fit").forEach(el=>{
-    const b=el.parentElement;el.style.transform="none";
-    const W=el.offsetWidth,H=el.offsetHeight;if(!W)return;
-    const sx=b.clientWidth/W;let sy;
-    if(el.dataset.m==="w"){sy=sx;b.style.height=H*sy*.74+"px"}
-    else sy=b.clientHeight/(H*.72);
-    el.style.transform=`translateY(-50%) scale(${sx},${sy})`;
+    const b=el.parentElement,cs=getComputedStyle(el);el.style.transform="none";
+    const W=el.offsetWidth,H=el.offsetHeight,fs=parseFloat(cs.fontSize);if(!W||!H)return;
+    cv.font=`${cs.fontWeight} 200px ${cs.fontFamily}`;  // measure big, then scale down: small sizes round to whole pixels
+    const st=parseFloat(cs.fontStretch)||100;           // measure at the same width as the page text
+    cv.fontStretch=st>=187?"ultra-expanded":st>=137?"extra-expanded":st>=118?"expanded":st>=106?"semi-expanded":st>=94?"normal":st>=81?"semi-condensed":st>=69?"condensed":st>=56?"extra-condensed":"ultra-condensed";
+    const txt=cs.textTransform==="uppercase"?el.textContent.toUpperCase():el.textContent;
+    const m=cv.measureText(txt),k=fs/200;
+    const fa=(m.fontBoundingBoxAscent??180)*k,fd=(m.fontBoundingBoxDescent??44)*k;
+    const base=(H-(fa+fd))/2+fa;                       // baseline inside the line box
+    const asc=m.actualBoundingBoxAscent*k,desc=m.actualBoundingBoxDescent*k;
+    const top=base-asc,ink=asc+desc;
+    const sx=b.clientWidth/W*.99,sy=b.clientHeight/(ink*1.06);
+    const ty=(b.clientHeight-ink*sy)/2-top*sy;
+    el.style.transform=`translate(${b.clientWidth*.005}px,${ty}px) scale(${sx},${sy})`;
   });
 }
 
@@ -245,6 +270,7 @@ function route(){
   if(h.startsWith("project-")){pi=P.findIndex(p=>"project-"+p.slug===h);v=pi<0?"projects":"project"}
   else if(!VIEWS.includes(h))v="home";
   document.querySelectorAll(".view").forEach(e=>e.classList.toggle("on",e.id===v));
+  document.body.classList.toggle("fixed",v!=="project");
   const key=v==="project"?"projects":v;
   document.querySelectorAll("nav [data-n]").forEach(a=>{a.dataset.n===key?a.setAttribute("aria-current","page"):a.removeAttribute("aria-current")});
   if(v==="project"){$("#project").innerHTML=detail(pi);document.title=P[pi].title+" — Luca Henry";setCur(pi)}
