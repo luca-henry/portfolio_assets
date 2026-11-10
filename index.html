@@ -11,7 +11,7 @@
 /* font-weight range = the browser uses your file as-is instead of faking bold on top of it */
 @font-face{font-family:"Main";src:url("fonts/main_font.woff2") format("woff2"),url("fonts/main_font.woff") format("woff"),url("fonts/main_font.otf") format("opentype"),url("fonts/main_font.ttf") format("truetype");font-weight:100 900;font-style:normal;font-display:swap}
 @font-face{font-family:"Secondary";src:local("Helvetica Neue"),local("Helvetica"),url("fonts/secondary_font.woff2") format("woff2"),url("fonts/secondary_font.ttf") format("truetype");font-display:swap}
-:root{--u:min(1vw,1.7778svh);--bg:#fff;--fg:#000;--mute:#8c8c8c;--pad:calc(2.6 * var(--u));--bw:clamp(3px,calc(.45 * var(--u)),12px);--ease:cubic-bezier(.76,0,.18,1);--out:cubic-bezier(.16,1,.3,1)}
+:root{--u:min(1vw,1.7778svh);--bg:#fff;--fg:#000;--mute:#8c8c8c;--pad:calc(2.6 * var(--u));--bw:clamp(3px,calc(.45 * var(--u)),12px);--ease:steps(7,end);--out:steps(4,end)}
 *{box-sizing:border-box;margin:0;padding:0}
 html{background:var(--bg)}
 body{min-height:100svh;display:flex;flex-direction:column;background:var(--bg);color:var(--fg);font-family:Secondary,"Helvetica Neue",Helvetica,Arial,sans-serif;letter-spacing:-.02em;-webkit-font-smoothing:antialiased}
@@ -94,6 +94,11 @@ main{flex:1;display:flex;flex-direction:column}
 .cl{display:block;margin-bottom:calc(2.4 * var(--u))}
 .cb{background:#000;height:calc(21 * var(--u));padding:calc(2.8 * var(--u)) calc(3.4 * var(--u))}
 .cb .fb{height:100%}.cb .fit{color:#fff}
+.cl{position:relative}
+.cl::before{content:"";position:absolute;inset:calc(-.4 * var(--u)) calc(-.8 * var(--u));background:#000;transform:scaleX(0);transform-origin:50% 50%}
+.cl .fb{z-index:1}
+.cl:hover::before,.cl:focus-visible::before{transform:scaleX(1)}
+.cl:hover .fit,.cl:focus-visible .fit{color:#fff}
 
 @media (max-width:800px){
  :root{--u:1vw;--pad:calc(5 * var(--u))}
@@ -130,8 +135,8 @@ main,.view.on{min-height:0}
 @media (max-width:800px){.cl{flex:none!important;height:calc(10 * var(--u))}.cl .fb{height:100%;overflow:visible}}
 
 /* ───────── motion ─────────
-   One idea: everything is revealed by a wipe (clip-path), like a shutter.
-   Blocks wipe open, then the type inside wipes on, staggered with --d.
+   Brutalist: no easing, no fades. Everything moves in hard steps and snaps.
+   Shutter wipes (clip-path) are cut into 7 frames; hovers jump instead of glide.
    Individual transform properties (translate/scale) are used so they never fight fit(). */
 @media (prefers-reduced-motion:no-preference){
  html{scroll-behavior:smooth}
@@ -139,80 +144,76 @@ main,.view.on{min-height:0}
  @keyframes rise{from{clip-path:inset(150% -10% -50% -10%)}to{clip-path:inset(-50% -10% -50% -10%)}}
  @keyframes blockX{from{clip-path:inset(0 100% 0 0)}to{clip-path:inset(0 0 0 0)}}
  @keyframes blockY{from{clip-path:inset(100% 0 0 0)}to{clip-path:inset(0 0 0 0)}}
- @keyframes up{from{opacity:0;translate:0 calc(2 * var(--u))}to{opacity:1;translate:0 0}}
- @keyframes fromR{from{opacity:0;translate:calc(4 * var(--u)) 0}to{opacity:1;translate:0 0}}
- @keyframes fromL{from{opacity:0;translate:calc(-4 * var(--u)) 0}to{opacity:1;translate:0 0}}
- @keyframes lineX{from{transform:scaleX(0)}to{transform:scaleX(1)}}
- @keyframes navIn{from{opacity:0;translate:0 -70%}to{opacity:1;translate:0 0}}
+ @keyframes cutR{from{clip-path:inset(0 0 0 100%)}to{clip-path:inset(0 0 0 0)}}
  @keyframes imgIn{from{clip-path:inset(0 0 100% 0);scale:1.15}to{clip-path:inset(0 0 0 0);scale:1}}
  @keyframes zoom{from{scale:1.2}to{scale:1}}
+ @keyframes lineX{from{transform:scaleX(0)}to{transform:scaleX(1)}}
  @keyframes rollIn{from{translate:0 calc(var(--bh,100px) * 1.1)}to{translate:0 0}}
  @keyframes rollOut{from{translate:0 0}to{translate:0 calc(var(--bh,100px) * -1.1)}}
- @keyframes drift{from{translate:-1.5cqw .8cqw}to{translate:1.5cqw -.8cqw}}
+ @keyframes jolt{from{translate:-1.5cqw .8cqw}to{translate:1.5cqw -.8cqw}}
 
  /* nav */
- nav>*{animation:navIn .5s var(--out) backwards;animation-delay:calc(var(--k,0) * .05s)}
+ nav>*{animation:blockY .4s var(--ease) backwards;animation-delay:calc(var(--k,0) * .05s)}
  nav>:nth-child(2){--k:1}nav>:nth-child(3){--k:2}nav>:nth-child(4){--k:3}nav>:nth-child(5){--k:4}
- nav a.ln{transform-origin:0 50%;animation-name:lineX;animation-duration:.6s;animation-timing-function:var(--ease)}
- nav a[data-n]{transition:background-size .3s var(--ease)}
+ nav a.ln{transform-origin:0 50%;animation-name:lineX;animation-duration:.5s}
+ nav a[data-n]{transition:background-size .2s steps(4,end)}
 
- /* display type: wipes on whenever a page opens */
- .view.on .fit{animation:wipeX .6s var(--ease) var(--d,.1s) backwards}
- .logo,.banner,.blk,.meb,.cb{animation:blockX .55s var(--ease) backwards}
+ /* display type: shutter-wipes on whenever a page opens */
+ .view.on .fit{animation:wipeX .45s var(--ease) var(--d,.1s) backwards}
+ .logo,.banner,.blk,.meb,.cb{animation:blockX .4s var(--ease) backwards}
 
  /* home */
- .logo .r1{--d:.3s}.logo .r2{--d:.4s}
- .stamp{animation:blockY .45s var(--ease) .55s backwards}
- .stamp .fb:nth-child(1){--d:.8s}.stamp .fb:nth-child(2){--d:.88s}
- /* clock: Helvetica; a changing number rolls up like a flip counter; the bar ticks off the seconds */
- .view.on .fit.tick{animation:rollIn .5s var(--ease) 0s backwards}
- .view.on .fit.out{animation:rollOut .5s var(--ease) 0s both}
- .stamp::after{content:"";position:absolute;left:0;right:calc(.6 * var(--u));bottom:calc(.3 * var(--u));height:calc(.4 * var(--u));background:#000;transform-origin:0 50%;transform:scaleX(calc(var(--s,0) / 60));transition:transform .35s var(--out)}
+ .logo .r1{--d:.25s}.logo .r2{--d:.33s}
+ .stamp{animation:blockY .35s var(--ease) .45s backwards}
+ .stamp .fb:nth-child(1){--d:.65s}.stamp .fb:nth-child(2){--d:.72s}
+ /* clock: a changing number ratchets up in steps; the bar jumps once a second */
+ .view.on .fit.tick{animation:rollIn .4s var(--ease) 0s backwards}
+ .view.on .fit.out{animation:rollOut .4s var(--ease) 0s both}
+ .stamp::after{content:"";position:absolute;left:0;right:calc(.6 * var(--u));bottom:calc(.3 * var(--u));height:calc(.4 * var(--u));background:#000;transform-origin:0 50%;transform:scaleX(calc(var(--s,0) / 60))}
 
  /* projects */
- .banner .fb{--d:.25s}
- #pv{animation:blockY .55s var(--ease) .2s backwards}
- #pv img{animation:imgIn .5s var(--ease) backwards}
- #pl li{animation:fromR .5s var(--out) backwards;animation-delay:calc(.2s + var(--i,0) * .04s)}
- #pl a{transition:color .2s,background-color .2s}
- #pl a.on .fit{animation:wipeX .3s var(--ease) 0s backwards}
+ .banner .fb{--d:.2s}
+ #pv{animation:blockY .4s var(--ease) .15s backwards}
+ #pv img{animation:imgIn .4s var(--ease) backwards}
+ #pl li{animation:cutR .35s var(--ease) backwards;animation-delay:calc(.15s + var(--i,0) * .04s)}
+ #pl a.on .fit{animation:wipeX .25s var(--ease) 0s backwards}
 
  /* project detail */
- .dl h1{animation:rise .55s var(--ease) .05s backwards}
- .ck{animation:wipeX .5s var(--ease) .2s backwards}
- .dl p{animation:up .5s var(--out) backwards;animation-delay:calc(.3s + var(--i,0) * .07s)}
- .ar a{animation:fromL .5s var(--out) .5s backwards;transition:background-color .2s}
- .ar .r{animation-name:fromR}
- .ar a:hover{background:#2a2a2a}
- .ar svg{transition:translate .3s var(--out)}
+ .dl h1{animation:rise .45s var(--ease) .05s backwards}
+ .ck{animation:wipeX .4s var(--ease) .15s backwards}
+ .dl p{animation:blockY .4s var(--ease) backwards;animation-delay:calc(.25s + var(--i,0) * .06s)}
+ .ar a{animation:blockX .4s var(--ease) .4s backwards}
+ .ar .r{animation-name:cutR}
+ .ar a:hover{background:#fff;outline:var(--bw) solid #000;outline-offset:calc(var(--bw) * -1)}
+ .ar a:hover svg{filter:invert(1)}
+ .ar svg{transition:translate .15s steps(2,end)}
  .ar a:hover svg{translate:-7% 0}.ar .r:hover svg{translate:7% 0}
 
- /* gallery tiles: reveal as they scroll into view (JS adds .vis) */
- .rv{clip-path:inset(100% 0 0 0);transition:clip-path .6s var(--ease) var(--d,0s)}
+ /* gallery tiles: shutter open as they scroll into view (JS adds .vis) */
+ .rv{clip-path:inset(100% 0 0 0);transition:clip-path .45s var(--ease) var(--d,0s)}
  .rv.vis{clip-path:inset(0 0 0 0)}
  .rv img,.rv video{scale:1.15}
  .rv.vis img,.rv.vis video{scale:1}
- .ph img,.ph video{transition:scale .9s var(--out)}
+ .ph img,.ph video{transition:scale .4s steps(4,end)}
  .rv.vis:hover img,.rv.vis:hover video{scale:1.05}
  .ph:not(.rv):hover img{scale:1.04}
- .ph span{animation:drift 7s ease-in-out infinite alternate}
+ .ph span{animation:jolt 1.4s steps(1,end) infinite alternate}
 
  /* about */
- .blk{--d:.3s;animation-delay:.05s}
- .meb{animation-delay:.3s;--d:.55s}
- .at>.shot{animation:blockY .55s var(--ease) .15s backwards}
- .at>.inv{animation-delay:.25s}
- .shot img{animation:zoom 1s var(--out) .2s backwards;transition:filter .5s var(--out),scale .9s var(--out)}
+ .blk{--d:.25s;animation-delay:.05s}
+ .meb{animation-delay:.25s;--d:.45s}
+ .at>.shot{animation:blockY .4s var(--ease) .1s backwards}
+ .at>.inv{animation-delay:.2s}
+ .shot img{animation:zoom .6s var(--out) .15s backwards;transition:scale .4s steps(4,end)}
  .shot:not(.inv):hover img{filter:grayscale(1) invert(1) contrast(1.1)}
  .shot.inv:hover img{filter:grayscale(1)}
- .ab p{animation:up .55s var(--out) .45s backwards}
- .ab p+p{animation-delay:.55s}
+ .ab p{animation:blockY .45s var(--ease) .35s backwards}
+ .ab p+p{animation-delay:.45s}
 
- /* contact */
- .cl:nth-child(1){--d:.1s}.cl:nth-child(2){--d:.18s}.cl:nth-child(3){--d:.26s}
- .cb{animation-delay:.3s;--d:.5s}
- .cl .fit{transition:translate .4s var(--out)}
- .cl:hover .fit{translate:1.4vw 0}
+ /* contact: the highlight is black and stretches out from the centre in 5 jumps */
+ .cl:nth-child(1){--d:.1s}.cl:nth-child(2){--d:.17s}.cl:nth-child(3){--d:.24s}
+ .cb{animation-delay:.25s;--d:.45s}
+ .cl::before{transition:transform .3s steps(5,end)}
 }
 </style>
 </head>
