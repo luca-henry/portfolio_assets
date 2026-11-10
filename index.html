@@ -77,8 +77,9 @@ main{flex:1;display:flex;flex-direction:column}
 .ar a{flex:1;background:#000;aspect-ratio:2.9/1;display:grid;place-items:center;padding:calc(.9 * var(--u)) calc(1 * var(--u))}
 .ar svg{width:100%;height:100%}
 .ar .r svg{transform:scaleX(-1)}
-.gl .row{display:flex;gap:calc(1.7 * var(--u));margin-bottom:calc(1.7 * var(--u));height:var(--h)}
-.gl .ph{height:100%}
+.gl{container-type:inline-size;--g:calc(1.7 * var(--u))}
+.gl .row{display:flex;gap:var(--g);margin-bottom:var(--g);height:var(--H)}   /* --H = row height, set per row so every tile keeps its own aspect ratio */
+.gl .row>.ph{flex:0 1 calc(var(--r) * var(--H));min-width:0;height:100%}
 
 /* about */
 .at{display:grid;grid-template-columns:48.3fr 27.4fr 20.1fr;gap:calc(2 * var(--u));height:calc(24.5 * var(--u))}
@@ -112,7 +113,7 @@ main{flex:1;display:flex;flex-direction:column}
  .dt{grid-template-columns:1fr;gap:calc(6 * var(--u))}.dl{position:static}
  .dl h1{font-size:calc(17 * var(--u))}.ck{font-size:calc(8 * var(--u));margin:calc(4 * var(--u)) 0}.dl p{font-size:calc(4 * var(--u))}.dl .nt{font-size:calc(3.2 * var(--u));margin-top:calc(4 * var(--u))}
  .ar{margin-top:calc(6 * var(--u));gap:calc(4 * var(--u))}.ar a{padding:calc(2 * var(--u))}
- .gl .row{gap:calc(3 * var(--u));margin-bottom:calc(3 * var(--u));height:calc(var(--h)*2.1)}
+ .gl{--g:calc(3 * var(--u))}
  .at{grid-template-columns:1fr 1fr;height:auto;gap:calc(3 * var(--u))}
  .blk{grid-column:1/3;height:calc(55 * var(--u));padding:calc(5 * var(--u))}.shot{aspect-ratio:1;height:auto}
  .ab{grid-template-columns:1fr;height:auto}.meb{height:calc(55 * var(--u));padding:calc(5 * var(--u))}
@@ -292,30 +293,72 @@ main,.view.on{min-height:0}
 const $=s=>document.querySelector(s);
 const esc=s=>String(s??"").replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
 const ARROW='<svg viewBox="0 0 300 130" aria-hidden="true"><path d="M8 65 100 8v34h190v46H100v34z" fill="#fff"/></svg>';
-const ROWS=[[16.4,[5,7]],[28.5,[7.25,4.3]],[16,[5.5,6.1]]]; // row height (vw) + column ratios, repeated as needed
 let P=[],cur=0,drawn=-1,io;
 
-/* one tile: image, looping video, or PDF link. No file = placeholder. .rv = revealed on scroll; ci staggers columns */
-function tile(m,ci=0){
-  const label="<span>WORK DISPLAY<br>PHOTO</span>",c=`class="ph frame rv" style="--d:${ci*.12}s"`;
-  if(!m)return `<div ${c}>${label}</div>`;
-  if(m.type==="video")return `<div ${c}><video src="${m.src}" autoplay muted loop playsinline preload="metadata"></video>${label}</div>`;
-  if(m.type==="pdf")return `<div ${c}><a class="pdf" href="${m.src}" target="_blank" rel="noopener">PDF</a></div>`;
-  return `<div ${c}><img src="${m.src}" alt="" loading="lazy">${label}</div>`;
+/* MODULAR GALLERY
+   Any size or shape of image works. Each file keeps its own aspect ratio and the tiles are packed into full-width rows
+   (rows are sized so every tile shows its whole picture). Row "rhythm" repeats: three-ish across, a chunky two-ish row, three-ish again.
+   Optional per-item fields in projects.json:  "ratio": 1.5 (or "w" and "h")  skips measuring;  "full": true  gives that item its own full-width row. */
+const kind=m=>m.type||(/\.(mp4|webm|mov|m4v)(\?|$)/i.test(m.src||"")?"video":/\.pdf(\?|$)/i.test(m.src||"")?"pdf":"image");
+const rhythm=()=>matchMedia("(max-width:800px)").matches?[2.2,1.3,2.2]:[3.1,1.8,3.2];   // target sum of aspect ratios per row
+
+/* one tile; r = aspect ratio (w/h), ci staggers the reveal */
+function tile(m,ci,r){
+  const label="<span>WORK DISPLAY<br>PHOTO</span>",c=`class="ph frame rv" style="--r:${r};--d:${ci*.12}s"`;
+  if(!m||!m.src)return `<div ${c}>${label}</div>`;
+  const k=kind(m);
+  if(k==="video")return `<div ${c}><video src="${esc(m.src)}" autoplay muted loop playsinline preload="metadata"></video>${label}</div>`;
+  if(k==="pdf")return `<div ${c}><a class="pdf" href="${esc(m.src)}" target="_blank" rel="noopener">PDF</a></div>`;
+  return `<div ${c}><img src="${esc(m.src)}" alt="" loading="lazy">${label}</div>`;
 }
+
+/* find a file's aspect ratio (falls back to 3:2 if it can't be read) */
+function measure(m){
+  return new Promise(res=>{
+    const given=+m.ratio||(m.w&&m.h?m.w/m.h:0);if(given>0)return res(given);
+    if(!m.src)return res(1.5);
+    const k=kind(m);if(k==="pdf")return res(.707);
+    let t;const done=v=>{clearTimeout(t);res(v>0&&isFinite(v)?v:1.5)};t=setTimeout(()=>done(0),4000);
+    if(k==="video"){const v=document.createElement("video");v.preload="metadata";v.onloadedmetadata=()=>done(v.videoWidth/v.videoHeight);v.onerror=()=>done(0);v.src=m.src}
+    else{const im=new Image();im.onload=()=>done(im.naturalWidth/im.naturalHeight);im.onerror=()=>done(0);im.src=m.src}
+  });
+}
+
+/* pack items into rows: keep adding while the row's total ratio gets closer to this row's target */
+function packRows(items){
+  const tg=rhythm(),rows=[];let i=0;
+  while(i<items.length){
+    const T=tg[rows.length%tg.length],row=[items[i++]];let sum=row[0].r;
+    if(!row[0].m.full)while(i<items.length&&!items[i].m.full&&Math.abs(sum+items[i].r-T)<Math.abs(sum-T)){sum+=items[i].r;row.push(items[i++])}
+    rows.push({row,sum,T,full:!!row[0].m.full});
+  }
+  return rows;
+}
+let gItems=null,gTok=0;
+function paintGallery(){
+  const gl=$("#project .gl");if(!gl||!gItems)return;
+  gl.innerHTML=packRows(gItems).map(({row,sum,T,full})=>{
+    const eff=full?sum:Math.max(sum,T*.65);               // a short last row stays left-aligned instead of stretching huge
+    return `<div class="row" style="--H:calc((100cqw - ${row.length-1} * var(--g)) / ${eff.toFixed(4)})">${row.map((it,ci)=>tile(it.m,ci,it.r)).join("")}</div>`;
+  }).join("");
+  reveal();
+}
+async function buildGallery(i){
+  const tok=++gTok,p=P[i];
+  const ms=[...(p.cover?[{src:p.cover,type:"image"}]:[]),...(p.media||[])];
+  const items=ms.length?await Promise.all(ms.map(async m=>({m,r:await measure(m)}))):[1.25,1.76,1.09,.65,1.46,1.62].map(r=>({m:{},r}));   // no media yet: show placeholder blocks
+  if(tok!==gTok)return;
+  gItems=items;paintGallery();
+}
+matchMedia("(max-width:800px)").addEventListener("change",paintGallery);
 
 function detail(i){
   const p=P[i],n=P.length,pv=P[(i-1+n)%n],nx=P[(i+1)%n];
-  const items=[...(p.cover?[{src:p.cover,type:"image"}]:[]),...p.media];
-  let rows="",k=0,r=0;
-  do{const [h,cols]=ROWS[r++%ROWS.length];
-    rows+=`<div class="row" style="--h:${h}vw">${cols.map((c,ci)=>`<div style="flex:${c} 1 0;min-width:0">${tile(items[k++],ci)}</div>`).join("")}</div>`;
-  }while(k<items.length||r<3);   // always at least the 3 design rows; empty slots show placeholders
   const paras=p.body.split(/\n\s*\n/).filter(Boolean);
   const body=paras.map((t,j)=>`<p style="--i:${j}">${esc(t).replace(/\n/g,"<br>")}</p>`).join("");
   return `<div class="dt"><div class="dl"><h1>${esc(p.title)}</h1><div class="ck">/ ${esc(p.category)}</div>${body}${p.note?`<p class="nt" style="--i:${paras.length}">${esc(p.note)}</p>`:""}
   <div class="ar"><a href="#project-${pv.slug}" aria-label="Previous project">${ARROW}</a><a class="r" href="#project-${nx.slug}" aria-label="Next project">${ARROW}</a></div></div>
-  <div class="gl">${rows}</div></div>`;
+  <div class="gl"></div></div>`;
 }
 
 /* gallery tiles open as they scroll into view */
@@ -414,6 +457,7 @@ function fit(){
 /* hash routing: #home #projects #about #contact #project-<folder name> */
 const VIEWS=["home","projects","about","contact"];
 function route(){
+  gTok++;
   document.querySelectorAll(".tick").forEach(e=>e.classList.remove("tick"));
   const h=decodeURIComponent(location.hash.slice(1))||"home";let v=h,pi=-1;
   if(h.startsWith("project-")){pi=P.findIndex(p=>"project-"+p.slug===h);v=pi<0?"projects":"project"}
@@ -422,7 +466,7 @@ function route(){
   document.body.classList.toggle("fixed",v!=="project");
   const key=v==="project"?"projects":v;
   document.querySelectorAll("nav [data-n]").forEach(a=>{a.dataset.n===key?a.setAttribute("aria-current","page"):a.removeAttribute("aria-current")});
-  if(v==="project"){$("#project").innerHTML=detail(pi);document.title=P[pi].title+" — Luca Henry";setCur(pi);reveal()}
+  if(v==="project"){$("#project").innerHTML=detail(pi);document.title=P[pi].title+" — Luca Henry";setCur(pi);buildGallery(pi)}
   else document.title=(v==="home"?"Luca Henry":key[0].toUpperCase()+key.slice(1)+" — Luca Henry");
   window.scrollTo({top:0,left:0,behavior:"instant"});
   requestAnimationFrame(fit);
