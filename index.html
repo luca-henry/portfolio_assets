@@ -1,1 +1,250 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Luca Henry</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,100..900&display=swap" rel="stylesheet">
+<style>
+@font-face{font-family:"Main";src:url("fonts/main_font.woff2") format("woff2"),url("fonts/main_font.woff") format("woff"),url("fonts/main_font.otf") format("opentype"),url("fonts/main_font.ttf") format("truetype");font-display:swap}
+@font-face{font-family:"Secondary";src:local("Helvetica Neue"),local("Helvetica"),url("fonts/secondary_font.woff2") format("woff2"),url("fonts/secondary_font.ttf") format("truetype");font-display:swap}
+:root{--bg:#fff;--fg:#000;--mute:#8c8c8c;--pad:2.6vw;--bw:clamp(3px,.45vw,12px)}
+*{box-sizing:border-box;margin:0;padding:0}
+html{background:var(--bg)}
+body{min-height:100svh;display:flex;flex-direction:column;background:var(--bg);color:var(--fg);font-family:Secondary,"Helvetica Neue",Helvetica,Arial,sans-serif;letter-spacing:-.02em;-webkit-font-smoothing:antialiased}
+a{color:inherit;text-decoration:none}
+:focus-visible{outline:3px solid var(--fg);outline-offset:3px}
 
+/* nav */
+nav{display:flex;align-items:center;gap:1.7vw;padding:var(--pad) var(--pad) 1.8vw;font-size:clamp(16px,2vw,56px);line-height:1}
+nav a{white-space:nowrap}
+nav a.ln{flex:1;height:max(2px,.28vw);background:var(--fg)}
+nav a[aria-current]{font-weight:700;text-decoration:line-through;text-decoration-thickness:.1em}
+
+main{flex:1;display:flex;flex-direction:column}
+.view{display:none;padding:0 var(--pad) var(--pad)}
+.view.on{display:flex;flex-direction:column;flex:1}
+.view>*{flex:none}
+
+/* stretched display type: JS scales .fit to fill its .fb box */
+.fb{position:relative;overflow:hidden}
+.fit{position:absolute;left:0;top:50%;white-space:nowrap;transform-origin:0 50%;line-height:1;letter-spacing:-.02em;font-family:Main,Archivo,"Arial Black",Impact,sans-serif;font-weight:900;font-stretch:100%}
+.fit.wide{font-family:Archivo,"Helvetica Neue",Arial,sans-serif;font-stretch:125%;font-weight:500}
+.fit.wide.b{font-weight:800}
+
+/* home */
+.logo{flex:1 1 auto;min-height:45vw;position:relative;background:#000;padding:2vw;display:grid;grid-template-rows:1fr 1fr;gap:2vw}
+.logo .fit{color:#fff}
+.logo .r1{margin-right:9.2%}
+.stamp{position:absolute;top:0;right:0;width:9.3%;height:47.8%;background:#fff;padding:.5vw .6vw 1vw 0;display:grid;grid-template-rows:1fr 1fr;gap:1.1vw}
+.stamp .fit{color:#000}
+
+/* placeholders / frames */
+.ph{position:relative;display:grid;place-items:center;overflow:hidden;container-type:size}
+.ph span{font-size:11cqw;transform:rotate(-30deg);line-height:.85;font-stretch:112%;white-space:nowrap;letter-spacing:-.01em}
+.ph img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+.ph img+span,.ph video+span{display:none}
+.ph video{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+.ph a.pdf{position:absolute;inset:0;display:grid;place-items:center;font-size:3vw;font-weight:700}
+.frame{border:var(--bw) solid var(--fg)}
+
+/* projects index */
+.banner{background:#000;height:6.8vw;padding:.45vw .8vw}
+.banner .fb{height:100%}.banner .fit{color:#fff}
+.pl{display:grid;grid-template-columns:52% 1fr;gap:1.7vw;margin-top:3vw;align-items:stretch}
+#pv{aspect-ratio:1244/958;display:grid}
+#pl{list-style:none;display:flex;flex-direction:column;justify-content:space-between;align-items:stretch}
+#pl a{display:block;text-align:right;color:var(--mute);font-family:Archivo,"Helvetica Neue",Arial,sans-serif;font-stretch:75%;font-weight:400;font-size:2.3vw;line-height:1.1;letter-spacing:-.03em;padding:.5vw 1vw}
+#pl a.on{background:#000;color:#fff;text-transform:uppercase;font-weight:700;font-size:3.1vw;padding:1.2vw 1vw}
+
+/* project detail */
+.dt{display:grid;grid-template-columns:44% 1fr;gap:2vw;align-items:start}
+.dl{position:sticky;top:1.5vw}
+.dl h1{font-family:Archivo,"Helvetica Neue",Arial,sans-serif;font-stretch:72%;font-weight:800;text-transform:uppercase;font-size:7.2vw;line-height:.86;letter-spacing:-.045em}
+.ck{margin:2.6vw 0 2.4vw;font-family:Archivo,sans-serif;font-stretch:72%;font-weight:700;font-size:3.7vw;letter-spacing:-.04em;color:#a6a6a6;line-height:1}
+.dl p{font-size:clamp(14px,1.1vw,30px);line-height:1.28;letter-spacing:.01em;max-width:62ch}
+.dl .nt{margin-top:2.2vw;font-size:clamp(12px,.82vw,22px);line-height:1.02;font-style:italic}
+.ar{display:flex;gap:2vw;margin-top:3.4vw}
+.ar a{flex:1;background:#000;aspect-ratio:2.9/1;display:grid;place-items:center;padding:.9vw 1vw}
+.ar svg{width:100%;height:100%}
+.ar .r svg{transform:scaleX(-1)}
+.gl .row{display:flex;gap:1.7vw;margin-bottom:1.7vw;height:var(--h)}
+.gl .ph{height:100%}
+
+/* about */
+.at{display:grid;grid-template-columns:48.3fr 27.4fr 20.1fr;gap:2vw;height:24.5vw}
+.blk{background:#000;padding:2.6vw 3.2vw 2.9vw 2.7vw}
+.blk .fb,.meb .fb{height:100%}.blk .fit,.meb .fit{color:#fff}
+.shot{height:100%;background:#eee}
+.shot img{filter:grayscale(1)}
+.shot.inv{background:#000}.shot.inv img{filter:grayscale(1) invert(1) contrast(1.1)}
+.shot span{font-size:9cqw}
+.ab{display:grid;grid-template-columns:29.5fr 35fr 35fr;height:23vw;margin-top:0}
+.meb{background:#000;padding:1.1vw 3.3vw 3vw;margin-top:-1px}
+.ab p{padding:1.1vw 0 0 2.1vw;font-size:clamp(13px,1.05vw,28px);line-height:1.28;letter-spacing:.01em}
+
+/* contact */
+.cl{display:block;margin-bottom:2.4vw}
+.cb{background:#000;height:21vw;padding:2.8vw 3.4vw}
+.cb .fb{height:100%}.cb .fit{color:#fff}
+
+@media (max-width:800px){
+ :root{--pad:5vw}
+ nav{font-size:4.4vw;gap:3vw}
+ .logo{min-height:120vw;padding:4vw;gap:4vw}.stamp{width:15%;padding:1vw 1vw 2vw 0;gap:2vw}.logo .r1{margin-right:17%}
+ .banner{height:15vw;padding:1vw 2vw}
+ .pl{grid-template-columns:1fr;margin-top:6vw;gap:5vw}
+ #pl{gap:1vw}#pl a{font-size:6vw;padding:1.5vw 2vw}#pl a.on{font-size:7vw;padding:2.5vw 2vw}
+ .dt{grid-template-columns:1fr;gap:6vw}.dl{position:static}
+ .dl h1{font-size:17vw}.ck{font-size:8vw;margin:4vw 0}.dl p{font-size:4vw}.dl .nt{font-size:3.2vw;margin-top:4vw}
+ .ar{margin-top:6vw;gap:4vw}.ar a{padding:2vw}
+ .gl .row{gap:3vw;margin-bottom:3vw;height:calc(var(--h)*2.1)}
+ .at{grid-template-columns:1fr 1fr;height:auto;gap:3vw}
+ .blk{grid-column:1/3;height:55vw;padding:5vw}.shot{aspect-ratio:1;height:auto}
+ .ab{grid-template-columns:1fr;height:auto}.meb{height:55vw;padding:5vw}
+ .ab p{padding:4vw 0 0;font-size:3.8vw}
+ .cb{height:42vw;padding:5vw}.cl{margin-bottom:5vw}
+}
+@media (prefers-reduced-motion:no-preference){html{scroll-behavior:smooth}}
+</style>
+</head>
+<body>
+
+<nav aria-label="Main">
+  <a href="#projects" data-n="projects">Projects</a>
+  <a class="ln" href="#home" aria-label="Home"></a>
+  <a href="#about" data-n="about">About me</a>
+  <a class="ln" href="#home" aria-label="Home"></a>
+  <a href="#contact" data-n="contact">Contact</a>
+</nav>
+
+<main>
+  <!-- HOME -->
+  <section id="home" class="view" aria-label="Luca Henry">
+    <h1 class="logo" aria-label="Luca Henry 10 32">
+      <div class="fb r1"><span class="fit" aria-hidden="true">LUCA</span></div>
+      <div class="fb r2"><span class="fit" aria-hidden="true">HENRY</span></div>
+      <div class="stamp" aria-hidden="true">
+        <div class="fb"><span class="fit">10</span></div>
+        <div class="fb"><span class="fit">32</span></div>
+      </div>
+    </h1>
+  </section>
+
+  <!-- PROJECTS INDEX -->
+  <section id="projects" class="view">
+    <h1 class="banner" aria-label="Projects"><div class="fb"><span class="fit wide" aria-hidden="true">PROJECTS</span></div></h1>
+    <div class="pl">
+      <a class="ph frame" id="pv" href="#projects" aria-label="Open project"></a>
+      <ul id="pl"></ul>
+    </div>
+  </section>
+
+  <!-- PROJECT DETAIL (rendered by JS) -->
+  <section id="project" class="view"></section>
+
+  <!-- ABOUT -->
+  <section id="about" class="view">
+    <h1 class="sr" style="position:absolute;left:-9999px">About me</h1>
+    <div class="at">
+      <div class="blk" aria-hidden="true"><div class="fb"><span class="fit">ABOUT</span></div></div>
+      <!-- Replace img src with your photos. If the file is missing, a placeholder shows. -->
+      <div class="ph shot"><img src="img/portrait-1.jpg" alt="Portrait of Luca Henry" onerror="this.remove()"><span>PHOTO</span></div>
+      <div class="ph shot inv"><img src="img/portrait-1.jpg" alt="" onerror="this.remove()"><span style="color:#fff">PHOTO</span></div>
+    </div>
+    <div class="ab">
+      <div class="meb" aria-hidden="true"><div class="fb"><span class="fit">ME</span></div></div>
+      <p>Lorem ipsum dolor sit amet consectetur adipiscing elit qui enim pariatur optio minim consequat consectetur tempor excepturi excepteur sint dolorem distinctio adipiscing dignissimos et mollitia laborum cillum placeat non distinctio repellendus non duis et optio sint qui minim lorem fuga laboris molestias voluptas eiusmod molestias imperdiet labore blanditiis quidem qui. Lorem ipsum dolor sit amet consectetur adipiscing elit qui enim pariatur optio minim consequat consectetur tempor excepturi excepteur sint dolorem distinctio adipiscing dignissimos et mollitia laborum cillum placeat non distinctio repellendus non duis et optio sint qui minim lorem fuga laboris molestias voluptas eiusmod molestias imperdiet labore blanditiis quidem qui.</p>
+      <p>Lorem ipsum dolor sit amet consectetur adipiscing elit qui enim pariatur optio minim consequat consectetur tempor excepturi excepteur sint dolorem distinctio adipiscing dignissimos et mollitia laborum cillum placeat non distinctio repellendus non duis et optio sint qui minim lorem fuga laboris molestias voluptas eiusmod molestias imperdiet labore blanditiis quidem qui. Lorem ipsum dolor sit amet consectetur adipiscing elit qui enim pariatur optio minim consequat consectetur tempor excepturi excepteur sint dolorem distinctio adipiscing dignissimos et mollitia laborum cillum placeat non distinctio repellendus non duis et optio sint qui minim.</p>
+    </div>
+  </section>
+
+  <!-- CONTACT -->
+  <section id="contact" class="view">
+    <a class="cl" href="mailto:hfash000@gmail.com"><div class="fb"><span class="fit wide" data-m="w">HFASH000@GMAIL.COM</span></div></a>
+    <a class="cl" href="tel:+61404211905"><div class="fb"><span class="fit wide b" data-m="w">+61 0404 211 905</span></div></a>
+    <!-- Update the handle link if it's not Instagram -->
+    <a class="cl" href="https://www.instagram.com/hfash_/" target="_blank" rel="noopener"><div class="fb"><span class="fit wide" data-m="w">@HFASH_</span></div></a>
+    <h1 class="cb" aria-label="Contact"><div class="fb"><span class="fit" aria-hidden="true">CONTACT</span></div></h1>
+  </section>
+</main>
+
+<script>
+const $=s=>document.querySelector(s);
+const esc=s=>String(s??"").replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const ARROW='<svg viewBox="0 0 300 130" aria-hidden="true"><path d="M8 65 100 8v34h190v46H100v34z" fill="#fff"/></svg>';
+const ROWS=[[16.4,[5,7]],[28.5,[7.25,4.3]],[16,[5.5,6.1]]]; // row height (vw) + column ratios, repeated as needed
+let P=[],cur=0;
+
+/* one tile: image, looping video, or PDF link. No file = placeholder */
+function tile(m){
+  const label="<span>WORK DISPLAY<br>PHOTO</span>";
+  if(!m)return `<div class="ph frame">${label}</div>`;
+  if(m.type==="video")return `<div class="ph frame"><video src="${m.src}" autoplay muted loop playsinline preload="metadata"></video>${label}</div>`;
+  if(m.type==="pdf")return `<div class="ph frame"><a class="pdf" href="${m.src}" target="_blank" rel="noopener">PDF</a></div>`;
+  return `<div class="ph frame"><img src="${m.src}" alt="" loading="lazy">${label}</div>`;
+}
+
+function detail(i){
+  const p=P[i],n=P.length,pv=P[(i-1+n)%n],nx=P[(i+1)%n];
+  const items=[...(p.cover?[{src:p.cover,type:"image"}]:[]),...p.media];
+  let rows="",k=0,r=0;
+  do{const [h,cols]=ROWS[r++%ROWS.length];
+    rows+=`<div class="row" style="--h:${h}vw">${cols.map(c=>`<div style="flex:${c} 1 0;min-width:0">${tile(items[k++])}</div>`).join("")}</div>`;
+  }while(k<items.length);
+  const body=p.body.split(/\n\s*\n/).filter(Boolean).map(t=>`<p>${esc(t).replace(/\n/g,"<br>")}</p>`).join("");
+  return `<div class="dt"><div class="dl"><h1>${esc(p.title)}</h1><div class="ck">/ ${esc(p.category)}</div>${body}${p.note?`<p class="nt">${esc(p.note)}</p>`:""}
+  <div class="ar"><a href="#project-${pv.slug}" aria-label="Previous project">${ARROW}</a><a class="r" href="#project-${nx.slug}" aria-label="Next project">${ARROW}</a></div></div>
+  <div class="gl">${rows}</div></div>`;
+}
+
+function buildList(){
+  $("#pl").innerHTML=P.length?P.map((p,i)=>`<li><a href="#project-${p.slug}" data-i="${i}">${esc(p.title)} / ${esc(p.category)}</a></li>`).join(""):"<li><a>no projects yet</a></li>";
+  if(P.length)setCur(0);
+}
+function setCur(i){
+  cur=i;
+  document.querySelectorAll("#pl a").forEach((a,j)=>a.classList.toggle("on",j===i));
+  const pv=$("#pv"),p=P[i];if(!p)return;
+  pv.href="#project-"+p.slug;pv.setAttribute("aria-label","Open "+p.title);
+  pv.innerHTML=(p.cover?`<img src="${p.cover}" alt="">`:"")+"<span>WORK DISPLAY<br>PHOTO</span>";
+}
+$("#pl").addEventListener("mouseover",e=>{const a=e.target.closest("a[data-i]");if(a)setCur(+a.dataset.i)});
+$("#pl").addEventListener("focusin",e=>{const a=e.target.closest("a[data-i]");if(a)setCur(+a.dataset.i)});
+
+/* stretch display type to fill its box */
+function fit(){
+  document.querySelectorAll(".view.on .fit").forEach(el=>{
+    const b=el.parentElement;el.style.transform="none";
+    const W=el.offsetWidth,H=el.offsetHeight;if(!W)return;
+    const sx=b.clientWidth/W;let sy;
+    if(el.dataset.m==="w"){sy=sx;b.style.height=H*sy*.74+"px"}
+    else sy=b.clientHeight/(H*.72);
+    el.style.transform=`translateY(-50%) scale(${sx},${sy})`;
+  });
+}
+
+/* hash routing: #home #projects #about #contact #project-<folder name> */
+const VIEWS=["home","projects","about","contact"];
+function route(){
+  const h=decodeURIComponent(location.hash.slice(1))||"home";let v=h,pi=-1;
+  if(h.startsWith("project-")){pi=P.findIndex(p=>"project-"+p.slug===h);v=pi<0?"projects":"project"}
+  else if(!VIEWS.includes(h))v="home";
+  document.querySelectorAll(".view").forEach(e=>e.classList.toggle("on",e.id===v));
+  const key=v==="project"?"projects":v;
+  document.querySelectorAll("nav [data-n]").forEach(a=>{a.dataset.n===key?a.setAttribute("aria-current","page"):a.removeAttribute("aria-current")});
+  if(v==="project"){$("#project").innerHTML=detail(pi);document.title=P[pi].title+" — Luca Henry";setCur(pi)}
+  else document.title=(v==="home"?"Luca Henry":key[0].toUpperCase()+key.slice(1)+" — Luca Henry");
+  window.scrollTo(0,0);
+  requestAnimationFrame(fit);
+}
+addEventListener("hashchange",route);
+addEventListener("resize",fit);
+document.fonts&&document.fonts.ready.then(fit);
+
+fetch("projects/projects.json").then(r=>r.json()).then(d=>{P=d.projects||[]}).catch(()=>{P=[]}).finally(()=>{buildList();route()});
+</script>
+</body>
+</html>
