@@ -61,9 +61,9 @@ main{flex:1;display:flex;flex-direction:column}
 #pl{list-style:none;display:flex;flex-direction:column;justify-content:space-between;align-items:stretch}
 #pl a{display:block;text-align:right;color:var(--mute);font-family:Archivo,"Helvetica Neue",Arial,sans-serif;font-stretch:75%;font-weight:400;font-size:calc(2.3 * var(--u));line-height:1.1;letter-spacing:-.03em;padding:calc(.5 * var(--u)) calc(1 * var(--u))}
 #pl a.on{color:#fff;padding:calc(1.6 * var(--u)) calc(1.1 * var(--u))}
-#pl a.on .fb{display:block;height:calc(3.6 * var(--u));z-index:1}
+#pl .fb{display:block;z-index:1}
 #pl a{position:relative;isolation:isolate}
-#pl a::before{content:"";position:absolute;inset:0;z-index:-1;background:#000;transform:scaleX(var(--t,0));transform-origin:50% 50%}
+#pl a::before{content:"";position:absolute;inset:0;z-index:-1;background:#000;transform:scaleX(var(--t,0));transform-origin:100% 50%}
 #pl .fit{font-family:Archivo,"Helvetica Neue",Arial,sans-serif;font-stretch:100%;font-weight:700;text-transform:uppercase;letter-spacing:-.02em}
 
 /* project detail */
@@ -340,8 +340,8 @@ function setCur(i){
   pv.innerHTML=(p.cover?`<img src="${p.cover}" alt="">`:"")+"<span>WORK DISPLAY<br>PHOTO</span>";
 }
 /* PROJECT LIST MORPH
-   Every row is one piece of text. The selected row (t=1) is condensed, heavy, white and stretched to fill a black bar that grows from the centre;
-   the others (t=0) are light grey and small, right-aligned. t is tweened per row and weight, width, size, colour, padding and stretch all follow it. */
+   Every row is one piece of text. The selected row (t=1) is condensed, heavy, white and stretched to fill a black bar that grows from the right edge;
+   the others (t=0) are light grey and small, right-aligned. t is tweened per row in 7 hard frames (like the rest of the site) and weight, width, size, colour, padding and stretch all follow it. */
 let T=[],A=[],lraf=0;
 const lerp=(a,b,t)=>a+(b-a)*t,smooth=x=>x<.5?4*x*x*x:1-Math.pow(-2*x+2,3)/2;
 const kw=st=>st>=187?"ultra-expanded":st>=137?"extra-expanded":st>=118?"expanded":st>=106?"semi-expanded":st>=94?"normal":st>=81?"semi-condensed":st>=69?"condensed":st>=56?"extra-condensed":"ultra-condensed";
@@ -372,11 +372,11 @@ function applyList(){
 }
 function tickList(now){
   let live=false;
-  A.forEach((an,j)=>{if(!an)return;const p=Math.min(1,(now-an.t0)/an.d);T[j]=lerp(an.from,an.to,smooth(p));if(p<1)live=true;else A[j]=null});
+  A.forEach((an,j)=>{if(!an)return;const p=Math.min(1,(now-an.t0)/an.d);T[j]=lerp(an.from,an.to,p>=1?1:Math.floor(p*7)/7);if(p<1)live=true;else A[j]=null});
   applyList();lraf=live?requestAnimationFrame(tickList):0;
 }
 function retarget(sel,instant){
-  const d=instant||!matchMedia("(prefers-reduced-motion:no-preference)").matches?0:480;
+  const d=instant||!matchMedia("(prefers-reduced-motion:no-preference)").matches?0:420;
   P.forEach((_,j)=>{
     const to=j===sel?1:0;
     if(d===0){T[j]=to;A[j]=null}
