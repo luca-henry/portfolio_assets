@@ -442,15 +442,6 @@ function shutter(fn){
 }
 addEventListener("hashchange",()=>shutter(route));
 
-/* hover jitter: a big title gives one small sideways shake (text stays fully visible) */
-document.addEventListener("mouseover",e=>{
-  const fb=e.target.closest&&e.target.closest(".fb");
-  if(!fb||fb.closest(".stamp,.cl,#pl")||!matchMedia("(prefers-reduced-motion:no-preference)").matches)return;
-  const el=fb.querySelector(".fit");
-  if(!el||(el._g&&el._g.playState==="running"))return;
-  el._g=el.animate(["0 0",".45vw 0","-.35vw 0",".2vw 0","0 0"].map(v=>({translate:v,easing:"steps(1,end)"})),{duration:220});
-});
-
 addEventListener("resize",fit);
 
 /* re-fit once the display font really arrives (fonts.ready can fire before it starts loading) */
