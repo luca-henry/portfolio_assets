@@ -154,6 +154,23 @@ main{flex:1;display:flex;flex-direction:column}
 #tz .x:hover,#tz .x:focus-visible{background:#fff;color:#000;outline:calc(.3 * var(--u)) solid #000}
 #tz .zc{position:fixed;left:0;right:0;bottom:calc(2.6 * var(--u));text-align:center;font:700 calc(1.3 * var(--u))/1 "Helvetica Neue",Helvetica,Arial,sans-serif;letter-spacing:.12em;text-transform:uppercase}
 @media (max-width:800px){.tbw{margin-bottom:calc(3 * var(--u))}.lc .cap,.lph,#tz .zc{font-size:calc(2.4 * var(--u))}.tb{gap:calc(7 * var(--u))}.sf{padding-bottom:calc(5 * var(--u))}.sf::before{bottom:calc(2.4 * var(--u));height:calc(7 * var(--u))}.sf::after{height:calc(2.6 * var(--u))}.lc .cap{top:calc(100% + 8.6 * var(--u))}#tz .x{font-size:calc(3.4 * var(--u));padding:calc(2.6 * var(--u)) calc(4 * var(--u))}}
+/* turntable ring: logo marks stand around a rotating ring on black */
+.rgw{margin-bottom:calc(1.7 * var(--u))}
+.rg{position:relative;width:100%;aspect-ratio:1/1.05;overflow:hidden;background:radial-gradient(ellipse 60% 48% at 50% 40%,#2b2316 0%,#0b0905 55%,#000 80%);cursor:grab;touch-action:pan-y;user-select:none;-webkit-user-select:none;color:#fff}
+.rg.dn{cursor:grabbing}
+.rg .st{position:absolute;left:0;right:0;top:0;height:78%;perspective:1500px;perspective-origin:50% 30%}
+.rg .rr{position:absolute;left:50%;top:52%;width:0;height:0;transform-style:preserve-3d;transform:rotateX(-13deg)}
+.rg .tk{position:absolute;left:0;top:0;border:1px solid rgba(214,177,92,.55);border-radius:50%;transform:translate(-50%,-50%) rotateX(90deg) translateZ(calc(var(--h) * -.5 - 4px));box-shadow:0 0 18px rgba(214,177,92,.18),inset 0 0 18px rgba(214,177,92,.12)}
+.rg .mk{position:absolute;left:0;top:0;backface-visibility:hidden;-webkit-backface-visibility:hidden}
+.rg .mk.mask{-webkit-mask-repeat:no-repeat;mask-repeat:no-repeat;-webkit-mask-position:center;mask-position:center;-webkit-mask-size:contain;mask-size:contain;background-size:300% 100%}
+.rg .mk img{display:block;width:100%;height:100%;object-fit:contain;pointer-events:none}
+.rg .fl{position:absolute;left:12%;right:12%;top:60%;height:20%;background:radial-gradient(closest-side,rgba(214,177,92,.22),transparent);pointer-events:none}
+.rg .bar{position:absolute;left:0;right:0;bottom:0;padding:calc(1.6 * var(--u)) calc(2 * var(--u));display:flex;align-items:center;justify-content:space-between;gap:calc(1.6 * var(--u));font:700 calc(1.2 * var(--u))/1 "Helvetica Neue",Helvetica,Arial,sans-serif;letter-spacing:.14em;text-transform:uppercase}
+.rg .bar button{all:unset;cursor:pointer;padding:calc(1 * var(--u)) calc(1.6 * var(--u));border:1px solid #fff;font:inherit}
+.rg .bar button:hover,.rg .bar button:focus-visible{background:#fff;color:#000}
+.rg .nm{opacity:.85;text-align:center;flex:1}
+.rg .ep{position:absolute;inset:0;display:grid;place-items:center;text-align:center;padding:calc(4 * var(--u));font:700 calc(1.2 * var(--u))/1.6 "Helvetica Neue",Helvetica,Arial,sans-serif;letter-spacing:.1em;text-transform:uppercase;opacity:.7}
+@media (max-width:800px){.rgw{margin-bottom:calc(3 * var(--u))}.rg .bar,.rg .ep{font-size:calc(2.6 * var(--u))}.rg .bar button{padding:calc(2 * var(--u)) calc(3 * var(--u))}}
 .fow{--g:calc(1.7 * var(--u));margin-bottom:var(--g)}
 .fo{position:relative}
 .fo-stage{position:relative;perspective:2200px;perspective-origin:50% 22%}
@@ -618,6 +635,7 @@ async function mountFold(p,tok){
 async function buildGallery(i){
   const tok=++gTok,p=P[i];
   if(p.table){mountTable(p,tok);return}
+  if(isRing(p)){mountRing(p,tok);return}
   const hasFold=!!(p.fold&&p.fold.src);
   const ms=[...(p.cover&&!hasFold?[{src:p.cover,type:"image"}]:[]),...(p.media||[])];   // a fold-out project shows the fold-out first, then its other media as a grid
   if(hasFold){await mountFold(p,tok);if(tok!==gTok)return;if(!ms.length)return}
@@ -745,6 +763,59 @@ function mountTable(p,tok){
   tb.querySelectorAll(".lc[data-k]").forEach(c=>c.addEventListener("click",()=>open(c.dataset.k,+c.dataset.i)));
   const loop=()=>{T.live.forEach(o=>o.tick());T.raf=requestAnimationFrame(loop)};T.raf=requestAnimationFrame(loop);
 }
+
+/* ---------- turntable ring ---------- */
+let RG=null;
+const isRing=p=>/ring|turntable/i.test(p.format||"");
+function killRing(){if(RG){cancelAnimationFrame(RG.raf);if(RG.ro)RG.ro.disconnect();RG=null}}
+function mountRing(p,tok){
+  const el=$("#project .rgw");if(!el)return;
+  const marks=(p.media||[]).filter(m=>(m.type||"image")==="image").map(m=>m.src),N=marks.length;
+  const tone=(p.tone||"gold").toLowerCase();
+  const grad={gold:"linear-gradient(105deg,#6b5320 0%,#c9a24b 22%,#fff3c9 33%,#c9a24b 45%,#7a5f25 66%,#c9a24b 80%,#6b5320 100%)",silver:"linear-gradient(105deg,#5d6367 0%,#b9bec2 22%,#fff 33%,#b9bec2 45%,#6e7479 66%,#b9bec2 80%,#5d6367 100%)",white:"linear-gradient(#f4f4f4,#f4f4f4)"}[tone];
+  const nice=s=>decodeURIComponent(s.split("/").pop()).replace(/\.[a-z0-9]+$/i,"").replace(/^\d+[-_ ]*/,"").replace(/[-_]+/g," ");
+  if(!N){el.innerHTML=`<div class="rg"><div class="ep">Add your logo PNGs (transparent) to this project folder.<br>Each one becomes a mark on the ring.</div></div>`;return}
+  el.innerHTML=`<div class="rg"><div class="fl"></div><div class="st"><div class="rr"><div class="tk"></div>${marks.map((s,i)=>`<div class="mk${tone==="original"?"":" mask"}" data-i="${i}" ${tone==="original"?"":`style="-webkit-mask-image:url('${s}');mask-image:url('${s}');background-image:${grad}"`}>${tone==="original"?tImg(s,"Mark "+(i+1)):""}</div>`).join("")}</div></div><div class="bar"><button type="button" class="pv" aria-label="Previous mark">Prev</button><span class="nm"></span><button type="button" class="nx" aria-label="Next mark">Next</button></div></div>`;
+  const rg=el.querySelector(".rg"),rr=el.querySelector(".rr"),tk=el.querySelector(".tk"),mk=[...el.querySelectorAll(".mk")],nm=el.querySelector(".nm");
+  const step=360/N,mq=matchMedia("(prefers-reduced-motion:no-preference)").matches;
+  const S={raf:0,a:0,v:0,sel:0,snap:null,drag:false,idle:performance.now(),R:0};RG=S;
+  const label=()=>{nm.textContent=String(S.sel+1).padStart(2,"0")+" / "+String(N).padStart(2,"0")+"  "+nice(marks[S.sel])};
+  const layout=()=>{
+    const w=rg.clientWidth,W=w*.44,H=W*.85;S.R=Math.max(w*.3,W/(2*Math.tan(Math.PI/Math.max(N,3)))*1.25);
+    mk.forEach(m=>{m.style.width=W+"px";m.style.height=H+"px";m.style.margin=`${-H/2}px 0 0 ${-W/2}px`});
+    const d=S.R*2;tk.style.width=d+"px";tk.style.height=d+"px";tk.style.setProperty("--h",H+"px");
+  };
+  layout();
+  const goto=i=>{S.sel=((i%N)+N)%N;S.snap=-S.sel*step+360*Math.round((S.a+S.sel*step)/360);S.v=0;S.idle=performance.now();label()};
+  const nearest=()=>{S.sel=((Math.round(-S.a/step)%N)+N)%N;goto(S.sel)};
+  const paint=()=>{
+    rr.style.transform=`rotateX(-13deg)`;
+    mk.forEach((m,i)=>{
+      const ang=S.a+i*step,c=Math.cos(ang*Math.PI/180);
+      m.style.transform=`rotateY(${ang}deg) translateZ(${S.R}px)`;
+      m.style.opacity=(.18+.82*Math.max(0,c)).toFixed(3);
+      if(tone!=="original")m.style.backgroundPosition=`${50+Math.sin(ang*Math.PI/180)*45}% 0`;
+    });
+  };
+  label();paint();
+  S.ro=new ResizeObserver(()=>{layout();paint()});S.ro.observe(rg);
+  let lx=0,sx=0,moved=false,id=null,hit=null;
+  rg.addEventListener("pointerdown",e=>{if(e.target.closest("button"))return;id=e.pointerId;rg.setPointerCapture(id);lx=sx=e.clientX;moved=false;hit=e.target.closest(".mk");S.drag=true;S.snap=null;S.v=0;rg.classList.add("dn");S.idle=performance.now()});
+  rg.addEventListener("pointermove",e=>{if(e.pointerId!==id)return;const dx=e.clientX-lx;lx=e.clientX;if(Math.abs(e.clientX-sx)>5)moved=true;if(moved){S.a+=dx*.35;S.v=dx*.35}});
+  const up=e=>{if(e.pointerId!==id)return;id=null;S.drag=false;rg.classList.remove("dn");S.idle=performance.now();if(!moved&&hit)goto(+hit.dataset.i);else if(Math.abs(S.v)<=.2)nearest()};
+  rg.addEventListener("pointerup",up);rg.addEventListener("pointercancel",up);
+  el.querySelector(".pv").addEventListener("click",()=>goto(S.sel-1));
+  el.querySelector(".nx").addEventListener("click",()=>goto(S.sel+1));
+  const loop=t=>{
+    if(!S.drag){
+      if(S.snap!==null){const d=S.snap-S.a;S.a+=d*.1;if(Math.abs(d)<.05){S.a=S.snap;S.snap=null}}
+      else if(Math.abs(S.v)>.2){S.a+=S.v;S.v*=.95;if(Math.abs(S.v)<=.2)nearest()}
+      else if(mq&&N>1&&t-S.idle>4000){goto(S.sel+1)}
+    }
+    paint();S.raf=requestAnimationFrame(loop);
+  };
+  S.raf=requestAnimationFrame(loop);
+}
 matchMedia("(max-width:800px)").addEventListener("change",paintGallery);
 
 function detail(i){
@@ -753,7 +824,7 @@ function detail(i){
   const body=paras.map((t,j)=>`<p style="--i:${j}">${esc(t).replace(/\n/g,"<br>")}</p>`).join("");
   return `<div class="dt"><div class="dl"><h1>${esc(p.title)}</h1><div class="ck">/ ${esc(p.category)}</div>${body}${p.note?`<p class="nt" style="--i:${paras.length}">${esc(p.note)}</p>`:""}
   <div class="ar"><a href="#project-${pv.slug}" aria-label="Previous project">${ARROW}</a><a class="r" href="#project-${nx.slug}" aria-label="Next project">${ARROW}</a></div></div>
-  <div class="rc">${p.table?'<div class="tbw"></div>':""}${isBook(p)?'<div class="bkw"></div>':""}${p.fold&&p.fold.src?'<div class="fow"></div>':""}<div class="gl"></div></div></div>`;
+  <div class="rc">${isRing(p)?'<div class="rgw"></div>':""}${p.table?'<div class="tbw"></div>':""}${isBook(p)?'<div class="bkw"></div>':""}${p.fold&&p.fold.src?'<div class="fow"></div>':""}<div class="gl"></div></div></div>`;
 }
 
 /* gallery tiles open as they scroll into view */
@@ -852,7 +923,7 @@ function fit(){
 /* hash routing: #home #projects #about #contact #project-<folder name> */
 const VIEWS=["home","projects","about","contact"];
 function route(){
-  killBook();killFold();killTable();gTok++;
+  killBook();killFold();killTable();killRing();gTok++;
   document.documentElement.style.removeProperty("--bg");
   document.querySelectorAll(".tick").forEach(e=>e.classList.remove("tick"));
   const h=decodeURIComponent(location.hash.slice(1))||"home";let v=h,pi=-1;
