@@ -156,6 +156,7 @@ main{flex:1;display:flex;flex-direction:column}
 @media (max-width:800px){.tbw{margin-bottom:calc(3 * var(--u))}.lc .cap,.lph,#tz .zc{font-size:calc(2.4 * var(--u))}.tb{gap:calc(7 * var(--u))}.sf{padding-bottom:calc(5 * var(--u))}.sf::before{bottom:calc(2.4 * var(--u));height:calc(7 * var(--u))}.sf::after{height:calc(2.6 * var(--u))}.lc .cap{top:calc(100% + 8.6 * var(--u))}#tz .x{font-size:calc(3.4 * var(--u));padding:calc(2.6 * var(--u)) calc(4 * var(--u))}}
 /* turntable ring: logo marks stand around a rotating ring on black */
 .rgw{margin-bottom:calc(1.7 * var(--u))}
+body.pbg{background:transparent}
 .rg{position:relative;width:100%;height:min(calc(100svh - 12 * var(--u)),calc(100vw * .56));overflow:hidden;background:transparent;cursor:grab;touch-action:pan-y;user-select:none;-webkit-user-select:none;color:#000}
 .rg.dn{cursor:grabbing}
 .rg canvas.cv{position:absolute;inset:0;width:100%;height:100%;display:block}
@@ -928,48 +929,56 @@ function mountPendant(p,tok){
   const logo=(p.media||[]).filter(m=>(m.type||"image")==="image").map(m=>m.src)[0];
   const tone=(p.tone||"silver").toLowerCase();
   const stops=tone==="gold"?["#fff2c4","#d9ae55","#a47a28","#efd27f","#8a6422","#cda64d"]:tone==="rose"?["#ffe6dc","#e6a592","#b0705f","#f3c1b1","#94594a","#d89483"]:["#ffffff","#d5d9dd","#8d959b","#eceff1","#6c747a","#c3c8cc"];
-  el.innerHTML=`<div class="rg"><canvas class="cv"></canvas>${logo?"":'<div class="ep">Add your logo PNG (transparent) to this project folder.<br>It will hang as a pendant on the chain.</div>'}</div>`;
-  const rg=el.querySelector(".rg"),cv=el.querySelector("canvas"),ctx=cv.getContext("2d");
+  el.innerHTML=`<div class="rg" style="touch-action:none">${logo?"":'<div class="ep">Add your logo PNG (transparent) to this project folder.<br>It will hang as a pendant on the chain.</div>'}</div>`;
+  /* the drawing layer covers the whole window, behind the text, so the pendant can swing past the stage and off screen */
+  const cv=document.createElement("canvas");cv.style.cssText="position:fixed;left:0;top:0;width:100vw;height:100svh;pointer-events:none;z-index:-1";document.body.appendChild(cv);document.body.classList.add("pbg");
+  const rg=el.querySelector(".rg"),ctx=cv.getContext("2d");
   const S={raf:0,drag:false};RG=S;
   const mq=matchMedia("(prefers-reduced-motion:no-preference)").matches;
-  let W=0,H=0,dpr=1,pts=[],N=18,L=10,pw=0,ph=0,img=null,pend=null,pendTmp=null,gx=0,gy=0;
+  let VW=0,VH=0,SW=0,SH=0,dpr=1,pts=[],N=18,L=10,pw=0,ph=0,img=null,pend=null,pendTmp=null,shine=null,ax0=0,ay0=0;
   const loadImg=src=>new Promise(r=>{if(!src)return r(null);const i=new Image();i.onload=()=>r(i);i.onerror=()=>r(null);i.src=src});
   const grad=(c,x0,y0,x1,y1)=>{const g=c.createLinearGradient(x0,y0,x1,y1);stops.forEach((col,i)=>g.addColorStop(i/(stops.length-1),col));return g};
-  /* pendant artwork: the logo cut out in metal, with a lit rim and a dark rim for thickness */
+  const trim=im=>{
+    if(!im)return null;
+    try{const c=document.createElement("canvas");c.width=im.naturalWidth;c.height=im.naturalHeight;const x=c.getContext("2d");x.drawImage(im,0,0);const d=x.getImageData(0,0,c.width,c.height).data;
+      let x0=c.width,y0=c.height,x1=0,y1=0;for(let y=0;y<c.height;y++)for(let xx=0;xx<c.width;xx++)if(d[(y*c.width+xx)*4+3]>10){if(xx<x0)x0=xx;if(xx>x1)x1=xx;if(y<y0)y0=y;if(y>y1)y1=y}
+      if(x1<=x0||y1<=y0)return im;const w=x1-x0+1,h=y1-y0+1,o=document.createElement("canvas");o.width=w;o.height=h;o.getContext("2d").drawImage(c,x0,y0,w,h,0,0,w,h);o.naturalWidth=w;o.naturalHeight=h;
+      let ax=.5,ay=0,best=1e9;for(let xx=Math.floor(w*.3);xx<Math.ceil(w*.7);xx++)for(let y=0;y<h;y++){if(d[((y+y0)*c.width+(xx+x0))*4+3]>10){if(y<best){best=y;ax=xx/w;ay=y/h}break}}
+      o.attachX=ax;o.attachY=ay;return o}catch(e){return im}
+  };
+  /* pendant artwork: logo cut-out with a lit rim and a darker rim for thickness; the reflections are added every frame */
   const buildPendant=()=>{
     if(!img)return;
     pend=document.createElement("canvas");pend.width=Math.ceil(pw*dpr)+8;pend.height=Math.ceil(ph*dpr)+8;const c=pend.getContext("2d");
     const tint=(fill,dx,dy)=>{const t=document.createElement("canvas");t.width=pend.width;t.height=pend.height;const q=t.getContext("2d");q.drawImage(img,4+dx,4+dy,pw*dpr,ph*dpr);q.globalCompositeOperation="source-in";q.fillStyle=fill;q.fillRect(0,0,t.width,t.height);return t};
-    const k=dpr*1.4;c.drawImage(tint("rgba(30,32,36,.55)",k*1.4,k*1.4),0,0);c.drawImage(tint("rgba(255,255,255,.95)",-k*.9,-k*.9),0,0);
-    const f=document.createElement("canvas");f.width=pend.width;f.height=pend.height;const q=f.getContext("2d");q.drawImage(img,4,4,pw*dpr,ph*dpr);q.globalCompositeOperation="source-in";q.fillStyle=stops[2];q.fillRect(0,0,f.width,f.height);
-    c.drawImage(f,0,0);
+    const k=dpr*1.2;c.drawImage(tint("rgba(30,32,36,.5)",k*1.3,k*1.3),0,0);c.drawImage(tint("rgba(255,255,255,.9)",-k*.8,-k*.8),0,0);c.drawImage(tint(stops[2],0,0),0,0);
     pendTmp=document.createElement("canvas");pendTmp.width=pend.width;pendTmp.height=pend.height;
   };
+  const anchor=()=>{const r=rg.getBoundingClientRect();ax0=r.left+r.width/2;ay0=r.top-L*.5};
   const setup=()=>{
-    W=rg.clientWidth;H=rg.clientHeight;dpr=Math.min(devicePixelRatio||1,2);cv.width=Math.round(W*dpr);cv.height=Math.round(H*dpr);
+    VW=innerWidth;VH=innerHeight;dpr=Math.min(devicePixelRatio||1,2);cv.width=Math.round(VW*dpr);cv.height=Math.round(VH*dpr);
+    SW=rg.clientWidth;SH=rg.clientHeight;
     const asp=img?img.naturalHeight/img.naturalWidth:1;
-    pw=Math.min(W*.425,H*.45/asp);ph=pw*asp;
-    const chainLen=Math.max(H*.2,H-ph-H*.14-pw*.1);L=Math.max(6,chainLen/N);
-    const old=pts;pts=[];
-    for(let i=0;i<=N+1;i++){const x=W/2+(i===N+1?0:0),y=-L*.5+i*L;pts.push({x,y,px:x,py:y,w:i===0?0:(i===N+1?.7:1)})}
+    pw=Math.min(SW*.425,SH*.45/asp);ph=pw*asp;
+    L=Math.max(6,Math.max(SH*.2,SH-ph-SH*.14-pw*.1)/N);
+    anchor();
+    pts=[];for(let i=0;i<=N+1;i++){const x=ax0,y=ay0+i*L;pts.push({x,y,px:x,py:y,w:i===0?0:1})}
     pts[N+1].y=pts[N+1].py=pts[N].y+ph*.92;
-    if(mq){pts.forEach((q,i)=>{if(i>0)q.px=q.x-(i/(N+1))*.9})}   // tiny starting swing
+    if(mq)pts.forEach((q,i)=>{if(i>0)q.px=q.x-(i/(N+1))*1.2});
     buildPendant();
   };
+  /* lighter, livelier physics: little damping, equal weights, fast but capped following of the cursor */
   const step=dt=>{
-    const g=2200,damp=.996,vmax=L*.55,mx=pw*.58+8,my=ph*.12;
+    const g=1900,damp=.9994,vmax=L*1.1;
     for(const q of pts){if(!q.w)continue;let vx=(q.x-q.px)*damp,vy=(q.y-q.py)*damp;const v=Math.hypot(vx,vy);if(v>vmax){vx*=vmax/v;vy*=vmax/v}q.px=q.x;q.py=q.y;q.x+=vx;q.y+=vy+g*dt*dt}
-    /* the grabbed end eases toward the cursor at a capped speed, never teleporting */
-    if(S.drag&&S.grab){const q=S.grab,dx=S.mx-q.x,dy=S.my-q.y,d=Math.hypot(dx,dy),cap=L*.32,k=d>cap?cap/d:1;q.x+=dx*k*.5;q.y+=dy*k*.5;q.px=q.x;q.py=q.y}
-    for(let it=0;it<24;it++){
-      pts[0].x=W/2;pts[0].y=-L*.5;
+    if(S.drag&&S.grab){const q=S.grab,dx=S.mx-q.x,dy=S.my-q.y,d=Math.hypot(dx,dy),cap=L*.75,k=(d>cap?cap/d:1)*.8;q.x+=dx*k;q.y+=dy*k;q.px=q.x;q.py=q.y}
+    for(let it=0;it<20;it++){
+      pts[0].x=ax0;pts[0].y=ay0;
       for(let i=0;i<pts.length-1;i++){
         const a=pts[i],b=i===N?pts[N+1]:pts[i+1],rest=i===N?ph*.92:L;
-        let dx=b.x-a.x,dy=b.y-a.y,d=Math.hypot(dx,dy)||1e-6,diff=(d-rest)/d,wa=a.w,wb=b.w,ws=wa+wb;if(!ws)continue;
+        const dx=b.x-a.x,dy=b.y-a.y,d=Math.hypot(dx,dy)||1e-6,diff=(d-rest)/d,wa=a.w,wb=b.w,ws=wa+wb;if(!ws)continue;
         a.x+=dx*diff*wa/ws;a.y+=dy*diff*wa/ws;b.x-=dx*diff*wb/ws;b.y-=dy*diff*wb/ws;
       }
-      /* invisible walls keep the whole pendant inside the frame */
-      for(let i=1;i<pts.length;i++){const q=pts[i];if(i>=N-1){q.x=Math.max(mx,Math.min(W-mx,q.x));if(i===N+1)q.y=Math.min(H-my-ph*.08,q.y)}else q.x=Math.max(4,Math.min(W-4,q.x))}
     }
   };
   const link=(a,b,odd)=>{
@@ -977,57 +986,53 @@ function mountPendant(p,tok){
     ctx.save();ctx.translate(mx,my);ctx.rotate(ang);
     ctx.lineWidth=Math.max(1.6,L*.17);ctx.strokeStyle=grad(ctx,0,-wd,0,wd);
     ctx.beginPath();ctx.ellipse(0,0,len/2,wd/2,0,0,Math.PI*2);ctx.stroke();
-    ctx.lineWidth=Math.max(.8,L*.05);ctx.strokeStyle="rgba(255,255,255,.75)";ctx.beginPath();ctx.ellipse(0,-wd*.04,len/2-L*.05,wd/2-L*.05,0,Math.PI*1.05,Math.PI*1.7);ctx.stroke();
+    ctx.lineWidth=Math.max(.8,L*.05);ctx.strokeStyle="rgba(255,255,255,.7)";ctx.beginPath();ctx.ellipse(0,-wd*.04,len/2-L*.05,wd/2-L*.05,0,Math.PI*1.05,Math.PI*1.7);ctx.stroke();
     ctx.restore();
   };
   const draw=()=>{
-    ctx.setTransform(dpr,0,0,dpr,0,0);ctx.clearRect(0,0,W,H);
+    ctx.setTransform(dpr,0,0,dpr,0,0);ctx.clearRect(0,0,VW,VH);
     for(let i=0;i<N;i++)link(pts[i],pts[i+1],i%2);
     const a=pts[N],b=pts[N+1],th=Math.atan2(-(b.x-a.x),(b.y-a.y));
-    /* jump ring */
     ctx.save();ctx.translate(a.x,a.y);ctx.lineWidth=Math.max(2,L*.2);ctx.strokeStyle=grad(ctx,-L,-L,L,L);ctx.beginPath();ctx.arc(0,0,L*.62,0,Math.PI*2);ctx.stroke();ctx.restore();
-    if(pend){
-      const ox=-(img.attachX||.5)*pw-4/dpr,oy=L*.25-(img.attachY||0)*ph-4/dpr,cs=Math.cos(th),sn=Math.sin(th),t=pendTmp.getContext("2d");
-      /* the room's light is fixed: streaks of reflection stay put in the world, so the metal picks them up as the pendant swings and tilts */
-      t.setTransform(1,0,0,1,0,0);t.globalCompositeOperation="source-over";t.clearRect(0,0,pendTmp.width,pendTmp.height);t.drawImage(pend,0,0);
-      t.globalCompositeOperation="source-atop";
-      t.setTransform(dpr*cs,-dpr*sn,dpr*sn,dpr*cs,dpr*(-cs*a.x-sn*a.y-ox),dpr*(sn*a.x-cs*a.y-oy));
-      const P=W*.8,shift=((th*W*1.5+(a.x-W/2)*.7+(a.y*.15))%P+P)%P,span=P*1.0;
-      const dkk=stops[4],mid=stops[2],lt=stops[1],wh=stops[0],sf=stops[3];
-      for(let k=-2;k<=2;k++){
-        const x0=shift+k*P-P*.2,g=t.createLinearGradient(x0,-H*.3,x0+span*.7,H*.5);
-        g.addColorStop(0,dkk);g.addColorStop(.18,mid);g.addColorStop(.32,wh);g.addColorStop(.42,lt);g.addColorStop(.55,mid);g.addColorStop(.72,dkk);g.addColorStop(.86,sf);g.addColorStop(1,dkk);
-        t.save();t.beginPath();t.rect(x0,-H,span*.7+1,H*3);t.clip();t.fillStyle=g;t.fillRect(x0-2,-H,span*.7+4,H*3);t.restore();
-      }
-      t.setTransform(1,0,0,1,0,0);t.globalCompositeOperation="source-over";
-      ctx.save();ctx.translate(a.x,a.y);ctx.rotate(th);ctx.drawImage(pendTmp,ox,oy,pendTmp.width/dpr,pendTmp.height/dpr);ctx.restore();
+    if(!pend)return;
+    const ox=-(img.attachX||.5)*pw-4/dpr,oy=L*.25-(img.attachY||0)*ph-4/dpr,cs=Math.cos(th),sn=Math.sin(th),t=pendTmp.getContext("2d");
+    /* reflections: the room's light is fixed, so soft bands of light stay put in the world and the metal picks them up as it tilts and swings.
+       The target is eased, so the shine glides instead of flickering. */
+    const P=Math.max(260,pw*2.4),target=th*P*.9+a.x*.22;
+    shine=shine===null?target:shine+(target-shine)*.18;
+    const off=((shine%P)+P)%P;
+    t.setTransform(1,0,0,1,0,0);t.globalCompositeOperation="source-over";t.clearRect(0,0,pendTmp.width,pendTmp.height);t.drawImage(pend,0,0);
+    t.globalCompositeOperation="source-atop";
+    t.setTransform(dpr*cs,-dpr*sn,dpr*sn,dpr*cs,dpr*(-cs*a.x-sn*a.y-ox),dpr*(sn*a.x-cs*a.y-oy));
+    const lo=stops[2],md=stops[5],hi=stops[1],sp=stops[3];
+    for(let k=-4;k<=4;k++){
+      const x0=off+k*P-P,g=t.createLinearGradient(x0,0,x0+P,P*.35);
+      g.addColorStop(0,lo);g.addColorStop(.22,md);g.addColorStop(.40,hi);g.addColorStop(.47,sp);g.addColorStop(.58,md);g.addColorStop(.82,lo);g.addColorStop(1,lo);
+      t.fillStyle=g;t.fillRect(x0-.5,-VH,P+1,VH*3);
     }
+    t.setTransform(1,0,0,1,0,0);t.globalCompositeOperation="source-over";
+    ctx.save();ctx.translate(a.x,a.y);ctx.rotate(th);ctx.drawImage(pendTmp,ox,oy,pendTmp.width/dpr,pendTmp.height/dpr);ctx.restore();
   };
   let last=0,acc=0;
   const loop=t=>{
-    const dt=Math.min(.05,(t-last)/1000||.016);last=t;acc+=dt;const h=1/120;let n=0;while(acc>=h&&n<8){step(h);acc-=h;n++}
+    const dt=Math.min(.05,(t-last)/1000||.016);last=t;acc+=dt;const h=1/120;let n=0;
+    anchor();while(acc>=h&&n<8){step(h);acc-=h;n++}
     draw();S.raf=requestAnimationFrame(loop);
   };
-  const trim=im=>{
-    if(!im)return null;
-    try{const c=document.createElement("canvas");c.width=im.naturalWidth;c.height=im.naturalHeight;const x=c.getContext("2d");x.drawImage(im,0,0);const d=x.getImageData(0,0,c.width,c.height).data;
-      let x0=c.width,y0=c.height,x1=0,y1=0;for(let y=0;y<c.height;y++)for(let xx=0;xx<c.width;xx++)if(d[(y*c.width+xx)*4+3]>10){if(xx<x0)x0=xx;if(xx>x1)x1=xx;if(y<y0)y0=y;if(y>y1)y1=y}
-      if(x1<=x0||y1<=y0)return im;const w=x1-x0+1,h=y1-y0+1,o=document.createElement("canvas");o.width=w;o.height=h;o.getContext("2d").drawImage(c,x0,y0,w,h,0,0,w,h);o.naturalWidth=w;o.naturalHeight=h;
-      /* where the chain hooks on: the highest solid point in the middle half of the logo */
-      let ax=.5,ay=0,best=1e9;for(let xx=Math.floor(w*.3);xx<Math.ceil(w*.7);xx++)for(let y=0;y<h;y++){if(d[((y+y0)*c.width+(xx+x0))*4+3]>10){if(y<best){best=y;ax=xx/w;ay=y/h}break}}
-      o.attachX=ax;o.attachY=ay;return o}catch(e){return im}
-  };
   loadImg(logo).then(im=>{if(RG!==S)return;img=trim(im);setup();S.raf=requestAnimationFrame(loop)});
-  S.ro=new ResizeObserver(()=>{if(img||!logo)setup()});S.ro.observe(rg);
   if(!logo)requestAnimationFrame(()=>{setup();S.raf=requestAnimationFrame(loop)});
-  /* grab the pendant and fling it */
-  const pos=e=>{const r=cv.getBoundingClientRect();return[e.clientX-r.left,e.clientY-r.top]};
-  rg.addEventListener("pointerdown",e=>{const[x,y]=pos(e),b=pts[N+1],a=pts[N],cx=(a.x+b.x)/2,cy=(a.y+b.y)/2;
-    if(Math.hypot(x-cx,y-cy)<Math.max(pw,ph)*.75){S.drag=true;S.grab=b;S.mx=b.x;S.my=b.y;rg.setPointerCapture(e.pointerId);rg.classList.add("dn");b.w=0}});
-  rg.addEventListener("pointermove",e=>{if(!S.drag)return;const[x,y]=pos(e);{const ax=W/2,ay=-L*.5,reach=(N*L+ph*.92)*.97;let dx=x-ax,dy=Math.max(y,L*2)-ay;const d=Math.hypot(dx,dy);if(d>reach){dx*=reach/d;dy*=reach/d}S.mx=Math.max(pw*.58+8,Math.min(W-pw*.58-8,ax+dx));S.my=Math.min(H-ph*.2,ay+dy)}});
-  const up=e=>{if(!S.drag)return;S.drag=false;const q=S.grab;q.w=.7;q.px=q.x;q.py=q.y;S.grab=null;rg.classList.remove("dn")};
-  rg.addEventListener("pointerup",up);rg.addEventListener("pointercancel",up);
-  rg.addEventListener("pointermove",e=>{if(S.drag)return;const[x,y]=pos(e),b=pts[N+1],a=pts[N];rg.style.cursor=Math.hypot(x-(a.x+b.x)/2,y-(a.y+b.y)/2)<Math.max(pw,ph)*.75?"grab":"default"});
+  const onResize=()=>{if(img||!logo){const keep=shine;setup();shine=keep}};
+  addEventListener("resize",onResize);
+  /* grab it anywhere on the page, even where it hangs over the text */
+  const hit=(x,y)=>{if(pts.length<N+2)return false;const a=pts[N],b=pts[N+1];return Math.hypot(x-(a.x+b.x)/2,y-(a.y+b.y)/2)<Math.max(pw,ph)*.7};
+  const down=e=>{if(!hit(e.clientX,e.clientY))return;S.drag=true;S.grab=pts[N+1];S.grab.w=0;S.mx=S.grab.x;S.my=S.grab.y;e.preventDefault();document.body.style.cursor="grabbing"};
+  const move=e=>{
+    if(S.drag){const ax=ax0,ay=ay0,reach=(N*L+ph*.92)*.97;let dx=e.clientX-ax,dy=e.clientY-ay;const d=Math.hypot(dx,dy);if(d>reach){dx*=reach/d;dy*=reach/d}S.mx=ax+dx;S.my=ay+dy;return}
+    document.body.style.cursor=hit(e.clientX,e.clientY)?"grab":"";
+  };
+  const up=()=>{if(!S.drag)return;S.drag=false;const q=S.grab;q.w=1;q.px=q.x;q.py=q.y;S.grab=null;document.body.style.cursor=""};
+  addEventListener("pointerdown",down);addEventListener("pointermove",move);addEventListener("pointerup",up);addEventListener("pointercancel",up);
+  S.dispose=()=>{removeEventListener("resize",onResize);removeEventListener("pointerdown",down);removeEventListener("pointermove",move);removeEventListener("pointerup",up);removeEventListener("pointercancel",up);cv.remove();document.body.classList.remove("pbg");document.body.style.cursor=""};
 }
 matchMedia("(max-width:800px)").addEventListener("change",paintGallery);
 
