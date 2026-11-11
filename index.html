@@ -186,6 +186,9 @@ main,.view.on{min-height:0}
 }
 @media (max-width:800px){.cl{flex:none!important;height:calc(10 * var(--u))}.cl .fb{height:100%;overflow:visible}}
 
+#ld{position:fixed;inset:0;z-index:60;background:#fff;display:flex;flex-direction:column}
+#ld i{flex:1;background:#000;transform:scaleX(0)}
+#ld b{position:fixed;left:calc(2*var(--u));bottom:calc(2*var(--u));z-index:2;font:700 calc(1.6*var(--u))/1 "Helvetica Neue",Helvetica,Arial,sans-serif;letter-spacing:.08em;color:#fff;mix-blend-mode:difference;text-transform:uppercase}
 #sh{position:fixed;inset:0;z-index:50;pointer-events:none;display:flex;flex-direction:column;visibility:hidden}
 #sh i{flex:1;background:#000;transform:scaleX(0)}
 
@@ -347,6 +350,7 @@ main,.view.on{min-height:0}
   </section>
 </main>
 
+<div id="ld" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i><b>Loading 0%</b></div>
 <div id="sh" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i></div>
 
 <script>
@@ -752,7 +756,46 @@ function tick(){
 }
 tick();setInterval(tick,500);
 
-fetch("projects/projects.json").then(r=>r.json()).then(d=>{P=d.projects||[]}).catch(()=>{P=[]}).finally(()=>{buildList();route();armed=true});
+/* first visit: slats loop over a white page while every image, fold-out and booklet page is fetched into the cache; then the site is built underneath and the slats open onto it */
+(function(){
+  const ld=$("#ld"),bars=[...ld.querySelectorAll("i")],lab=ld.querySelector("b"),D=110,G=18,E="steps(3,end)";
+  const motion=matchMedia("(prefers-reduced-motion:no-preference)").matches;
+  let done=false,total=1,got=0;
+  const pct=()=>{lab.textContent="Loading "+Math.min(100,Math.round(got/total*100))+"%"};
+  const tick=()=>{got++;pct()};
+  const grab=u=>new Promise(r=>{const im=new Image();im.onload=im.onerror=()=>{(im.decode?im.decode().catch(()=>{}):Promise.resolve()).then(r)};im.src=u});
+  const urls=ps=>{const o=new Set,add=u=>{if(typeof u==="string"&&/\.(png|jpe?g|webp|gif|avif|svg)(\?|$)/i.test(u))o.add(u)};
+    ps.forEach(p=>{add(p.cover);(p.pages||[]).forEach(add);(p.media||[]).forEach(m=>add(typeof m==="string"?m:m&&m.src));if(p.fold){add(p.fold.src)}});return[...o]};
+  function reveal2(shutAlready){
+    const go=()=>{buildList();route();armed=true};
+    if(!motion){go();ld.remove();return}
+    const shut=shutAlready?[]:bars.map((b,i)=>{b.style.transformOrigin=i%2?"100% 50%":"0 50%";return b.animate([{transform:"scaleX(0)"},{transform:"scaleX(1)"}],{duration:D,delay:i*G,easing:E,fill:"both"})});
+    if(shutAlready)bars.forEach(b=>b.style.transform="scaleX(1)");
+    Promise.all(shut.map(a=>a.finished)).then(()=>{
+      ld.style.background="transparent";lab.remove();go();
+      const open=bars.map((b,i)=>{b.style.transformOrigin=i%2?"0 50%":"100% 50%";return b.animate([{transform:"scaleX(1)"},{transform:"scaleX(0)"}],{duration:D,delay:i*G,easing:E,fill:"both"})});
+      Promise.all(open.map(a=>a.finished)).then(()=>ld.remove());
+    });
+  }
+  async function loop(){   // idle animation: shut, open, repeat, until loading is done (always finishes on a shut cycle)
+    let n=0,shutNow=false;
+    while(!(done&&n>0)){
+      const sh=bars.map((b,i)=>{b.style.transformOrigin=(i+n)%2?"100% 50%":"0 50%";return b.animate([{transform:"scaleX(0)"},{transform:"scaleX(1)"}],{duration:D*1.6,delay:i*G,easing:E,fill:"both"})});
+      await Promise.all(sh.map(a=>a.finished));
+      if(done){bars.forEach(b=>b.style.transform="scaleX(1)");sh.forEach(a=>a.cancel());shutNow=true;break}
+      const op=bars.map((b,i)=>{b.style.transformOrigin=(i+n)%2?"0 50%":"100% 50%";return b.animate([{transform:"scaleX(1)"},{transform:"scaleX(0)"}],{duration:D*1.6,delay:i*G,easing:E,fill:"both"})});
+      sh.forEach(a=>a.cancel());await Promise.all(op.map(a=>a.finished));op.forEach(a=>a.cancel());n++;
+    }
+    reveal2(shutNow);
+  }
+  if(motion)loop();
+  const fontP=(document.fonts?document.fonts.load("900 100px Main","LUCA").catch(()=>{}):Promise.resolve());
+  const work=fetch("projects/projects.json").then(r=>r.json()).then(d=>{P=d.projects||[]}).catch(()=>{P=[]}).then(()=>{
+    const u=urls(P);total=u.length+1;pct();
+    return Promise.all([fontP.then(tick),...u.map(x=>grab(x).then(tick))]);
+  });
+  Promise.race([work,new Promise(r=>setTimeout(r,20000))]).then(()=>{done=true;if(!motion)reveal2()});   // never hold the site for more than 20 s
+})();
 </script>
 </body>
 </html>
