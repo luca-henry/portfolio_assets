@@ -1,8 +1,9 @@
 title: Mito
 category: brand identity
 order: 4
-note: Small italic line shown under the description.
+format: fridge
+note: Meat made easy.
 ---
-The main description text goes here, below the divider.
-You can write as many paragraphs as you like.
+A brand identity for lab-grown meat that makes it look and feel like food first. A chunky wordmark and a red square that divides like a cell carry the brand, and a pixel typeface carries the science.
 
+Slide the freezer lids open and pick up a pack.
