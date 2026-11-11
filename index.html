@@ -97,6 +97,28 @@ main{flex:1;display:flex;flex-direction:column}
 .bn{flex:1;text-align:center;font-family:Archivo,sans-serif;font-stretch:72%;font-weight:700;font-size:calc(3.7 * var(--u));letter-spacing:-.04em;line-height:1}
 .bh{margin-top:calc(1 * var(--u));font-size:clamp(12px,calc(.82 * var(--u)),22px);font-style:italic}
 
+/* folded calendar / poster. Rows hinge on rows, panels hinge on panels, so it folds like a real map-fold. No overflow/filter/opacity on the 3D chain or it flattens. */
+.fow{--g:calc(1.7 * var(--u));margin-bottom:var(--g)}
+.fo{position:relative}
+.fo-stage{perspective:2200px;perspective-origin:50% 22%}
+.fo-sheet{position:relative;width:var(--pw);height:var(--ph);transform-style:preserve-3d;transform-origin:0 0;cursor:pointer;touch-action:pan-y;-webkit-user-select:none;user-select:none}
+.fr,.pn{position:absolute;left:0;top:0;width:var(--pw);height:var(--ph);transform-style:preserve-3d;transform-origin:0 0}
+.fr .fr{top:100%}
+.pn .pn{left:100%}
+.po{transform:rotateY(calc(var(--a) * 1deg))}
+.pe{transform:rotateY(calc(var(--a) * -1deg))}
+.ro{transform:rotateX(calc(var(--v) * -1deg))}
+.re{transform:rotateX(calc(var(--v) * 1deg))}
+.f,.b{position:absolute;inset:-.5px;backface-visibility:hidden;-webkit-backface-visibility:hidden}
+.f{background-repeat:no-repeat;background-size:calc(var(--cols) * 100%) calc(var(--rows) * 100%);background-color:#fff}
+.b{transform:rotateY(180deg);background:#e8e5de}
+.f i,.b i{position:absolute;inset:0;background:#000;opacity:var(--sh,0);pointer-events:none}
+.pn .pn>.f::before{content:"";position:absolute;inset:0;background:linear-gradient(90deg,rgba(0,0,0,.2),rgba(0,0,0,0) 5%);pointer-events:none}
+.fr .fr .pn>.f::after{content:"";position:absolute;inset:0;background:linear-gradient(180deg,rgba(0,0,0,.16),rgba(0,0,0,0) 4%);pointer-events:none}
+.fo.closed .pn .pn,.fo.closed .fr .fr{visibility:hidden}
+.fo-btn{display:flex;justify-content:space-between;align-items:center;width:100%;border:0;cursor:pointer;background:#000;color:#fff;margin-top:var(--g);height:calc(5.2 * var(--u));padding:0 calc(1.6 * var(--u));font-family:Archivo,"Helvetica Neue",Arial,sans-serif;font-stretch:72%;font-weight:800;font-size:calc(3 * var(--u));letter-spacing:-.03em;text-transform:uppercase;line-height:1}
+.fo-btn:hover{background:#fff;color:#000;outline:var(--bw) solid #000;outline-offset:calc(var(--bw) * -1)}
+
 /* about */
 .at{display:grid;grid-template-columns:48.3fr 27.4fr 20.1fr;gap:calc(2 * var(--u));height:calc(24.5 * var(--u))}
 .blk{background:#000;padding:calc(2.6 * var(--u)) calc(3.2 * var(--u)) calc(2.9 * var(--u)) calc(2.7 * var(--u))}
@@ -130,6 +152,7 @@ main{flex:1;display:flex;flex-direction:column}
  .dl h1{font-size:calc(17 * var(--u))}.ck{font-size:calc(8 * var(--u));margin:calc(4 * var(--u)) 0}.dl p{font-size:calc(4 * var(--u))}.dl .nt{font-size:calc(3.2 * var(--u));margin-top:calc(4 * var(--u))}
  .ar{margin-top:calc(6 * var(--u));gap:calc(4 * var(--u))}.ar a{padding:calc(2 * var(--u))}
  .gl{--g:calc(3 * var(--u))}
+ .fow{--g:calc(3 * var(--u))}.fo-btn{height:calc(13 * var(--u));font-size:calc(7 * var(--u));padding:0 calc(3 * var(--u))}
  .bkw{--g:calc(3 * var(--u))}.bk{padding:calc(3 * var(--u))}.bp{width:calc(24 * var(--u))}.bn{font-size:calc(8 * var(--u))}.bh{font-size:calc(3.2 * var(--u))}
  .at{grid-template-columns:1fr 1fr;height:auto;gap:calc(3 * var(--u))}
  .blk{grid-column:1/3;height:calc(55 * var(--u));padding:calc(5 * var(--u))}.shot{aspect-ratio:1;height:auto}
@@ -211,6 +234,10 @@ main,.view.on{min-height:0}
  .ar a:hover svg{filter:invert(1)}
  .ar svg{transition:translate .15s steps(2,end)}
  .ar a:hover svg{translate:-7% 0}.ar .r:hover svg{translate:7% 0}
+
+ /* fold-out */
+ .fo-stage{animation:blockY .45s var(--ease) .15s backwards}
+ .fo-btn{animation:blockX .4s var(--ease) .35s backwards}
 
  /* booklet controls */
  .bc,.bh{animation:blockY .4s var(--ease) .3s backwards}
@@ -397,9 +424,73 @@ addEventListener("keydown",e=>{
   if(e.key==="ArrowRight"){book.flipNext();e.preventDefault()}else if(e.key==="ArrowLeft"){book.flipPrev();e.preventDefault()}
 });
 
+/* FOLD-OUT CALENDAR
+   projects.json:  "fold": { "src": "projects/x/calendar.jpg", "cols": 6, "rows": 4 }
+   The artwork is cut into cols x rows panels. Each row hinges on the row above, each panel on the panel before it (alternating direction, like a map fold).
+   Starts as the top-left panel (the cover); click or drag to unfold across, then down. The paper shades and shows its blank back as it turns. */
+let fold=null;
+const FFR=70;   // ms per drawn frame while it animates (same chopped frame rate feel as the rest of the site)
+const clamp01=x=>Math.max(0,Math.min(1,x)),sm3=t=>t*t*(3-2*t);
+function killFold(){if(fold){cancelAnimationFrame(fold.raf);if(fold.ro)fold.ro.disconnect();fold=null}}
+function foldHTML(src,cols,rows){
+  const pn=(r,c)=>`<div class="pn${c?(c%2?" po":" pe"):""}" data-c="${c}" data-r="${r}"><div class="f" style="background-image:url('${esc(src)}');background-position:${cols>1?c/(cols-1)*100:0}% ${rows>1?r/(rows-1)*100:0}%"><i></i></div><div class="b"><i></i></div>${c<cols-1?pn(r,c+1):""}</div>`;
+  const fr=r=>`<div class="fr${r?(r%2?" ro":" re"):""}" data-r="${r}">${pn(r,0)}${r<rows-1?fr(r+1):""}</div>`;
+  return fr(0);
+}
+function foldLabel(){const F=fold;if(!F)return;F.btn.setAttribute("aria-expanded",F.state?"true":"false");F.btn.querySelector(".lb").textContent=F.state?"Fold it back":"Click to unfold";F.btn.querySelector(".pl").textContent=F.state?"−":"+"}
+function renderFold(){
+  const F=fold;if(!F||!F.pw)return;
+  const {cols,rows,pw,ph,Wc,p}=F,MAX=178,S=.7,D=Math.PI/180;
+  const q1=clamp01(p/.55),q2=clamp01((p-.45)/.55),A=[0],V=[0];       // phase 1: unfold across (ripples left to right). phase 2: unfold down.
+  for(let k=1;k<cols;k++)A[k]=MAX*(1-sm3(clamp01(q1*(1+S)-(cols>2?(k-1)/(cols-1):0)*S)));
+  for(let r=1;r<rows;r++)V[r]=MAX*(1-sm3(clamp01(q2*(1+S)-(rows>2?(r-1)/(rows-1):0)*S)));
+  let abs=0,x=pw,mx=pw,y=ph,my=ph;                                  // how far the folded shape reaches right / down right now
+  for(let k=1;k<cols;k++){abs+=(k%2?1:-1)*A[k];x+=pw*Math.cos(abs*D);mx=Math.max(mx,x)}
+  abs=0;for(let r=1;r<rows;r++){abs+=(r%2?1:-1)*V[r];y+=ph*Math.cos(abs*D);my=Math.max(my,y)}
+  const s=Math.min(F.s0,Wc/mx);                                      // big while folded, shrinks to fit the column as it opens
+  F.sheet.style.scale=s;F.sheet.style.translate=((Wc-mx*s)/2)+"px 0";F.stage.style.height=(my*s)+"px";
+  F.pans.forEach(n=>{const c=+n.dataset.c,r=+n.dataset.r;if(c)n.style.setProperty("--a",A[c].toFixed(2));n.style.setProperty("--sh",((c?.3*A[c]/MAX:0)+(r?.22*V[r]/MAX:0)).toFixed(3))});
+  F.rws.forEach(n=>{const r=+n.dataset.r;if(r)n.style.setProperty("--v",V[r].toFixed(2))});
+  F.el.classList.toggle("closed",p<.0005);
+}
+function fitFold(){
+  const F=fold;if(!F)return;const Wc=F.el.clientWidth;if(!Wc)return;
+  F.Wc=Wc;F.pw=Wc/F.cols;F.ph=F.pw*F.cols/(F.R*F.rows);
+  F.sheet.style.setProperty("--pw",F.pw+"px");F.sheet.style.setProperty("--ph",F.ph+"px");
+  F.s0=Math.max(1,Math.min(F.cols*(matchMedia("(max-width:800px)").matches?.5:.32),innerHeight*.72/F.ph));
+  renderFold();
+}
+function foldTo(to,d){
+  const F=fold;if(!F)return;cancelAnimationFrame(F.raf);
+  if(!d||!matchMedia("(prefers-reduced-motion:no-preference)").matches){F.p=to;renderFold();return}
+  const from=F.p,t0=performance.now();
+  const step=now=>{const e=now-t0,q=Math.min(1,Math.ceil(e/FFR)*FFR/d);F.p=from+(to-from)*sm3(q);renderFold();if(e<d)F.raf=requestAnimationFrame(step)};
+  F.raf=requestAnimationFrame(step);
+}
+async function mountFold(p,tok){
+  const w=$("#project .fow"),f=p.fold;if(!w||!f||!f.src)return;
+  const cols=(f.cols|0)||6,rows=(f.rows|0)||4,R=await measure({src:f.src,ratio:f.ratio});
+  if(tok!==gTok)return;
+  w.innerHTML=`<div class="fo closed" style="--cols:${cols};--rows:${rows}"><div class="fo-stage"><div class="fo-sheet">${foldHTML(f.src,cols,rows)}</div></div><button type="button" class="fo-btn" aria-expanded="false"><span class="lb">Click to unfold</span><span class="pl">+</span></button></div>`;
+  const el=w.querySelector(".fo"),sheet=el.querySelector(".fo-sheet");
+  const F=fold={el,sheet,stage:el.querySelector(".fo-stage"),btn:el.querySelector(".fo-btn"),pans:[...sheet.querySelectorAll(".pn")],rws:[...sheet.querySelectorAll(".fr")],cols,rows,R,p:0,state:0,drag:null,raf:0,pw:0,ph:0,Wc:0,s0:2,ro:null};
+  const toggle=()=>{F.state=F.state?0:1;foldLabel();foldTo(F.state,F.state?1600:1200)};
+  F.btn.addEventListener("click",toggle);
+  sheet.addEventListener("pointerdown",e=>{if(e.button>0)return;F.drag={x:e.clientX,y:e.clientY,p0:F.p,moved:false};cancelAnimationFrame(F.raf);try{sheet.setPointerCapture(e.pointerId)}catch(_){}});
+  sheet.addEventListener("pointermove",e=>{const D=F.drag;if(!D)return;const dx=e.clientX-D.x,dy=e.clientY-D.y;if(!D.moved&&Math.hypot(dx,dy)>6)D.moved=true;if(D.moved){F.p=clamp01(D.p0+(dx+dy*.6)/(F.Wc*.8));renderFold()}});   // drag to scrub the fold by hand
+  sheet.addEventListener("pointerup",()=>{const D=F.drag;if(!D)return;F.drag=null;if(D.moved){F.state=F.p>.45?1:0;foldLabel();foldTo(F.state,Math.max(350,(F.state?1-F.p:F.p)*1600))}else toggle()});
+  sheet.addEventListener("pointercancel",()=>{if(F.drag){F.drag=null;foldTo(F.state,500)}});
+  sheet.addEventListener("pointerenter",e=>{if(e.pointerType==="mouse"&&!F.state&&!F.drag)foldTo(.06,350)});    // corner lifts a touch on hover
+  sheet.addEventListener("pointerleave",e=>{if(e.pointerType==="mouse"&&!F.state&&!F.drag)foldTo(0,350)});
+  F.ro=new ResizeObserver(fitFold);F.ro.observe(el);
+  fitFold();
+}
+
 async function buildGallery(i){
   const tok=++gTok,p=P[i];
-  const ms=[...(p.cover?[{src:p.cover,type:"image"}]:[]),...(p.media||[])];
+  const hasFold=!!(p.fold&&p.fold.src);
+  const ms=[...(p.cover&&!hasFold?[{src:p.cover,type:"image"}]:[]),...(p.media||[])];   // a fold-out project shows the fold-out first, then its other media as a grid
+  if(hasFold){await mountFold(p,tok);if(tok!==gTok)return;if(!ms.length)return}
   if(isBook(p)){
     const pages=(p.pages&&p.pages.length?p.pages.map(x=>typeof x==="string"?{src:x}:x):ms.filter(m=>kind(m)==="image")),extras=ms.filter(m=>kind(m)!=="image");
     if(pages.length>1){
@@ -422,7 +513,7 @@ function detail(i){
   const body=paras.map((t,j)=>`<p style="--i:${j}">${esc(t).replace(/\n/g,"<br>")}</p>`).join("");
   return `<div class="dt"><div class="dl"><h1>${esc(p.title)}</h1><div class="ck">/ ${esc(p.category)}</div>${body}${p.note?`<p class="nt" style="--i:${paras.length}">${esc(p.note)}</p>`:""}
   <div class="ar"><a href="#project-${pv.slug}" aria-label="Previous project">${ARROW}</a><a class="r" href="#project-${nx.slug}" aria-label="Next project">${ARROW}</a></div></div>
-  <div class="rc">${isBook(p)?'<div class="bkw"></div>':""}<div class="gl"></div></div></div>`;
+  <div class="rc">${isBook(p)?'<div class="bkw"></div>':""}${p.fold&&p.fold.src?'<div class="fow"></div>':""}<div class="gl"></div></div></div>`;
 }
 
 /* gallery tiles open as they scroll into view */
@@ -521,7 +612,7 @@ function fit(){
 /* hash routing: #home #projects #about #contact #project-<folder name> */
 const VIEWS=["home","projects","about","contact"];
 function route(){
-  killBook();gTok++;
+  killBook();killFold();gTok++;
   document.querySelectorAll(".tick").forEach(e=>e.classList.remove("tick"));
   const h=decodeURIComponent(location.hash.slice(1))||"home";let v=h,pi=-1;
   if(h.startsWith("project-")){pi=P.findIndex(p=>"project-"+p.slug===h);v=pi<0?"projects":"project"}
