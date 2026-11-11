@@ -1,8 +1,9 @@
-title: Anselma Jewlery
+title: Anselma Jewellery
 category: brand identity
 order: 3
+format: ring
+tone: silver
 note: Small italic line shown under the description.
 ---
 The main description text goes here, below the divider.
 You can write as many paragraphs as you like.
-
