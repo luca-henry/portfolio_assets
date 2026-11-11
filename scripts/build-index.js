@@ -67,6 +67,18 @@ for (const d of fs.readdirSync(ROOT, { withFileTypes: true })) {
     }
     fridge.slides = [...fridge.items.map(i => ({ src: i.src, type: "image", caption: i.caption })), ...fridge.slides];
   }
+  // TV in a photo (format: tv): the first image in the folder is the room photo, the first video is the film.
+  // info.txt:  tvscreen: 31,30 69,30 69,58 31,58   (the four corners of the TV screen as % of the photo: top-left, top-right, bottom-right, bottom-left)
+  //            glow: 0.22                         (how strong the light spilling from the TV is, 0 to 1)
+  let tv = null, tvUsed = new Set();
+  if (/tv/i.test(meta.format || "")) {
+    const photo = files.find(f => f.type === "image" && !isCover(f)), video = files.find(f => f.type === "video");
+    const nums = (meta.tvscreen || "").match(/-?\d+(\.\d+)?/g);
+    tv = { photo: photo ? photo.src : "", video: video ? video.src : "", screen: nums && nums.length === 8 ? nums.map(Number) : [31, 30, 69, 30, 69, 58, 31, 58], glow: meta.glow !== undefined && meta.glow !== "" ? Number(meta.glow) : 0.22 };
+    if (photo) tvUsed.add(photo); if (video) tvUsed.add(video);
+    if (!photo) console.warn(`NOTE: ${d.name} has format: tv but no photo yet (put an image in the folder)`);
+    if (!video) console.warn(`NOTE: ${d.name} has format: tv but no video yet`);
+  }
   // 3D model: info.txt  model: ring.glb   (.glb .gltf .obj .fbx .stl)   optional:  modelrotate: 0 90 0   modeltexture: ring-texture.png
   // textures that sit next to a .gltf / .fbx / .obj+.mtl are found automatically (keep every file in the same folder as the model)
   const findIn = name => { if (!name) return null; for (const sub of ["", "images", "model"]) { const f = path.join(dir, sub, name); if (fs.existsSync(f)) return "projects/" + url(d.name, ...(sub ? [sub] : []), name); } return null; };
@@ -89,10 +101,11 @@ for (const d of fs.readdirSync(ROOT, { withFileTypes: true })) {
     ...(fold ? { fold } : {}),
     ...(table ? { table } : {}),
     ...(fridge ? { fridge } : {}),
+    ...(tv ? { tv } : {}),
     ...(meta.tone ? { tone: meta.tone } : {}),
     ...(model ? { model, ...(mtl ? { modelmtl: mtl } : {}), ...(texture ? { modeltexture: texture } : {}), ...(meta.modelrotate ? { modelrotate: meta.modelrotate } : {}) } : {}),
     ...(meta.format ? { format: meta.format } : {}),   // format: booklet  turns the project into a flip-through book
-    media: files.filter(f => !isCover(f) && !used.has(f) && !tableUsed.has(f) && !fridgeUsed.has(f)).map(({ src, type }) => ({ src, type }))
+    media: files.filter(f => !isCover(f) && !used.has(f) && !tableUsed.has(f) && !fridgeUsed.has(f) && !tvUsed.has(f)).map(({ src, type }) => ({ src, type }))
   });
 }
 projects.sort((a, b) => a.order - b.order || nat(a.title, b.title));
