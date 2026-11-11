@@ -52,6 +52,32 @@ for (const d of fs.readdirSync(ROOT, { withFileTypes: true })) {
     table.prints = files.filter(f => f.type === "image" && !isCover(f) && !tableUsed.has(f)).map(f => f.src);
     files.forEach(f => tableUsed.add(f));
   }
+  // fridge (format: fridge): files named item-1-steak.webp, item-2-sausages.webp are the packs in the fridge; every other image/video (20-logo-animation.mp4, 30-posters.jpg ...) becomes a slide in the viewer, in file-name order
+  let fridge = null, fridgeUsed = new Set();
+  if (/fridge/i.test(meta.format || "")) {
+    const cap = nm => { const t = nm.replace(/^item[-_ ]/i, "").replace(/^\d+[-_ ]*/, "").split(/[-_ ]+/).filter(x => x && !/^\d+$/.test(x)); const c = w => w.charAt(0).toUpperCase() + w.slice(1); return t.length > 1 && !/^item/i.test(nm) ? c(t[0]) + " / " + t.slice(1).join(" ") : c(t.join(" ")); };
+    fridge = { items: [], slides: [] };
+    for (const f of files) {
+      if (isCover(f) || !(f.type === "image" || f.type === "video")) continue;
+      const nm = path.parse(f.name).name;
+      if (/^bg[-_ ]/i.test(nm) && f.type === "image") { fridge.bg = f.src; fridgeUsed.add(f); continue; }
+      if (/^item[-_ ]/i.test(nm) && f.type === "image") fridge.items.push({ src: f.src, caption: cap(nm) });
+      else fridge.slides.push({ src: f.src, type: f.type, caption: cap(nm) });
+      fridgeUsed.add(f);
+    }
+    fridge.slides = [...fridge.items.map(i => ({ src: i.src, type: "image", caption: i.caption })), ...fridge.slides];
+  }
+  // 3D model: info.txt  model: ring.glb   (.glb .gltf .obj .fbx .stl)   optional:  modelrotate: 0 90 0   modeltexture: ring-texture.png
+  // textures that sit next to a .gltf / .fbx / .obj+.mtl are found automatically (keep every file in the same folder as the model)
+  const findIn = name => { if (!name) return null; for (const sub of ["", "images", "model"]) { const f = path.join(dir, sub, name); if (fs.existsSync(f)) return "projects/" + url(d.name, ...(sub ? [sub] : []), name); } return null; };
+  const model = findIn(meta.model), texture = findIn(meta.modeltexture);
+  let mtl = null;
+  if (model && /\.obj$/i.test(meta.model)) {
+    mtl = findIn(meta.modelmtl || meta.model.replace(/\.obj$/i, ".mtl"));
+    if (!mtl) { const only = fs.readdirSync(dir).filter(f => /\.mtl$/i.test(f)); if (only.length === 1) mtl = findIn(only[0]); }   // a single .mtl in the folder is used even if it is named differently
+  }
+  if (meta.model && !model) console.warn(`WARNING: ${d.name}/info.txt says model: ${meta.model} but that file was not found`);
+  if (meta.modeltexture && !texture) console.warn(`WARNING: ${d.name}/info.txt says modeltexture: ${meta.modeltexture} but that file was not found`);
   projects.push({
     slug: d.name,
     title: meta.title || d.name.replace(/[-_]+/g, " "),
@@ -62,9 +88,11 @@ for (const d of fs.readdirSync(ROOT, { withFileTypes: true })) {
     cover: cover && cover.src,
     ...(fold ? { fold } : {}),
     ...(table ? { table } : {}),
+    ...(fridge ? { fridge } : {}),
     ...(meta.tone ? { tone: meta.tone } : {}),
+    ...(model ? { model, ...(mtl ? { modelmtl: mtl } : {}), ...(texture ? { modeltexture: texture } : {}), ...(meta.modelrotate ? { modelrotate: meta.modelrotate } : {}) } : {}),
     ...(meta.format ? { format: meta.format } : {}),   // format: booklet  turns the project into a flip-through book
-    media: files.filter(f => !isCover(f) && !used.has(f) && !tableUsed.has(f)).map(({ src, type }) => ({ src, type }))
+    media: files.filter(f => !isCover(f) && !used.has(f) && !tableUsed.has(f) && !fridgeUsed.has(f)).map(({ src, type }) => ({ src, type }))
   });
 }
 projects.sort((a, b) => a.order - b.order || nat(a.title, b.title));
