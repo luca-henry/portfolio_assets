@@ -126,6 +126,7 @@ main{flex:1;display:flex;flex-direction:column}
 .fr .fr .pn>.f::after{content:"";position:absolute;inset:0;background:linear-gradient(180deg,rgba(0,0,0,.16),rgba(0,0,0,0) 4%);pointer-events:none}
 .fo.closed .pn .pn,.fo.closed .fr .fr{visibility:hidden}
 .fo-btn{display:flex;justify-content:space-between;align-items:center;width:100%;border:0;cursor:pointer;background:#000;color:#fff;margin-top:var(--g);height:calc(5.2 * var(--u));padding:0 calc(1.6 * var(--u));font-family:Archivo,"Helvetica Neue",Arial,sans-serif;font-stretch:72%;font-weight:800;font-size:calc(3 * var(--u));letter-spacing:-.03em;text-transform:uppercase;line-height:1}
+.fp{font-size:1.5em;line-height:1}
 .fo-btn:hover{background:#fff;color:#000;outline:var(--bw) solid #000;outline-offset:calc(var(--bw) * -1)}
 
 /* about */
@@ -449,7 +450,7 @@ function foldHTML(src,cols,rows){
   const fr=r=>`<div class="fr${r?(r%2?" ro":" re"):""}" data-r="${r}">${pn(r,0)}${r<rows-1?fr(r+1):""}</div>`;
   return fr(0);
 }
-function foldLabel(){const F=fold;if(!F)return;F.btn.setAttribute("aria-expanded",F.state?"true":"false");F.btn.querySelector(".lb").textContent=F.state?"Fold it back":"Click to unfold";F.btn.querySelector(".pl").textContent=F.state?"−":"+"}
+function foldLabel(){const F=fold;if(!F)return;F.btn.setAttribute("aria-expanded",F.state?"true":"false");F.btn.querySelector(".lb").textContent=F.state?"Fold it back":"Click to unfold";F.btn.querySelector(".fp").textContent=F.state?"−":"+"}
 function renderFold(){
   const F=fold;if(!F||!F.pw)return;
   const {cols,rows,pw,ph,Wc,p}=F,MAX=178,S=.7,D=Math.PI/180;
@@ -514,7 +515,7 @@ async function mountFold(p,tok){
   const w=$("#project .fow"),f=p.fold;if(!w||!f||!f.src)return;
   const cols=(f.cols|0)||6,rows=(f.rows|0)||4,R=await measure({src:f.src,ratio:f.ratio});
   if(tok!==gTok)return;
-  w.innerHTML=`<div class="fo closed" style="--cols:${cols};--rows:${rows}"><div class="fo-stage"><div class="fo-sheet">${foldHTML(f.src,cols,rows)}</div><div class="fo-hl"></div></div><button type="button" class="fo-btn" aria-expanded="false"><span class="lb">Click to unfold</span><span class="pl">+</span></button></div>`;
+  w.innerHTML=`<div class="fo closed" style="--cols:${cols};--rows:${rows}"><div class="fo-stage"><div class="fo-sheet">${foldHTML(f.src,cols,rows)}</div><div class="fo-hl"></div></div><button type="button" class="fo-btn" aria-expanded="false"><span class="lb">Click to unfold</span><span class="fp">+</span></button></div>`;
   const el=w.querySelector(".fo"),sheet=el.querySelector(".fo-sheet");
   const F=fold={el,sheet,stage:el.querySelector(".fo-stage"),btn:el.querySelector(".fo-btn"),pans:[...sheet.querySelectorAll(".pn")],rws:[...sheet.querySelectorAll(".fr")],hlEl:el.querySelector(".fo-hl"),src:f.src,zoom:f.zoom,labels:f.labels,cols,rows,R,p:0,state:0,drag:null,raf:0,pw:0,ph:0,Wc:0,s0:2,ro:null};
   const isOpen=()=>F.state&&F.p>.985;
