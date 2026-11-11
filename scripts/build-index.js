@@ -68,13 +68,15 @@ for (const d of fs.readdirSync(ROOT, { withFileTypes: true })) {
     fridge.slides = [...fridge.items.map(i => ({ src: i.src, type: "image", caption: i.caption })), ...fridge.slides];
   }
   // TV in a photo (format: tv): the first image in the folder is the room photo, the first video is the film.
-  // info.txt:  tvscreen: 31,30 69,30 69,58 31,58   (the four corners of the TV screen as % of the photo: top-left, top-right, bottom-right, bottom-left)
+  // info.txt:  tvscreen: 12.7,8.1 87.4,8.1 87.4,69.3 12.7,69.3   (the four corners of the TV screen as % of the photo: top-left, top-right, bottom-right, bottom-left)
   //            glow: 0.22                         (how strong the light spilling from the TV is, 0 to 1)
+  //            tvpower: 60.5,81                   (where the TV's own power button is, as % of the photo; optional)
   let tv = null, tvUsed = new Set();
   if (/tv/i.test(meta.format || "")) {
     const photo = files.find(f => f.type === "image" && !isCover(f)), video = files.find(f => f.type === "video");
     const nums = (meta.tvscreen || "").match(/-?\d+(\.\d+)?/g);
-    tv = { photo: photo ? photo.src : "", video: video ? video.src : "", screen: nums && nums.length === 8 ? nums.map(Number) : [31, 30, 69, 30, 69, 58, 31, 58], glow: meta.glow !== undefined && meta.glow !== "" ? Number(meta.glow) : 0.22 };
+    tv = { photo: photo ? photo.src : "", video: video ? video.src : "", screen: nums && nums.length === 8 ? nums.map(Number) : [12.7, 8.1, 87.4, 8.1, 87.4, 69.3, 12.7, 69.3], glow: meta.glow !== undefined && meta.glow !== "" ? Number(meta.glow) : 0.6 };
+    const pn = (meta.tvpower || "").match(/-?\d+(\.\d+)?/g); if (pn && pn.length === 2) tv.power = pn.map(Number);
     if (photo) tvUsed.add(photo); if (video) tvUsed.add(video);
     if (!photo) console.warn(`NOTE: ${d.name} has format: tv but no photo yet (put an image in the folder)`);
     if (!video) console.warn(`NOTE: ${d.name} has format: tv but no video yet`);
