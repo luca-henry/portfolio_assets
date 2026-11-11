@@ -1,8 +1,8 @@
-title: OUR EARTH
-category: video
+title: Our Earth
+category: motion
 order: 5
-note: Small italic line shown under the description.
+format: tv
+tvscreen: 31,30 69,30 69,58 31,58
+glow: 0.22
 ---
-The main description text goes here, below the divider.
-You can write as many paragraphs as you like.
-
+Our Earth. Press play and turn the TV on.
