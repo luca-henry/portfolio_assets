@@ -1,1 +1,48 @@
-
+{
+  "projects": [
+    {
+      "slug": "melbourne-cinematheque",
+      "title": "Melbourne Cinémathèque",
+      "category": "Calendar",
+      "body": "Description coming soon.",
+      "cover": "projects/melbourne-cinematheque/calendar.png",
+      "fold": { "src": "projects/melbourne-cinematheque/calendar.png", "cols": 6, "rows": 4 },
+      "media": []
+    },
+    {
+      "slug": "letties",
+      "title": "Letties",
+      "category": "Brand identity",
+      "body": "Description coming soon.",
+      "media": []
+    },
+    {
+      "slug": "anselma-jewellery",
+      "title": "Anselma Jewellery",
+      "category": "Brand identity",
+      "body": "Description coming soon.",
+      "media": []
+    },
+    {
+      "slug": "mito",
+      "title": "Mito",
+      "category": "Brand identity",
+      "body": "Description coming soon.",
+      "media": []
+    },
+    {
+      "slug": "our-earth",
+      "title": "Our Earth",
+      "category": "Video",
+      "body": "Description coming soon.",
+      "media": []
+    },
+    {
+      "slug": "side-b",
+      "title": "Side B",
+      "category": "Magazine",
+      "body": "Description coming soon.",
+      "media": []
+    }
+  ]
+}
