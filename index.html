@@ -178,13 +178,13 @@ main{flex:1;display:flex;flex-direction:column}
 .cz .czl::after{content:"";position:absolute;inset:0;pointer-events:none;background:linear-gradient(112deg,transparent 16%,rgba(255,255,255,.65) 20%,transparent 25%,transparent 58%,rgba(255,255,255,.45) 61%,transparent 65%)}
 .cz .czl.dg{transition:none;cursor:grabbing}
 .cz.op .czl.l1{translate:calc(var(--k) * -46) 0}.cz.op .czl.l2{translate:calc(var(--k) * 46) 0}
-.cz .czh{all:unset;position:absolute;left:0;right:0;text-align:center;font:700 calc(1.4 * var(--u))/1 "Helvetica Neue",Helvetica,Arial,sans-serif;letter-spacing:.14em;text-transform:uppercase;cursor:pointer}
-.cz .czh:hover,.cz .czh:focus-visible{text-decoration:underline;text-underline-offset:.3em}
+.cz .czh{position:absolute;left:50%;translate:-50% 0;display:flex;align-items:center;gap:calc(1.6 * var(--u));width:fit-content;border:0;cursor:pointer;background:#000;color:#fff;height:calc(3 * var(--u));padding:0 calc(1.2 * var(--u));font-family:Archivo,"Helvetica Neue",Arial,sans-serif;font-stretch:72%;font-weight:800;font-size:calc(1.7 * var(--u));letter-spacing:-.03em;text-transform:uppercase;line-height:1;white-space:nowrap}
+.cz .czh:hover,.cz .czh:focus-visible{background:#fff;color:#000;outline:var(--bw) solid #000;outline-offset:calc(var(--bw) * -1)}
 #tz .czm{display:grid;place-items:center}
 #tz .pza{all:unset;position:fixed;top:50%;translate:0 -50%;background:#000;color:#fff;width:calc(5 * var(--u));height:calc(5 * var(--u));display:grid;place-items:center;font:700 calc(2.2 * var(--u))/1 "Helvetica Neue",Helvetica,Arial,sans-serif;cursor:pointer;z-index:2}
 #tz .pza.l{left:calc(2.6 * var(--u))}#tz .pza.r{right:calc(2.6 * var(--u))}
 #tz .pza:hover,#tz .pza:focus-visible{background:#fff;color:#000;outline:calc(.3 * var(--u)) solid #000}
-@media (max-width:800px){.czw{margin-bottom:calc(3 * var(--u))}.cz{height:min(calc(100vw * .85),calc(100svh - 24 * var(--u)))}.cz .czh{font-size:calc(2.6 * var(--u))}#tz .pza{width:calc(9 * var(--u));height:calc(9 * var(--u));font-size:calc(4 * var(--u))}#tz .pza.l{left:calc(1.6 * var(--u))}#tz .pza.r{right:calc(1.6 * var(--u))}}
+@media (max-width:800px){.czw{margin-bottom:calc(3 * var(--u))}.cz{height:min(calc(100vw * .85),calc(100svh - 24 * var(--u)))}.cz .czh{height:calc(8.5 * var(--u));font-size:calc(4.6 * var(--u));padding:0 calc(4 * var(--u));gap:calc(4 * var(--u))}#tz .pza{width:calc(9 * var(--u));height:calc(9 * var(--u));font-size:calc(4 * var(--u))}#tz .pza.l{left:calc(1.6 * var(--u))}#tz .pza.r{right:calc(1.6 * var(--u))}}
 .rgw{margin-bottom:calc(1.7 * var(--u))}
 body.pbg{background:transparent}
 .rg{position:relative;width:100%;height:min(calc(100svh - 12 * var(--u)),calc(100vw * .56));overflow:hidden;background:transparent;cursor:grab;touch-action:pan-y;user-select:none;-webkit-user-select:none;color:#000}
@@ -827,14 +827,14 @@ function mountFridge(p,tok){
       ${packs.map(k=>`<button type="button" class="czp" data-i="${k.idx}" style="left:${k.x}%;top:${k.y}%;--r:${k.r}deg" aria-label="Open ${esc(k.it.caption)}"><img src="${esc(k.it.src)}" alt="" draggable="false"></button>`).join("")}
       <div class="czl l1"></div><div class="czl l2"></div>
     </div>
-    <button type="button" class="czh">Open the lids</button></div>`;
+    <button type="button" class="czh" aria-expanded="false"><span class="lb">Click to open</span><span class="fp">+</span></button></div>`;
   const cz=el.querySelector(".cz"),body=cz.querySelector(".czb"),lids=[...cz.querySelectorAll(".czl")],lbl=cz.querySelector(".czh"),sign=cz.querySelector(".czs"),bd=sign.querySelector(".bd"),minis=[...bd.children],blur=cz.querySelector("feGaussianBlur");
   const T=CZ={raf:0,dead:false,zm:null,open:false,drag:null};
   /* every pack is drawn at the same footprint, whatever its shape */
   cz.querySelectorAll(".czp").forEach(b=>{const im=b.querySelector("img"),fit=()=>{const r=im.naturalWidth/im.naturalHeight||1;b.style.width=`calc(var(--k) * ${(Math.sqrt(255*r)).toFixed(2)})`};im.complete?fit():im.addEventListener("load",fit)});
   /* lids */
   const kpx=()=>body.getBoundingClientRect().width/100;
-  const setOpen=o=>{T.open=o;cz.classList.toggle("op",o);lbl.textContent=o?"Close the lids":"Open the lids"};
+  const setOpen=o=>{T.open=o;cz.classList.toggle("op",o);lbl.setAttribute("aria-expanded",o?"true":"false");lbl.querySelector(".lb").textContent=o?"Close it":"Click to open";lbl.querySelector(".fp").textContent=o?"−":"+"};
   lids.forEach((l,n)=>{
     const dir=n?1:-1;
     l.addEventListener("pointerdown",e=>{if(e.button>0)return;T.drag={x:e.clientX,p0:T.open?1:0,p:T.open?1:0,moved:false,l};lids.forEach(z=>z.classList.add("dg"));try{l.setPointerCapture(e.pointerId)}catch(_){}});
