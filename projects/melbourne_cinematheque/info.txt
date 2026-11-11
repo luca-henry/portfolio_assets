@@ -1,6 +1,9 @@
 title: Melbourne Cinematheque
 category: brand identity
 order: 1
+fold: calendar.jpg
+cols: 6
+rows: 4
 note: Small italic line shown under the description.
 ---
 The main description text goes here, below the divider.
