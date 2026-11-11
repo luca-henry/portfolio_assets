@@ -932,7 +932,7 @@ function mountPendant(p,tok){
   const rg=el.querySelector(".rg"),cv=el.querySelector("canvas"),ctx=cv.getContext("2d");
   const S={raf:0,drag:false};RG=S;
   const mq=matchMedia("(prefers-reduced-motion:no-preference)").matches;
-  let W=0,H=0,dpr=1,pts=[],N=18,L=10,pw=0,ph=0,img=null,pend=null,gx=0,gy=0;
+  let W=0,H=0,dpr=1,pts=[],N=18,L=10,pw=0,ph=0,img=null,pend=null,pendTmp=null,gx=0,gy=0;
   const loadImg=src=>new Promise(r=>{if(!src)return r(null);const i=new Image();i.onload=()=>r(i);i.onerror=()=>r(null);i.src=src});
   const grad=(c,x0,y0,x1,y1)=>{const g=c.createLinearGradient(x0,y0,x1,y1);stops.forEach((col,i)=>g.addColorStop(i/(stops.length-1),col));return g};
   /* pendant artwork: the logo cut out in metal, with a lit rim and a dark rim for thickness */
@@ -941,31 +941,35 @@ function mountPendant(p,tok){
     pend=document.createElement("canvas");pend.width=Math.ceil(pw*dpr)+8;pend.height=Math.ceil(ph*dpr)+8;const c=pend.getContext("2d");
     const tint=(fill,dx,dy)=>{const t=document.createElement("canvas");t.width=pend.width;t.height=pend.height;const q=t.getContext("2d");q.drawImage(img,4+dx,4+dy,pw*dpr,ph*dpr);q.globalCompositeOperation="source-in";q.fillStyle=fill;q.fillRect(0,0,t.width,t.height);return t};
     const k=dpr*1.4;c.drawImage(tint("rgba(30,32,36,.55)",k*1.4,k*1.4),0,0);c.drawImage(tint("rgba(255,255,255,.95)",-k*.9,-k*.9),0,0);
-    const f=document.createElement("canvas");f.width=pend.width;f.height=pend.height;const q=f.getContext("2d");q.drawImage(img,4,4,pw*dpr,ph*dpr);q.globalCompositeOperation="source-in";q.fillStyle=grad(q,0,0,pend.width,pend.height);q.fillRect(0,0,f.width,f.height);
+    const f=document.createElement("canvas");f.width=pend.width;f.height=pend.height;const q=f.getContext("2d");q.drawImage(img,4,4,pw*dpr,ph*dpr);q.globalCompositeOperation="source-in";q.fillStyle=stops[2];q.fillRect(0,0,f.width,f.height);
     c.drawImage(f,0,0);
+    pendTmp=document.createElement("canvas");pendTmp.width=pend.width;pendTmp.height=pend.height;
   };
   const setup=()=>{
     W=rg.clientWidth;H=rg.clientHeight;dpr=Math.min(devicePixelRatio||1,2);cv.width=Math.round(W*dpr);cv.height=Math.round(H*dpr);
     const asp=img?img.naturalHeight/img.naturalWidth:1;
-    pw=Math.min(W*.34,H*.36/asp);ph=pw*asp;
-    const chainLen=H-ph-H*.16-pw*.12;L=Math.max(6,chainLen/N);
+    pw=Math.min(W*.425,H*.45/asp);ph=pw*asp;
+    const chainLen=Math.max(H*.2,H-ph-H*.14-pw*.1);L=Math.max(6,chainLen/N);
     const old=pts;pts=[];
-    for(let i=0;i<=N+1;i++){const x=W/2+(i===N+1?0:0),y=-L*.5+i*L;pts.push({x,y,px:x,py:y,w:i===0?0:(i===N+1?.45:1)})}
+    for(let i=0;i<=N+1;i++){const x=W/2+(i===N+1?0:0),y=-L*.5+i*L;pts.push({x,y,px:x,py:y,w:i===0?0:(i===N+1?.7:1)})}
     pts[N+1].y=pts[N+1].py=pts[N].y+ph*.92;
     if(mq){pts.forEach((q,i)=>{if(i>0)q.px=q.x-(i/(N+1))*.9})}   // tiny starting swing
     buildPendant();
   };
   const step=dt=>{
-    const g=2600,damp=.9985;
-    for(const q of pts){if(!q.w)continue;const vx=(q.x-q.px)*damp,vy=(q.y-q.py)*damp;q.px=q.x;q.py=q.y;q.x+=vx;q.y+=vy+g*dt*dt*(q.w<1?1.4:1)}
-    for(let it=0;it<18;it++){
+    const g=2200,damp=.996,vmax=L*.55,mx=pw*.58+8,my=ph*.12;
+    for(const q of pts){if(!q.w)continue;let vx=(q.x-q.px)*damp,vy=(q.y-q.py)*damp;const v=Math.hypot(vx,vy);if(v>vmax){vx*=vmax/v;vy*=vmax/v}q.px=q.x;q.py=q.y;q.x+=vx;q.y+=vy+g*dt*dt}
+    /* the grabbed end eases toward the cursor at a capped speed, never teleporting */
+    if(S.drag&&S.grab){const q=S.grab,dx=S.mx-q.x,dy=S.my-q.y,d=Math.hypot(dx,dy),cap=L*.32,k=d>cap?cap/d:1;q.x+=dx*k*.5;q.y+=dy*k*.5;q.px=q.x;q.py=q.y}
+    for(let it=0;it<24;it++){
       pts[0].x=W/2;pts[0].y=-L*.5;
       for(let i=0;i<pts.length-1;i++){
         const a=pts[i],b=i===N?pts[N+1]:pts[i+1],rest=i===N?ph*.92:L;
         let dx=b.x-a.x,dy=b.y-a.y,d=Math.hypot(dx,dy)||1e-6,diff=(d-rest)/d,wa=a.w,wb=b.w,ws=wa+wb;if(!ws)continue;
         a.x+=dx*diff*wa/ws;a.y+=dy*diff*wa/ws;b.x-=dx*diff*wb/ws;b.y-=dy*diff*wb/ws;
       }
-      if(S.drag&&S.grab){const q=S.grab;q.x=S.mx;q.y=S.my}
+      /* invisible walls keep the whole pendant inside the frame */
+      for(let i=1;i<pts.length;i++){const q=pts[i];if(i>=N-1){q.x=Math.max(mx,Math.min(W-mx,q.x));if(i===N+1)q.y=Math.min(H-my-ph*.08,q.y)}else q.x=Math.max(4,Math.min(W-4,q.x))}
     }
   };
   const link=(a,b,odd)=>{
@@ -983,9 +987,20 @@ function mountPendant(p,tok){
     /* jump ring */
     ctx.save();ctx.translate(a.x,a.y);ctx.lineWidth=Math.max(2,L*.2);ctx.strokeStyle=grad(ctx,-L,-L,L,L);ctx.beginPath();ctx.arc(0,0,L*.62,0,Math.PI*2);ctx.stroke();ctx.restore();
     if(pend){
-      ctx.save();ctx.translate(a.x,a.y);ctx.rotate(th);ctx.drawImage(pend,-(img.attachX||.5)*pw-4/dpr,L*.25-(img.attachY||0)*ph-4/dpr,pend.width/dpr,pend.height/dpr);
-      /* moving glint, clipped to the metal by the logo shape */
-      ctx.globalCompositeOperation="source-atop";ctx.restore();
+      const ox=-(img.attachX||.5)*pw-4/dpr,oy=L*.25-(img.attachY||0)*ph-4/dpr,cs=Math.cos(th),sn=Math.sin(th),t=pendTmp.getContext("2d");
+      /* the room's light is fixed: streaks of reflection stay put in the world, so the metal picks them up as the pendant swings and tilts */
+      t.setTransform(1,0,0,1,0,0);t.globalCompositeOperation="source-over";t.clearRect(0,0,pendTmp.width,pendTmp.height);t.drawImage(pend,0,0);
+      t.globalCompositeOperation="source-atop";
+      t.setTransform(dpr*cs,-dpr*sn,dpr*sn,dpr*cs,dpr*(-cs*a.x-sn*a.y-ox),dpr*(sn*a.x-cs*a.y-oy));
+      const P=W*.8,shift=((th*W*1.5+(a.x-W/2)*.7+(a.y*.15))%P+P)%P,span=P*1.0;
+      const dkk=stops[4],mid=stops[2],lt=stops[1],wh=stops[0],sf=stops[3];
+      for(let k=-2;k<=2;k++){
+        const x0=shift+k*P-P*.2,g=t.createLinearGradient(x0,-H*.3,x0+span*.7,H*.5);
+        g.addColorStop(0,dkk);g.addColorStop(.18,mid);g.addColorStop(.32,wh);g.addColorStop(.42,lt);g.addColorStop(.55,mid);g.addColorStop(.72,dkk);g.addColorStop(.86,sf);g.addColorStop(1,dkk);
+        t.save();t.beginPath();t.rect(x0,-H,span*.7+1,H*3);t.clip();t.fillStyle=g;t.fillRect(x0-2,-H,span*.7+4,H*3);t.restore();
+      }
+      t.setTransform(1,0,0,1,0,0);t.globalCompositeOperation="source-over";
+      ctx.save();ctx.translate(a.x,a.y);ctx.rotate(th);ctx.drawImage(pendTmp,ox,oy,pendTmp.width/dpr,pendTmp.height/dpr);ctx.restore();
     }
   };
   let last=0,acc=0;
@@ -1009,8 +1024,8 @@ function mountPendant(p,tok){
   const pos=e=>{const r=cv.getBoundingClientRect();return[e.clientX-r.left,e.clientY-r.top]};
   rg.addEventListener("pointerdown",e=>{const[x,y]=pos(e),b=pts[N+1],a=pts[N],cx=(a.x+b.x)/2,cy=(a.y+b.y)/2;
     if(Math.hypot(x-cx,y-cy)<Math.max(pw,ph)*.75){S.drag=true;S.grab=b;S.mx=b.x;S.my=b.y;rg.setPointerCapture(e.pointerId);rg.classList.add("dn");b.w=0}});
-  rg.addEventListener("pointermove",e=>{if(!S.drag)return;const[x,y]=pos(e);{const ax=W/2,ay=-L*.5,reach=(N*L+ph*.92)*.97;let dx=x-ax,dy=Math.max(y,L*2)-ay;const d=Math.hypot(dx,dy);if(d>reach){dx*=reach/d;dy*=reach/d}S.mx=ax+dx;S.my=ay+dy}});
-  const up=e=>{if(!S.drag)return;S.drag=false;S.grab.w=.45;S.grab=null;rg.classList.remove("dn")};
+  rg.addEventListener("pointermove",e=>{if(!S.drag)return;const[x,y]=pos(e);{const ax=W/2,ay=-L*.5,reach=(N*L+ph*.92)*.97;let dx=x-ax,dy=Math.max(y,L*2)-ay;const d=Math.hypot(dx,dy);if(d>reach){dx*=reach/d;dy*=reach/d}S.mx=Math.max(pw*.58+8,Math.min(W-pw*.58-8,ax+dx));S.my=Math.min(H-ph*.2,ay+dy)}});
+  const up=e=>{if(!S.drag)return;S.drag=false;const q=S.grab;q.w=.7;q.px=q.x;q.py=q.y;S.grab=null;rg.classList.remove("dn")};
   rg.addEventListener("pointerup",up);rg.addEventListener("pointercancel",up);
   rg.addEventListener("pointermove",e=>{if(S.drag)return;const[x,y]=pos(e),b=pts[N+1],a=pts[N];rg.style.cursor=Math.hypot(x-(a.x+b.x)/2,y-(a.y+b.y)/2)<Math.max(pw,ph)*.75?"grab":"default"});
 }
