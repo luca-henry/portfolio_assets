@@ -2,10 +2,12 @@
   "projects": [
     {
       "slug": "melbourne_cinematheque",
-      "title": "Melbourne Cinémathèque",
-      "category": "Calendar",
-      "body": "Description coming soon.",
-      "cover": "projects/melbourne_cinematheque/calendar.png",
+      "title": "Melbourne Cinematheque",
+      "category": "brand identity",
+      "order": 1,
+      "note": "Small italic line shown under the description.",
+      "body": "The main description text goes here, below the divider.\nYou can write as many paragraphs as you like.",
+      "cover": "projects/melbourne_cinematheque/cover.png",
       "fold": {
         "src": "projects/melbourne_cinematheque/calendar.jpg",
         "cols": 6,
@@ -16,36 +18,51 @@
     {
       "slug": "letties",
       "title": "Letties",
-      "category": "Brand identity",
-      "body": "Description coming soon.",
+      "category": "brand identity",
+      "order": 2,
+      "note": "Small italic line shown under the description.",
+      "body": "The main description text goes here, below the divider.\nYou can write as many paragraphs as you like.",
+      "cover": null,
       "media": []
     },
     {
-      "slug": "anselma_jewellery",
-      "title": "Anselma Jewellery",
-      "category": "Brand identity",
-      "body": "Description coming soon.",
+      "slug": "anselma_jewlery",
+      "title": "Anselma Jewlery",
+      "category": "brand identity",
+      "order": 3,
+      "note": "Small italic line shown under the description.",
+      "body": "The main description text goes here, below the divider.\nYou can write as many paragraphs as you like.",
+      "cover": null,
       "media": []
     },
     {
       "slug": "mito",
       "title": "Mito",
-      "category": "Brand identity",
-      "body": "Description coming soon.",
+      "category": "brand identity",
+      "order": 4,
+      "note": "Small italic line shown under the description.",
+      "body": "The main description text goes here, below the divider.\nYou can write as many paragraphs as you like.",
+      "cover": null,
       "media": []
     },
     {
       "slug": "our_earth",
-      "title": "Our Earth",
-      "category": "Video",
-      "body": "Description coming soon.",
+      "title": "OUR EARTH",
+      "category": "video",
+      "order": 5,
+      "note": "Small italic line shown under the description.",
+      "body": "The main description text goes here, below the divider.\nYou can write as many paragraphs as you like.",
+      "cover": null,
       "media": []
     },
     {
       "slug": "side_b",
       "title": "Side B",
-      "category": "Magazine",
-      "body": "Description coming soon.",
+      "category": "magazine",
+      "order": 6,
+      "note": "Small italic line shown under the description.",
+      "body": "The main description text goes here, below the divider.\nYou can write as many paragraphs as you like.",
+      "cover": null,
       "media": []
     }
   ]
