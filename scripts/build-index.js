@@ -41,6 +41,17 @@ for (const d of fs.readdirSync(ROOT, { withFileTypes: true })) {
   const used = new Set([foldFile, zoomFile].filter(Boolean));
   const fold = foldFile ? { src: foldFile.src, cols: Number(meta.cols) || 6, rows: Number(meta.rows) || 4, ...(zoomFile ? { zoom: zoomFile.src } : {}) } : null;
   if (meta.fold && !foldFile) console.warn(`WARNING: ${d.name}/info.txt says fold: ${meta.fold} but that file was not found`);
+  // table-top spread (format: table): files named menu-front/back, tee-front/back, box-front/back/left/right/top/bottom; every other image becomes a print on the table
+  let table = null, tableUsed = new Set();
+  if (/table/i.test(meta.format || "")) {
+    table = { tint: meta.tint || "", menu: {}, tee: {}, box: {}, prints: [] };
+    for (const f of files) {
+      const m = path.parse(f.name).name.toLowerCase().match(/^(menu|tee|box)[-_ ](front|back|left|right|top|bottom)$/);
+      if (m && f.type === "image") { table[m[1]][m[2]] = f.src; tableUsed.add(f); }
+    }
+    table.prints = files.filter(f => f.type === "image" && !isCover(f) && !tableUsed.has(f)).map(f => f.src);
+    files.forEach(f => tableUsed.add(f));
+  }
   projects.push({
     slug: d.name,
     title: meta.title || d.name.replace(/[-_]+/g, " "),
@@ -50,8 +61,9 @@ for (const d of fs.readdirSync(ROOT, { withFileTypes: true })) {
     body,
     cover: cover && cover.src,
     ...(fold ? { fold } : {}),
+    ...(table ? { table } : {}),
     ...(meta.format ? { format: meta.format } : {}),   // format: booklet  turns the project into a flip-through book
-    media: files.filter(f => !isCover(f) && !used.has(f)).map(({ src, type }) => ({ src, type }))
+    media: files.filter(f => !isCover(f) && !used.has(f) && !tableUsed.has(f)).map(({ src, type }) => ({ src, type }))
   });
 }
 projects.sort((a, b) => a.order - b.order || nat(a.title, b.title));
