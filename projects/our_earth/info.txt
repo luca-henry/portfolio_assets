@@ -2,7 +2,8 @@ title: Our Earth
 category: motion
 order: 5
 format: tv
-tvscreen: 31,30 69,30 69,58 31,58
-glow: 0.22
+tvscreen: 12.7,8.1 87.4,8.1 87.4,69.3 12.7,69.3
+tvpower: 60.5,81
+glow: 0.6
 ---
-Our Earth. Press play and turn the TV on.
+Our Earth. Press power and the TV blinks on.
