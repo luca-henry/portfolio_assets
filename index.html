@@ -170,6 +170,12 @@ main{flex:1;display:flex;flex-direction:column}
 .rg .bar button:hover,.rg .bar button:focus-visible{background:#fff;color:#000}
 .rg .nm{opacity:.85;text-align:center;flex:1}
 .rg .ep{position:absolute;inset:0;display:grid;place-items:center;text-align:center;padding:calc(4 * var(--u));font:700 calc(1.2 * var(--u))/1.6 "Helvetica Neue",Helvetica,Arial,sans-serif;letter-spacing:.1em;text-transform:uppercase;opacity:.7}
+.rg .rr3{position:absolute;left:50%;top:50%;width:0;height:0;transform-style:preserve-3d}
+.rg .sl{position:absolute;left:0;top:0;transform-style:preserve-3d;backface-visibility:hidden;-webkit-backface-visibility:hidden;background-repeat:no-repeat}
+.rg .sl i{position:absolute;inset:0;transform:rotateY(180deg);backface-visibility:hidden;-webkit-backface-visibility:hidden;background:linear-gradient(90deg,#241a08,#6a5224 50%,#241a08),linear-gradient(#000,#000);background-blend-mode:normal}
+.rg .hl{position:absolute;inset:0;pointer-events:none;mix-blend-mode:soft-light;background:linear-gradient(100deg,transparent 14%,rgba(255,255,255,.9) 27%,transparent 38%,transparent 58%,rgba(255,255,255,.55) 68%,transparent 77%)}
+.rg .gl2{position:absolute;left:14%;right:14%;top:72%;height:16%;background:radial-gradient(closest-side,rgba(214,177,92,.28),transparent);pointer-events:none}
+.rg .hint{opacity:.75;text-align:center;flex:1}
 @media (max-width:800px){.rgw{margin-bottom:calc(3 * var(--u))}.rg .bar,.rg .ep{font-size:calc(2.6 * var(--u))}.rg .bar button{padding:calc(2 * var(--u)) calc(3 * var(--u))}}
 .fow{--g:calc(1.7 * var(--u));margin-bottom:var(--g)}
 .fo{position:relative}
@@ -770,49 +776,66 @@ const isRing=p=>/ring|turntable/i.test(p.format||"");
 function killRing(){if(RG){cancelAnimationFrame(RG.raf);if(RG.ro)RG.ro.disconnect();RG=null}}
 function mountRing(p,tok){
   const el=$("#project .rgw");if(!el)return;
-  const marks=(p.media||[]).filter(m=>(m.type||"image")==="image").map(m=>m.src),N=marks.length;
+  const logo=(p.media||[]).filter(m=>(m.type||"image")==="image").map(m=>m.src)[0];
   const tone=(p.tone||"gold").toLowerCase();
-  const grad={gold:"linear-gradient(105deg,#6b5320 0%,#c9a24b 22%,#fff3c9 33%,#c9a24b 45%,#7a5f25 66%,#c9a24b 80%,#6b5320 100%)",silver:"linear-gradient(105deg,#5d6367 0%,#b9bec2 22%,#fff 33%,#b9bec2 45%,#6e7479 66%,#b9bec2 80%,#5d6367 100%)",white:"linear-gradient(#f4f4f4,#f4f4f4)"}[tone];
-  const nice=s=>decodeURIComponent(s.split("/").pop()).replace(/\.[a-z0-9]+$/i,"").replace(/^\d+[-_ ]*/,"").replace(/[-_]+/g," ");
-  if(!N){el.innerHTML=`<div class="rg"><div class="ep">Add your logo PNGs (transparent) to this project folder.<br>Each one becomes a mark on the ring.</div></div>`;return}
-  el.innerHTML=`<div class="rg"><div class="fl"></div><div class="st"><div class="rr"><div class="tk"></div>${marks.map((s,i)=>`<div class="mk${tone==="original"?"":" mask"}" data-i="${i}" ${tone==="original"?"":`style="-webkit-mask-image:url('${s}');mask-image:url('${s}');background-image:${grad}"`}>${tone==="original"?tImg(s,"Mark "+(i+1)):""}</div>`).join("")}</div></div><div class="bar"><button type="button" class="pv" aria-label="Previous mark">Prev</button><span class="nm"></span><button type="button" class="nx" aria-label="Next mark">Next</button></div></div>`;
-  const rg=el.querySelector(".rg"),rr=el.querySelector(".rr"),tk=el.querySelector(".tk"),mk=[...el.querySelectorAll(".mk")],nm=el.querySelector(".nm");
-  const step=360/N,mq=matchMedia("(prefers-reduced-motion:no-preference)").matches;
-  const S={raf:0,a:0,v:0,sel:0,snap:null,drag:false,idle:performance.now(),R:0};RG=S;
-  const label=()=>{nm.textContent=String(S.sel+1).padStart(2,"0")+" / "+String(N).padStart(2,"0")+"  "+nice(marks[S.sel])};
-  const layout=()=>{
-    const w=rg.clientWidth,W=w*.44,H=W*.85;S.R=Math.max(w*.3,W/(2*Math.tan(Math.PI/Math.max(N,3)))*1.25);
-    mk.forEach(m=>{m.style.width=W+"px";m.style.height=H+"px";m.style.margin=`${-H/2}px 0 0 ${-W/2}px`});
-    const d=S.R*2;tk.style.width=d+"px";tk.style.height=d+"px";tk.style.setProperty("--h",H+"px");
-  };
-  layout();
-  const goto=i=>{S.sel=((i%N)+N)%N;S.snap=-S.sel*step+360*Math.round((S.a+S.sel*step)/360);S.v=0;S.idle=performance.now();label()};
-  const nearest=()=>{S.sel=((Math.round(-S.a/step)%N)+N)%N;goto(S.sel)};
-  const paint=()=>{
-    rr.style.transform=`rotateX(-13deg)`;
-    mk.forEach((m,i)=>{
-      const ang=S.a+i*step,c=Math.cos(ang*Math.PI/180);
-      m.style.transform=`rotateY(${ang}deg) translateZ(${S.R}px)`;
-      m.style.opacity=(.18+.82*Math.max(0,c)).toFixed(3);
-      if(tone!=="original")m.style.backgroundPosition=`${50+Math.sin(ang*Math.PI/180)*45}% 0`;
-    });
-  };
-  label();paint();
-  S.ro=new ResizeObserver(()=>{layout();paint()});S.ro.observe(rg);
-  let lx=0,sx=0,moved=false,id=null,hit=null;
-  rg.addEventListener("pointerdown",e=>{if(e.target.closest("button"))return;id=e.pointerId;rg.setPointerCapture(id);lx=sx=e.clientX;moved=false;hit=e.target.closest(".mk");S.drag=true;S.snap=null;S.v=0;rg.classList.add("dn");S.idle=performance.now()});
-  rg.addEventListener("pointermove",e=>{if(e.pointerId!==id)return;const dx=e.clientX-lx;lx=e.clientX;if(Math.abs(e.clientX-sx)>5)moved=true;if(moved){S.a+=dx*.35;S.v=dx*.35}});
-  const up=e=>{if(e.pointerId!==id)return;id=null;S.drag=false;rg.classList.remove("dn");S.idle=performance.now();if(!moved&&hit)goto(+hit.dataset.i);else if(Math.abs(S.v)<=.2)nearest()};
-  rg.addEventListener("pointerup",up);rg.addEventListener("pointercancel",up);
-  el.querySelector(".pv").addEventListener("click",()=>goto(S.sel-1));
-  el.querySelector(".nx").addEventListener("click",()=>goto(S.sel+1));
-  const loop=t=>{
-    if(!S.drag){
-      if(S.snap!==null){const d=S.snap-S.a;S.a+=d*.1;if(Math.abs(d)<.05){S.a=S.snap;S.snap=null}}
-      else if(Math.abs(S.v)>.2){S.a+=S.v;S.v*=.95;if(Math.abs(S.v)<=.2)nearest()}
-      else if(mq&&N>1&&t-S.idle>4000){goto(S.sel+1)}
+  const pal=tone==="silver"||tone==="white"?["#ffffff","#d3d8dc","#8f979c","#e9ecee","#6b7378","#bcc2c6"]:["#fff1c0","#d6ab52","#a67c29","#ebcd78","#85601f","#c9a24b"];
+  el.innerHTML=`<div class="rg"><div class="gl2"></div><div class="st"><div class="rr3"></div></div><div class="hl"></div>${logo?"":'<div class="ep">Add your logo PNG (transparent) to this project folder.<br>It will be engraved into the ring.</div>'}<div class="bar"><span class="hint">Drag to turn the ring</span><button type="button" class="rv">Show engraving</button></div></div>`;
+  const rg=el.querySelector(".rg"),root=el.querySelector(".rr3"),btn=el.querySelector(".rv"),st=el.querySelector(".st");
+  const N=96,step=360/N,RATIO=14,TW=4200,TH=300,mq=matchMedia("(prefers-reduced-motion:no-preference)").matches;
+  const S={raf:0,a:0,x:-20,v:0,xv:0,drag:false,snap:null,idle:performance.now(),touched:false};RG=S;
+  /* texture: brushed metal band with the logo engraved (dark pit + light lower edge) */
+  const build=img=>{
+    const c=document.createElement("canvas");c.width=TW;c.height=TH;const x=c.getContext("2d");
+    const g=x.createLinearGradient(0,0,0,TH);pal.forEach((col,i)=>g.addColorStop(i/(pal.length-1),col));x.fillStyle=g;x.fillRect(0,0,TW,TH);
+    for(let i=0;i<900;i++){x.fillStyle=`rgba(${Math.random()<.5?"255,255,255":"0,0,0"},${(Math.random()*.07).toFixed(3)})`;const rx=Math.random()*TW,ry=Math.random()*TH,rw=TW*(.05+Math.random()*.3),rh=1+Math.random()*1.5;x.fillRect(rx,ry,rw,rh);if(rx+rw>TW)x.fillRect(rx-TW,ry,rw,rh)}
+    const eg=x.createLinearGradient(0,0,0,TH);eg.addColorStop(0,"rgba(255,255,255,.7)");eg.addColorStop(.05,"rgba(255,255,255,0)");eg.addColorStop(.93,"rgba(0,0,0,0)");eg.addColorStop(1,"rgba(0,0,0,.55)");x.fillStyle=eg;x.fillRect(0,0,TW,TH);
+    if(img){
+      const lh=TH*.56,lw=lh*img.naturalWidth/img.naturalHeight,cx=TW/2,cy=TH/2,w=Math.min(lw,TW*.3),h=w*img.naturalHeight/img.naturalWidth;
+      const layer=(dx,dy,fill)=>{const t=document.createElement("canvas");t.width=TW;t.height=TH;const q=t.getContext("2d");q.drawImage(img,cx-w/2+dx,cy-h/2+dy,w,h);q.globalCompositeOperation="source-in";q.fillStyle=fill;q.fillRect(0,0,TW,TH);return t};
+      const lite=layer(2.2,2.2,"rgba(255,246,214,.95)"),dark=layer(0,0,"rgba(38,24,4,.9)"),sh=layer(-1.6,-1.6,"rgba(0,0,0,.6)");
+      x.drawImage(sh,0,0);x.drawImage(lite,0,0);
+      const q=document.createElement("canvas");q.width=TW;q.height=TH;const qc=q.getContext("2d");qc.drawImage(lite,0,0);qc.globalCompositeOperation="destination-out";qc.drawImage(dark,0,0);x.drawImage(dark,0,0);
+      x.globalCompositeOperation="source-over";x.drawImage(q,0,0);
     }
-    paint();S.raf=requestAnimationFrame(loop);
+    return new Promise(r=>c.toBlob(b=>r(URL.createObjectURL(b)),"image/png"));
+  };
+  const loadImg=src=>new Promise(r=>{if(!src)return r(null);const i=new Image();i.onload=()=>r(i);i.onerror=()=>r(null);i.src=src});
+  let slices=[],R=0,H=0,url="";
+  const layout=()=>{
+    const w=rg.clientWidth;R=w*.34;H=2*Math.PI*R/RATIO;const cw=2*R*Math.sin(Math.PI/N)+1.5,tw=2*Math.PI*R;
+    slices.forEach((sl,i)=>{
+      sl.style.width=cw+"px";sl.style.height=H+"px";sl.style.margin=`${-H/2}px 0 0 ${-cw/2}px`;
+      sl.style.transform=`rotateY(${i*step}deg) translateZ(${R}px)`;
+      sl.style.backgroundSize=`${tw}px ${H}px`;sl.style.backgroundPosition=`${-(i*tw/N)}px 0`;
+    });
+    st.style.top=(w*.0)+"px";
+  };
+  const paint=()=>{root.style.transform=`rotateX(${S.x}deg) rotateY(${S.a}deg)`};
+  const ready=Promise.all([loadImg(logo)]).then(([img])=>build(img)).then(u=>{
+    if(RG!==S)return;url=u;
+    root.innerHTML=Array.from({length:N},()=>`<div class="sl" style="background-image:url('${u}')"><i></i></div>`).join("");
+    slices=[...root.querySelectorAll(".sl")];layout();paint();
+  });
+  S.ro=new ResizeObserver(()=>{layout()});S.ro.observe(rg);
+  /* engraving sits at the back (angle 180) so the ring first reads as plain metal */
+  const faceEngraving=()=>{S.snap=-180+360*Math.round((S.a+180)/360);S.idle=performance.now()};
+  btn.addEventListener("click",e=>{e.stopPropagation();S.touched=true;
+    const showing=Math.abs(((S.a%360)+360)%360-180)<60;
+    if(showing){S.snap=360*Math.round(S.a/360)}else{faceEngraving()}
+  });
+  let lx=0,ly=0,id=null;
+  rg.addEventListener("pointerdown",e=>{if(e.target.closest("button"))return;id=e.pointerId;rg.setPointerCapture(id);lx=e.clientX;ly=e.clientY;S.drag=true;S.snap=null;S.v=0;S.xv=0;S.touched=true;rg.classList.add("dn")});
+  rg.addEventListener("pointermove",e=>{if(e.pointerId!==id)return;const dx=e.clientX-lx,dy=e.clientY-ly;lx=e.clientX;ly=e.clientY;S.a+=dx*.45;S.v=dx*.45;S.x=Math.max(-55,Math.min(8,S.x+dy*.25));S.xv=0});
+  const up=e=>{if(e.pointerId!==id)return;id=null;S.drag=false;rg.classList.remove("dn")};
+  rg.addEventListener("pointerup",up);rg.addEventListener("pointercancel",up);
+  const loop=()=>{
+    if(!S.drag){
+      if(S.snap!==null){const d=S.snap-S.a;S.a+=d*.08;if(Math.abs(d)<.05){S.a=S.snap;S.snap=null}}
+      else if(Math.abs(S.v)>.05){S.a+=S.v;S.v*=.96}
+      else if(mq&&!S.touched)S.a+=.1;   // slow drift until the first touch: the engraving slides into view by itself
+    }
+    btn.textContent=Math.abs(((S.a%360)+360)%360-180)<60?"Hide engraving":"Show engraving";
+    if(slices.length)paint();S.raf=requestAnimationFrame(loop);
   };
   S.raf=requestAnimationFrame(loop);
 }
