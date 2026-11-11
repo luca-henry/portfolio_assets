@@ -167,7 +167,7 @@ main{flex:1;display:flex;flex-direction:column}
 .rg .mk.mask{-webkit-mask-repeat:no-repeat;mask-repeat:no-repeat;-webkit-mask-position:center;mask-position:center;-webkit-mask-size:contain;mask-size:contain;background-size:300% 100%}
 .rg .mk img{display:block;width:100%;height:100%;object-fit:contain;pointer-events:none}
 .rg .fl{position:absolute;left:12%;right:12%;top:60%;height:20%;background:radial-gradient(closest-side,rgba(214,177,92,.22),transparent);pointer-events:none}
-.rg .bar{position:absolute;left:0;right:0;bottom:0;padding:calc(1.6 * var(--u)) calc(2 * var(--u));display:flex;align-items:center;justify-content:space-between;gap:calc(1.6 * var(--u));font:700 calc(1.2 * var(--u))/1 "Helvetica Neue",Helvetica,Arial,sans-serif;letter-spacing:.14em;text-transform:uppercase}
+.rg .bar{position:absolute;left:0;right:0;bottom:0;padding:calc(1.6 * var(--u)) calc(2 * var(--u));display:flex;align-items:center;justify-content:center;gap:calc(1.6 * var(--u));font:700 calc(1.2 * var(--u))/1 "Helvetica Neue",Helvetica,Arial,sans-serif;letter-spacing:.14em;text-transform:uppercase}
 .rg .bar button{all:unset;cursor:pointer;padding:calc(1 * var(--u)) calc(1.6 * var(--u));border:1px solid #000;font:inherit}
 .rg .bar button:hover,.rg .bar button:focus-visible{background:#000;color:#fff}
 .rg .nm{opacity:.85;text-align:center;flex:1}
@@ -644,6 +644,7 @@ async function buildGallery(i){
   const tok=++gTok,p=P[i];
   if(p.table){mountTable(p,tok);return}
   if(isRing(p)){mountRing(p,tok);return}
+  if(isPend(p)){mountPendant(p,tok);return}
   const hasFold=!!(p.fold&&p.fold.src);
   const ms=[...(p.cover&&!hasFold?[{src:p.cover,type:"image"}]:[]),...(p.media||[])];   // a fold-out project shows the fold-out first, then its other media as a grid
   if(hasFold){await mountFold(p,tok);if(tok!==gTok)return;if(!ms.length)return}
@@ -785,25 +786,30 @@ function mountRing(p,tok){
   const el=$("#project .rgw");if(!el)return;
   const logo=(p.media||[]).filter(m=>(m.type||"image")==="image").map(m=>m.src)[0];
   const tone=(p.tone||"silver").toLowerCase();
-  const F0={gold:[1,.766,.336],silver:[.90,.91,.92],white:[.972,.960,.915],platinum:[.82,.80,.76],rose:[.95,.64,.54]}[tone]||[.972,.960,.915];
-  el.innerHTML=`<div class="rg"><div class="sd"></div><canvas class="cv"></canvas>${logo?"":'<div class="ep">Add your logo PNG (transparent) to this project folder.<br>It will be engraved into the ring.</div>'}<div class="bar"><span class="hint">Drag to turn the ring</span><button type="button" class="rv">Centre logo</button></div></div>`;
+  const F0={gold:[1,.766,.336],silver:[.95,.95,.94],white:[.972,.960,.915],platinum:[.82,.80,.76],rose:[.95,.64,.54]}[tone]||[.972,.960,.915];
+  el.innerHTML=`<div class="rg"><canvas class="cv"></canvas>${logo?"":'<div class="ep">Add your logo PNG (transparent) to this project folder.<br>It will be engraved into the ring.</div>'}<div class="bar"><button type="button" class="rv">Centre ring</button></div></div>`;
   const rg=el.querySelector(".rg"),cv=el.querySelector("canvas"),btn=el.querySelector(".rv");
-  const S={raf:0,ry:.08,rx:-.06,vy:0,vx:0,drag:false,t:0,touched:false,goal:null};RG=S;
+  const S={raf:0,ry:0,rx:0,vy:0,vx:0,drag:false,t:0,touched:false,goal:null};RG=S;
   const mq=matchMedia("(prefers-reduced-motion:no-preference)").matches;
-  loadThree().then(()=>{
+  const loadScript=u=>new Promise((res,rej)=>{const q=document.createElement("script");q.src=u;q.onload=res;q.onerror=rej;document.head.appendChild(q)});
+  const ext=p.model?p.model.split("?")[0].split(".").pop().toLowerCase():"",CDN="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/";
+  const need=()=>{const list=[];if(ext==="glb"||ext==="gltf"){if(!THREE.GLTFLoader)list.push(CDN+"loaders/GLTFLoader.js")}else if(ext==="obj"){if(!THREE.OBJLoader)list.push(CDN+"loaders/OBJLoader.js");if(p.modelmtl&&!THREE.MTLLoader)list.push(CDN+"loaders/MTLLoader.js")}else if(ext==="fbx"){if(!window.fflate)list.push(CDN+"libs/fflate.min.js");if(!THREE.FBXLoader)list.push(CDN+"loaders/FBXLoader.js")}else if(ext==="stl"){if(!THREE.STLLoader)list.push(CDN+"loaders/STLLoader.js")}return list};
+  loadThree().then(()=>need().reduce((pr,u)=>pr.then(()=>loadScript(u)),Promise.resolve())).then(()=>{
     if(RG!==S)return;
     const T=THREE;
     let renderer;try{renderer=new T.WebGLRenderer({canvas:cv,antialias:true,alpha:true,premultipliedAlpha:true})}catch(e){rg.querySelector(".bar").insertAdjacentHTML("beforebegin",'<div class="ep">3D needs WebGL, which this browser has turned off.</div>');return}
     renderer.setPixelRatio(Math.min(devicePixelRatio||1,2));renderer.setClearColor(0x000000,0);
-    renderer.outputEncoding=T.sRGBEncoding;renderer.toneMapping=T.ACESFilmicToneMapping;renderer.toneMappingExposure=1.0;
-    const scene=new T.Scene(),cam=new T.PerspectiveCamera(24,1,1,400);cam.position.set(0,0,86);
+    renderer.outputEncoding=T.sRGBEncoding;renderer.toneMapping=T.ACESFilmicToneMapping;renderer.toneMappingExposure=.95;
+    const scene=new T.Scene(),cam=new T.PerspectiveCamera(24,1,1,400);cam.position.set(0,0,98);
     /* studio environment: bright room with softboxes and dark flags, so polished metal gets strong reflections */
     const env=new T.Scene();
-    env.add(new T.Mesh(new T.BoxGeometry(120,120,120),new T.MeshBasicMaterial({color:new T.Color(.26,.27,.30),side:T.BackSide})));
+    env.add(new T.Mesh(new T.BoxGeometry(160,160,160),new T.MeshBasicMaterial({color:new T.Color(.30,.31,.33),side:T.BackSide})));
     const panel=(w,h,x,y,z,k,col)=>{const m=new T.Mesh(new T.PlaneGeometry(w,h),new T.MeshBasicMaterial({color:new T.Color(col[0]*k,col[1]*k,col[2]*k),side:T.DoubleSide}));m.position.set(x,y,z);m.lookAt(0,0,0);env.add(m)};
-    panel(70,50,0,52,10,9,[1,1,1]);panel(16,70,-50,6,26,7,[1,.98,.95]);panel(14,70,52,0,8,5,[.9,.95,1]);panel(110,44,0,34,72,6,[1,1,1]);panel(110,44,0,-30,72,.12,[1,1,1]);panel(90,16,0,2,-56,4,[1,1,1]);
-    panel(60,16,-14,-52,10,.02,[0,0,0]);panel(10,60,30,14,52,.01,[0,0,0]);panel(10,50,-34,14,-46,.01,[0,0,0]);
-    const pm=new T.PMREMGenerator(renderer),envTex=pm.fromScene(env,.03).texture;scene.environment=envTex;pm.dispose();
+    panel(110,80,-40,30,76,2.3,[1,1,1]);      /* broad soft key light, front left */
+    panel(90,140,46,-10,70,.06,[1,1,1]);          /* dark flag, front right: the shadowed side of the gradient */
+    panel(140,60,0,-46,60,.35,[1,1,1]);         /* low grey fill */
+    panel(80,110,-70,0,10,2.2,[1,1,1]);panel(100,60,0,70,10,2.6,[1,1,1]);panel(120,60,0,0,-70,1.6,[1,1,1]);
+    const pm=new T.PMREMGenerator(renderer),envTex=pm.fromScene(env,.12).texture;scene.environment=envTex;pm.dispose();
     const sc=(e,w)=>{const c=Math.cos(w),s2=Math.sin(w);return Math.sign(c)*Math.pow(Math.abs(c),e)};
     const ss=(e,w)=>{const s2=Math.sin(w);return Math.sign(s2)*Math.pow(Math.abs(s2),e)};
     const smooth=(e0,e1,x)=>{const k=Math.min(1,Math.max(0,(x-e0)/(e1-e0)));return k*k*(3-2*k)};
@@ -829,34 +835,66 @@ function mountRing(p,tok){
       const NU=160,NW=8,NV=70,zc=RIN+3.3+1.7-HZ,rm=RIN+1.1,pos=[],uv=[],rows=[];
       for(let w=0;w<NW;w++){const row=[];for(let i=0;i<NU;i++){const u=i/NU*Math.PI*2,x=HA*sc(E2,u),y=HA*ss(E2,u);let zb=Math.sqrt(Math.max(0,rm*rm-y*y));zb=Math.min(zb,zc-.3);row.push([x,y,zb+(zc-zb)*(w/NW)])}rows.push(row)}
       for(let q=0;q<=NV;q++){const tq=q/NV,v=(Math.PI/2)*(1-Math.pow(1-tq,3)),row=[];for(let i=0;i<NU;i++){const u=i/NU*Math.PI*2;{const x=HA*sc(E1,v)*sc(E2,u),y=HA*sc(E1,v)*ss(E2,u);row.push([x,y,zc+HZ*ss(E1,v)+1.3*Math.max(0,1-(x*x+y*y)/(HA*HA*1.1))])}}rows.push(row)}
-      rows.forEach(r=>r.forEach(([x,y,z])=>{pos.push(x,y,z);uv.push(x/(2*HA)+.5,y/(2*HA)+.5)}));
+      rows.forEach((r,ri)=>r.forEach(([x,y,z])=>{pos.push(x,y,z);if(ri<NW+1)uv.push(.01,.01);else uv.push(x/(2*HA)+.5,y/(2*HA)+.5)}));
       const idx=[],R=rows.length;for(let r=0;r<R-1;r++)for(let i=0;i<NU;i++){const a=r*NU+i,b=r*NU+(i+1)%NU,c=(r+1)*NU+i,d=(r+1)*NU+(i+1)%NU;idx.push(a,c,b,b,c,d)}
       const g=new T.BufferGeometry();g.setAttribute("position",new T.Float32BufferAttribute(pos,3));g.setAttribute("uv",new T.Float32BufferAttribute(uv,2));g.setIndex(idx);g.computeVertexNormals();return g;
     };
     const base=new T.Color(F0[0],F0[1],F0[2]);
     const grain=(()=>{const c=document.createElement("canvas");c.width=c.height=256;const x=c.getContext("2d"),d=x.createImageData(256,256);for(let i=0;i<d.data.length;i+=4){const v=110+Math.random()*145;d.data[i]=d.data[i+1]=d.data[i+2]=v;d.data[i+3]=255}x.putImageData(d,0,0);return c})();
     const gTex=(rep)=>{const t=new T.CanvasTexture(grain);t.wrapS=t.wrapT=T.RepeatWrapping;t.repeat.set(rep,rep);t.anisotropy=renderer.capabilities.getMaxAnisotropy();return t};
-    const bandMat=new T.MeshStandardMaterial({color:base,metalness:1,roughness:.4,roughnessMap:gTex(22),bumpMap:gTex(22),bumpScale:.12,side:T.DoubleSide,envMapIntensity:.85});
+    const bandMat=new T.MeshStandardMaterial({color:base,metalness:1,roughness:.38,roughnessMap:gTex(34),bumpMap:gTex(34),bumpScale:.05,side:T.DoubleSide,envMapIntensity:.9});
     const group=new T.Group(),ring=new T.Object3D();
     const band=new T.Mesh(bandGeo(),bandMat),headMat=bandMat.clone();
-    const head=new T.Mesh(headGeo(),headMat);ring.add(band,head);
-    ring.rotation.set(0,0,0);ring.position.set(0,0,-13);   // pivot sits mostly under the face, so the logo stays near the middle of the screen
+    const head=new T.Mesh(headGeo(),headMat);if(!p.model)ring.add(band,head);
+    ring.rotation.set(0,0,0);ring.position.set(0,0,-2.5);   // pivot sits mostly under the face, so the logo stays near the middle of the screen
     ring.rotation.z=0;group.add(ring);scene.add(group);
+    if(p.model){
+      /* your own model (.glb .gltf .obj .fbx .stl): centred, scaled to fit, and turned about its middle. info.txt "modelrotate: 0 90 0" (degrees) sets which way it faces at the start */
+      const rot=String(p.modelrotate||"0 0 0").split(/[ ,]+/).map(v=>(+v||0)*Math.PI/180);
+      const dir=p.model.slice(0,p.model.lastIndexOf("/")+1),file=p.model.slice(p.model.lastIndexOf("/")+1);
+      const texLoaded=p.modeltexture?new T.TextureLoader().load(p.modeltexture,t=>{t.encoding=T.sRGBEncoding;t.flipY=ext==="gltf"||ext==="glb"?false:true;t.needsUpdate=true}):null;
+      const finish=obj=>{
+        if(RG!==S)return;
+        const m=obj.scene||obj;m.rotation.set(rot[0],rot[1],rot[2]);
+        /* non-PBR formats (obj/fbx/stl) become shiny metal so they pick up the studio reflections; their texture is kept */
+        const pbr=ext==="glb"||ext==="gltf";
+        m.traverse(o=>{if(!o.isMesh)return;const old=Array.isArray(o.material)?o.material:[o.material];
+          const conv=old.map(mt=>{
+            if(pbr&&!texLoaded){if("envMapIntensity" in mt)mt.envMapIntensity=.9;mt.needsUpdate=true;return mt}
+            const nm=new T.MeshStandardMaterial({color:(mt&&mt.color)?mt.color.clone():base.clone(),map:texLoaded||(mt&&mt.map)||null,normalMap:(mt&&mt.normalMap)||null,metalness:(mt&&"metalness" in mt)?mt.metalness:.9,roughness:(mt&&"roughness" in mt)?mt.roughness:.3,envMapIntensity:.9,side:T.DoubleSide});
+            if(nm.map){nm.map.encoding=T.sRGBEncoding;nm.map.needsUpdate=true}
+            if(!mt||!mt.color||(!nm.map&&!pbr&&mt.color.getHex()===0xffffff&&ext==="stl"))nm.color=base.clone();
+            return nm;
+          });o.material=Array.isArray(o.material)?conv:conv[0]});
+        m.updateMatrixWorld(true);
+        const box=new T.Box3().setFromObject(m),c=box.getCenter(new T.Vector3()),sz=box.getSize(new T.Vector3()),k=30/Math.max(sz.x,sz.y,sz.z,.0001);
+        m.position.sub(c);const holder=new T.Group();holder.add(m);holder.scale.setScalar(k);ring.position.set(0,0,0);ring.add(holder);
+      };
+      const fail=()=>{rg.insertAdjacentHTML("afterbegin",'<div class="ep">Could not load the ring model file.</div>')};
+      if(ext==="glb"||ext==="gltf")new T.GLTFLoader().load(p.model,finish,undefined,fail);
+      else if(ext==="fbx"){const l=new T.FBXLoader();l.setResourcePath(dir);l.load(p.model,finish,undefined,fail)}
+      else if(ext==="stl")new T.STLLoader().load(p.model,g=>{g.computeVertexNormals();finish(new T.Mesh(g,new T.MeshStandardMaterial({color:base})))},undefined,fail);
+      else if(ext==="obj"){
+        const run=mats=>{const l=new T.OBJLoader();if(mats)l.setMaterials(mats);l.load(p.model,finish,undefined,fail)};
+        if(p.modelmtl&&T.MTLLoader){const ml=new T.MTLLoader();ml.setPath(dir);ml.setResourcePath(dir);ml.load(p.modelmtl.slice(p.modelmtl.lastIndexOf("/")+1),mats=>{mats.preload();run(mats)},undefined,()=>run(null))}else run(null);
+      }else fail();
+    }
     /* engraving textures for the face */
     const loadImg=src=>new Promise(r=>{if(!src)return r(null);const i=new Image();i.onload=()=>r(i);i.onerror=()=>r(null);i.src=src});
     loadImg(logo).then(img=>{
       if(RG!==S)return;
       const Z=2048,mk=(fill)=>{const c=document.createElement("canvas");c.width=c.height=Z;const x=c.getContext("2d");x.fillStyle=fill;x.fillRect(0,0,Z,Z);return[c,x]};
-      const [cc,cx]=mk("#ffffff"),[bc,bx]=mk("#d0d0d0"),[rc,rx]=mk("#4d4d4d");
+      const [cc,cx]=mk("#ffffff"),[bc,bx]=mk("#d0d0d0"),[rc,rx]=mk("#5e5e5e");
       if(img){
-        const wMax=Z*.52,hMax=Z*.36,k=Math.min(wMax/img.naturalWidth,hMax/img.naturalHeight),w=img.naturalWidth*k,h=img.naturalHeight*k;
+        const wMax=Z*.72,hMax=Z*.5,k=Math.min(wMax/img.naturalWidth,hMax/img.naturalHeight),w=img.naturalWidth*k,h=img.naturalHeight*k;
         const stamp=(ctx,fill,off,blur)=>{const t=document.createElement("canvas");t.width=t.height=Z;const q=t.getContext("2d");q.drawImage(img,Z/2-w/2+off,Z/2-h/2+off,w,h);q.globalCompositeOperation="source-in";q.fillStyle=fill;q.fillRect(0,0,Z,Z);if(blur)ctx.filter=`blur(${blur}px)`;ctx.drawImage(t,0,0);ctx.filter="none"};
-        stamp(cx,"#8c8378",0,0);stamp(bx,"#000000",0,3);stamp(rx,"#c4c4c4",0,0);
+        stamp(cx,"#4c4a47",0,1.2);stamp(bx,"#000000",0,2.4);stamp(rx,"#9a9a9a",0,0.8);
       }
       const pat=(ctx,a)=>{ctx.save();ctx.globalAlpha=a;ctx.globalCompositeOperation="source-over";ctx.fillStyle=ctx.createPattern(grain,"repeat");ctx.fillRect(0,0,Z,Z);ctx.restore()};
-      pat(bx,.22);pat(rx,.16);
+      
+      pat(bx,.07);pat(rx,.05);
       const tx=(c,srgb)=>{const t=new T.CanvasTexture(c);t.anisotropy=renderer.capabilities.getMaxAnisotropy();if(srgb)t.encoding=T.sRGBEncoding;return t};
-      headMat.map=tx(cc,true);headMat.bumpMap=tx(bc,false);headMat.bumpScale=1.8;headMat.roughnessMap=tx(rc,false);headMat.roughness=1;headMat.needsUpdate=true;
+      headMat.map=tx(cc,true);headMat.bumpMap=tx(bc,false);headMat.bumpScale=2.2;headMat.roughnessMap=tx(rc,false);headMat.roughness=1;headMat.needsUpdate=true;
     });
     const size=()=>{const w=rg.clientWidth,h=rg.clientHeight;renderer.setSize(w,h,false);cam.aspect=w/h;cam.updateProjectionMatrix()};
     size();S.ro=new ResizeObserver(size);S.ro.observe(rg);
@@ -867,7 +905,7 @@ function mountRing(p,tok){
     rg.addEventListener("pointermove",e=>{if(e.pointerId!==id)return;const dx=e.clientX-lx,dy=e.clientY-ly;lx=e.clientX;ly=e.clientY;S.ry+=dx*.012;S.rx=Math.max(-1.5,Math.min(1.5,S.rx+dy*.009));S.vy=dx*.012;S.vx=dy*.009});
     const up=e=>{if(e.pointerId!==id)return;id=null;S.drag=false;rg.classList.remove("dn")};
     rg.addEventListener("pointerup",up);rg.addEventListener("pointercancel",up);
-    btn.addEventListener("click",e=>{e.stopPropagation();S.touched=true;S.vy=S.vx=0;S.goal={ry:Math.round(S.ry/(2*Math.PI))*2*Math.PI+.08,rx:-.06}});
+    btn.addEventListener("click",e=>{e.stopPropagation();S.touched=true;S.vy=S.vx=0;S.goal={ry:Math.round(S.ry/(2*Math.PI))*2*Math.PI+0,rx:0}});
     const loop=()=>{
       S.t+=.016;
       if(!S.drag){
@@ -875,12 +913,106 @@ function mountRing(p,tok){
         else{S.ry+=S.vy;S.rx=Math.max(-1.5,Math.min(1.5,S.rx+S.vx));S.vy*=.95;S.vx*=.95}
       }
       let ry=S.ry,rx=S.rx;
-      if(mq&&!S.touched){ry+=Math.sin(S.t*.9)*.16;rx+=Math.sin(S.t*.6)*.04}   // gentle sway until first touch
+      
       group.rotation.set(rx,ry,0);
       renderer.render(scene,cam);S.raf=requestAnimationFrame(loop);
     };
     S.raf=requestAnimationFrame(loop);
   }).catch(()=>{if(RG===S)rg.insertAdjacentHTML("afterbegin",'<div class="ep">Could not load the 3D viewer.</div>')});
+}
+
+/* ---------- pendant on a chain (verlet physics, 2D canvas) ---------- */
+const isPend=p=>/pendant|chain/i.test(p.format||"");
+function mountPendant(p,tok){
+  const el=$("#project .rgw");if(!el)return;
+  const logo=(p.media||[]).filter(m=>(m.type||"image")==="image").map(m=>m.src)[0];
+  const tone=(p.tone||"silver").toLowerCase();
+  const stops=tone==="gold"?["#fff2c4","#d9ae55","#a47a28","#efd27f","#8a6422","#cda64d"]:tone==="rose"?["#ffe6dc","#e6a592","#b0705f","#f3c1b1","#94594a","#d89483"]:["#ffffff","#d5d9dd","#8d959b","#eceff1","#6c747a","#c3c8cc"];
+  el.innerHTML=`<div class="rg"><canvas class="cv"></canvas>${logo?"":'<div class="ep">Add your logo PNG (transparent) to this project folder.<br>It will hang as a pendant on the chain.</div>'}</div>`;
+  const rg=el.querySelector(".rg"),cv=el.querySelector("canvas"),ctx=cv.getContext("2d");
+  const S={raf:0,drag:false};RG=S;
+  const mq=matchMedia("(prefers-reduced-motion:no-preference)").matches;
+  let W=0,H=0,dpr=1,pts=[],N=18,L=10,pw=0,ph=0,img=null,pend=null,gx=0,gy=0;
+  const loadImg=src=>new Promise(r=>{if(!src)return r(null);const i=new Image();i.onload=()=>r(i);i.onerror=()=>r(null);i.src=src});
+  const grad=(c,x0,y0,x1,y1)=>{const g=c.createLinearGradient(x0,y0,x1,y1);stops.forEach((col,i)=>g.addColorStop(i/(stops.length-1),col));return g};
+  /* pendant artwork: the logo cut out in metal, with a lit rim and a dark rim for thickness */
+  const buildPendant=()=>{
+    if(!img)return;
+    pend=document.createElement("canvas");pend.width=Math.ceil(pw*dpr)+8;pend.height=Math.ceil(ph*dpr)+8;const c=pend.getContext("2d");
+    const tint=(fill,dx,dy)=>{const t=document.createElement("canvas");t.width=pend.width;t.height=pend.height;const q=t.getContext("2d");q.drawImage(img,4+dx,4+dy,pw*dpr,ph*dpr);q.globalCompositeOperation="source-in";q.fillStyle=fill;q.fillRect(0,0,t.width,t.height);return t};
+    const k=dpr*1.4;c.drawImage(tint("rgba(30,32,36,.55)",k*1.4,k*1.4),0,0);c.drawImage(tint("rgba(255,255,255,.95)",-k*.9,-k*.9),0,0);
+    const f=document.createElement("canvas");f.width=pend.width;f.height=pend.height;const q=f.getContext("2d");q.drawImage(img,4,4,pw*dpr,ph*dpr);q.globalCompositeOperation="source-in";q.fillStyle=grad(q,0,0,pend.width,pend.height);q.fillRect(0,0,f.width,f.height);
+    c.drawImage(f,0,0);
+  };
+  const setup=()=>{
+    W=rg.clientWidth;H=rg.clientHeight;dpr=Math.min(devicePixelRatio||1,2);cv.width=Math.round(W*dpr);cv.height=Math.round(H*dpr);
+    const asp=img?img.naturalHeight/img.naturalWidth:1;
+    pw=Math.min(W*.34,H*.36/asp);ph=pw*asp;
+    const chainLen=H-ph-H*.16-pw*.12;L=Math.max(6,chainLen/N);
+    const old=pts;pts=[];
+    for(let i=0;i<=N+1;i++){const x=W/2+(i===N+1?0:0),y=-L*.5+i*L;pts.push({x,y,px:x,py:y,w:i===0?0:(i===N+1?.45:1)})}
+    pts[N+1].y=pts[N+1].py=pts[N].y+ph*.92;
+    if(mq){pts.forEach((q,i)=>{if(i>0)q.px=q.x-(i/(N+1))*.9})}   // tiny starting swing
+    buildPendant();
+  };
+  const step=dt=>{
+    const g=2600,damp=.9985;
+    for(const q of pts){if(!q.w)continue;const vx=(q.x-q.px)*damp,vy=(q.y-q.py)*damp;q.px=q.x;q.py=q.y;q.x+=vx;q.y+=vy+g*dt*dt*(q.w<1?1.4:1)}
+    for(let it=0;it<18;it++){
+      pts[0].x=W/2;pts[0].y=-L*.5;
+      for(let i=0;i<pts.length-1;i++){
+        const a=pts[i],b=i===N?pts[N+1]:pts[i+1],rest=i===N?ph*.92:L;
+        let dx=b.x-a.x,dy=b.y-a.y,d=Math.hypot(dx,dy)||1e-6,diff=(d-rest)/d,wa=a.w,wb=b.w,ws=wa+wb;if(!ws)continue;
+        a.x+=dx*diff*wa/ws;a.y+=dy*diff*wa/ws;b.x-=dx*diff*wb/ws;b.y-=dy*diff*wb/ws;
+      }
+      if(S.drag&&S.grab){const q=S.grab;q.x=S.mx;q.y=S.my}
+    }
+  };
+  const link=(a,b,odd)=>{
+    const mx=(a.x+b.x)/2,my=(a.y+b.y)/2,ang=Math.atan2(b.y-a.y,b.x-a.x),len=L*1.28,wd=odd?L*.2:L*.52;
+    ctx.save();ctx.translate(mx,my);ctx.rotate(ang);
+    ctx.lineWidth=Math.max(1.6,L*.17);ctx.strokeStyle=grad(ctx,0,-wd,0,wd);
+    ctx.beginPath();ctx.ellipse(0,0,len/2,wd/2,0,0,Math.PI*2);ctx.stroke();
+    ctx.lineWidth=Math.max(.8,L*.05);ctx.strokeStyle="rgba(255,255,255,.75)";ctx.beginPath();ctx.ellipse(0,-wd*.04,len/2-L*.05,wd/2-L*.05,0,Math.PI*1.05,Math.PI*1.7);ctx.stroke();
+    ctx.restore();
+  };
+  const draw=()=>{
+    ctx.setTransform(dpr,0,0,dpr,0,0);ctx.clearRect(0,0,W,H);
+    for(let i=0;i<N;i++)link(pts[i],pts[i+1],i%2);
+    const a=pts[N],b=pts[N+1],th=Math.atan2(-(b.x-a.x),(b.y-a.y));
+    /* jump ring */
+    ctx.save();ctx.translate(a.x,a.y);ctx.lineWidth=Math.max(2,L*.2);ctx.strokeStyle=grad(ctx,-L,-L,L,L);ctx.beginPath();ctx.arc(0,0,L*.62,0,Math.PI*2);ctx.stroke();ctx.restore();
+    if(pend){
+      ctx.save();ctx.translate(a.x,a.y);ctx.rotate(th);ctx.drawImage(pend,-(img.attachX||.5)*pw-4/dpr,L*.25-(img.attachY||0)*ph-4/dpr,pend.width/dpr,pend.height/dpr);
+      /* moving glint, clipped to the metal by the logo shape */
+      ctx.globalCompositeOperation="source-atop";ctx.restore();
+    }
+  };
+  let last=0,acc=0;
+  const loop=t=>{
+    const dt=Math.min(.05,(t-last)/1000||.016);last=t;acc+=dt;const h=1/120;let n=0;while(acc>=h&&n<8){step(h);acc-=h;n++}
+    draw();S.raf=requestAnimationFrame(loop);
+  };
+  const trim=im=>{
+    if(!im)return null;
+    try{const c=document.createElement("canvas");c.width=im.naturalWidth;c.height=im.naturalHeight;const x=c.getContext("2d");x.drawImage(im,0,0);const d=x.getImageData(0,0,c.width,c.height).data;
+      let x0=c.width,y0=c.height,x1=0,y1=0;for(let y=0;y<c.height;y++)for(let xx=0;xx<c.width;xx++)if(d[(y*c.width+xx)*4+3]>10){if(xx<x0)x0=xx;if(xx>x1)x1=xx;if(y<y0)y0=y;if(y>y1)y1=y}
+      if(x1<=x0||y1<=y0)return im;const w=x1-x0+1,h=y1-y0+1,o=document.createElement("canvas");o.width=w;o.height=h;o.getContext("2d").drawImage(c,x0,y0,w,h,0,0,w,h);o.naturalWidth=w;o.naturalHeight=h;
+      /* where the chain hooks on: the highest solid point in the middle half of the logo */
+      let ax=.5,ay=0,best=1e9;for(let xx=Math.floor(w*.3);xx<Math.ceil(w*.7);xx++)for(let y=0;y<h;y++){if(d[((y+y0)*c.width+(xx+x0))*4+3]>10){if(y<best){best=y;ax=xx/w;ay=y/h}break}}
+      o.attachX=ax;o.attachY=ay;return o}catch(e){return im}
+  };
+  loadImg(logo).then(im=>{if(RG!==S)return;img=trim(im);setup();S.raf=requestAnimationFrame(loop)});
+  S.ro=new ResizeObserver(()=>{if(img||!logo)setup()});S.ro.observe(rg);
+  if(!logo)requestAnimationFrame(()=>{setup();S.raf=requestAnimationFrame(loop)});
+  /* grab the pendant and fling it */
+  const pos=e=>{const r=cv.getBoundingClientRect();return[e.clientX-r.left,e.clientY-r.top]};
+  rg.addEventListener("pointerdown",e=>{const[x,y]=pos(e),b=pts[N+1],a=pts[N],cx=(a.x+b.x)/2,cy=(a.y+b.y)/2;
+    if(Math.hypot(x-cx,y-cy)<Math.max(pw,ph)*.75){S.drag=true;S.grab=b;S.mx=b.x;S.my=b.y;rg.setPointerCapture(e.pointerId);rg.classList.add("dn");b.w=0}});
+  rg.addEventListener("pointermove",e=>{if(!S.drag)return;const[x,y]=pos(e);{const ax=W/2,ay=-L*.5,reach=(N*L+ph*.92)*.97;let dx=x-ax,dy=Math.max(y,L*2)-ay;const d=Math.hypot(dx,dy);if(d>reach){dx*=reach/d;dy*=reach/d}S.mx=ax+dx;S.my=ay+dy}});
+  const up=e=>{if(!S.drag)return;S.drag=false;S.grab.w=.45;S.grab=null;rg.classList.remove("dn")};
+  rg.addEventListener("pointerup",up);rg.addEventListener("pointercancel",up);
+  rg.addEventListener("pointermove",e=>{if(S.drag)return;const[x,y]=pos(e),b=pts[N+1],a=pts[N];rg.style.cursor=Math.hypot(x-(a.x+b.x)/2,y-(a.y+b.y)/2)<Math.max(pw,ph)*.75?"grab":"default"});
 }
 matchMedia("(max-width:800px)").addEventListener("change",paintGallery);
 
@@ -890,7 +1022,7 @@ function detail(i){
   const body=paras.map((t,j)=>`<p style="--i:${j}">${esc(t).replace(/\n/g,"<br>")}</p>`).join("");
   return `<div class="dt"><div class="dl"><h1>${esc(p.title)}</h1><div class="ck">/ ${esc(p.category)}</div>${body}${p.note?`<p class="nt" style="--i:${paras.length}">${esc(p.note)}</p>`:""}
   <div class="ar"><a href="#project-${pv.slug}" aria-label="Previous project">${ARROW}</a><a class="r" href="#project-${nx.slug}" aria-label="Next project">${ARROW}</a></div></div>
-  <div class="rc">${isRing(p)?'<div class="rgw"></div>':""}${p.table?'<div class="tbw"></div>':""}${isBook(p)?'<div class="bkw"></div>':""}${p.fold&&p.fold.src?'<div class="fow"></div>':""}<div class="gl"></div></div></div>`;
+  <div class="rc">${isRing(p)||isPend(p)?'<div class="rgw"></div>':""}${p.table?'<div class="tbw"></div>':""}${isBook(p)?'<div class="bkw"></div>':""}${p.fold&&p.fold.src?'<div class="fow"></div>':""}<div class="gl"></div></div></div>`;
 }
 
 /* gallery tiles open as they scroll into view */
