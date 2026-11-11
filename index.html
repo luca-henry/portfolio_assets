@@ -155,6 +155,18 @@ main{flex:1;display:flex;flex-direction:column}
 #tz .zc{position:fixed;left:0;right:0;bottom:calc(2.6 * var(--u));text-align:center;font:700 calc(1.3 * var(--u))/1 "Helvetica Neue",Helvetica,Arial,sans-serif;letter-spacing:.12em;text-transform:uppercase}
 @media (max-width:800px){.tbw{margin-bottom:calc(3 * var(--u))}.lc .cap,.lph,#tz .zc{font-size:calc(2.4 * var(--u))}.tb{gap:calc(7 * var(--u))}.sf{padding-bottom:calc(5 * var(--u))}.sf::before{bottom:calc(2.4 * var(--u));height:calc(7 * var(--u))}.sf::after{height:calc(2.6 * var(--u))}.lc .cap{top:calc(100% + 8.6 * var(--u))}#tz .x{font-size:calc(3.4 * var(--u));padding:calc(2.6 * var(--u)) calc(4 * var(--u))}}
 /* turntable ring: logo marks stand around a rotating ring on black */
+/* Our Earth: a TV in your photo. The film is warped onto the screen corners, and a blurred copy of it spills a faint coloured light around the TV. */
+.tvxw{margin-bottom:calc(1.7 * var(--u))}
+.tvx{position:relative;overflow:hidden;width:min(100%,calc((100svh - 15 * var(--u)) * var(--ar,1.5)));margin:0 auto;background:#000;isolation:isolate;user-select:none;-webkit-user-select:none}
+.tvx .tvf{display:block;width:100%;height:auto}
+.tvx .tvg{position:absolute;pointer-events:none;mix-blend-mode:screen;opacity:0;filter:blur(calc(1.6 * var(--u)));-webkit-mask-image:radial-gradient(closest-side,#000 25%,transparent 100%);mask-image:radial-gradient(closest-side,#000 25%,transparent 100%);transition:opacity .9s steps(7,end)}
+.tvx.on .tvg{opacity:var(--gl,.22)}
+.tvx .tvs{position:absolute;left:0;top:0;width:100px;height:100px;transform-origin:0 0;background:#050505;cursor:pointer;overflow:hidden}
+.tvx .tvs video{display:block;width:100%;height:100%;object-fit:fill;opacity:0;transition:opacity .35s steps(5,end)}
+.tvx.on .tvs video{opacity:1}
+.tvxw .tvh{display:flex;align-items:center;gap:calc(1.6 * var(--u));width:fit-content;margin:calc(1.7 * var(--u)) auto 0;border:0;cursor:pointer;background:#000;color:#fff;height:calc(3 * var(--u));padding:0 calc(1.2 * var(--u));font-family:Archivo,"Helvetica Neue",Arial,sans-serif;font-stretch:72%;font-weight:800;font-size:calc(1.7 * var(--u));letter-spacing:-.03em;text-transform:uppercase;line-height:1;white-space:nowrap}
+.tvxw .tvh:hover,.tvxw .tvh:focus-visible{background:#fff;color:#000;outline:var(--bw) solid #000;outline-offset:calc(var(--bw) * -1)}
+@media (max-width:800px){.tvxw{margin-bottom:calc(3 * var(--u))}.tvx{width:100%}.tvxw .tvh{height:calc(8.5 * var(--u));font-size:calc(4.6 * var(--u));padding:0 calc(4 * var(--u));gap:calc(4 * var(--u));margin-top:calc(3 * var(--u))}}
 /* Mito freezer, seen from above (your photo). Two glass lids slide apart; click a pack to look at it. */
 .czw{margin-bottom:calc(1.7 * var(--u))}
 .cz{position:relative;width:100%;height:min(calc(100svh - 12 * var(--u)),calc(100vw * .43));container-type:size;overflow:hidden;--T:min(94cqw,calc(94cqh * 1.4));--k:calc(var(--T) / 100);--red:#ea2150;user-select:none;-webkit-user-select:none}
@@ -675,6 +687,7 @@ async function buildGallery(i){
   const tok=++gTok,p=P[i];
   if(p.table){mountTable(p,tok);return}
   if(p.fridge){mountFridge(p,tok);return}
+  if(p.tv){mountTV(p,tok);return}
   if(isRing(p)){mountRing(p,tok);return}
   if(isPend(p)){mountPendant(p,tok);return}
   const hasFold=!!(p.fold&&p.fold.src);
@@ -803,6 +816,50 @@ function mountTable(p,tok){
   T.key=e=>{if(e.key==="Escape")close()};document.addEventListener("keydown",T.key);
   tb.querySelectorAll(".lc[data-k]").forEach(c=>c.addEventListener("click",()=>open(c.dataset.k,+c.dataset.i)));
   const loop=()=>{T.live.forEach(o=>o.tick());T.raf=requestAnimationFrame(loop)};T.raf=requestAnimationFrame(loop);
+}
+
+/* ---------- Our Earth TV ----------
+   format: tv. projects/our_earth holds one room photo and one video. info.txt says where the screen is:
+   tvscreen: 31,30 69,30 69,58 31,58   (top-left, top-right, bottom-right, bottom-left, each as x,y in % of the photo)
+   glow: 0.22   (how strong the light from the TV is, 0 = none). Click the TV (or the button) to play with sound. */
+let TV=null;
+function killTV(){if(TV){TV.dead=true;cancelAnimationFrame(TV.raf);if(TV.ro)TV.ro.disconnect();try{TV.v.pause();TV.v.removeAttribute("src");TV.v.load()}catch(e){}TV=null}}
+function mountTV(p,tok){
+  const el=$("#project .tvxw");if(!el||tok!==gTok)return;
+  const C=p.tv||{},q=(C.screen&&C.screen.length===8?C.screen:[31,30,69,30,69,58,31,58]),full=!C.photo;
+  const pts=full?[0,0,100,0,100,100,0,100]:q,gl=Math.max(0,Math.min(1,C.glow==null?.22:C.glow));
+  el.innerHTML=`<div class="tvx" style="--gl:${gl}">${C.photo?`<img class="tvf" src="${esc(C.photo)}" alt="" draggable="false">`:`<div style="aspect-ratio:16/9"></div>`}
+    <canvas class="tvg" width="32" height="18" aria-hidden="true"></canvas>
+    <div class="tvs"><video playsinline preload="auto" ${C.video?`src="${esc(C.video)}"`:""}></video></div></div>
+    <button type="button" class="tvh" aria-pressed="false"><span class="lb">Click to play</span><span class="fp">+</span></button>`;
+  const box=el.querySelector(".tvx"),img=box.querySelector(".tvf"),scr=box.querySelector(".tvs"),v=scr.querySelector("video"),cv=box.querySelector(".tvg"),cx=cv.getContext("2d"),btn=el.querySelector(".tvh");
+  const T=TV={raf:0,dead:false,ro:null,v,on:false,n:0};
+  /* warp the 100x100 screen onto the four corners (a perspective matrix) */
+  const lay=()=>{
+    const W=box.clientWidth,H=box.clientHeight;if(!W||!H)return;
+    const P=[];for(let i=0;i<4;i++)P.push([pts[i*2]*W/100,pts[i*2+1]*H/100]);
+    const [x0,y0]=P[0],[x1,y1]=P[1],[x2,y2]=P[2],[x3,y3]=P[3];
+    const dx1=x1-x2,dx2=x3-x2,dx3=x0-x1+x2-x3,dy1=y1-y2,dy2=y3-y2,dy3=y0-y1+y2-y3;
+    const den=dx1*dy2-dx2*dy1,g=den?(dx3*dy2-dx2*dy3)/den:0,h=den?(dx1*dy3-dx3*dy1)/den:0;
+    const a=x1-x0+g*x1,b=x3-x0+h*x3,d=y1-y0+g*y1,e=y3-y0+h*y3;
+    scr.style.transform=`matrix3d(${a/100},${d/100},0,${g/100},${b/100},${e/100},0,${h/100},0,0,1,0,${x0},${y0},0,1)`;
+    /* the glow sits on a patch around the screen */
+    const xs=P.map(z=>z[0]),ys=P.map(z=>z[1]),mx=Math.min(...xs),Mx=Math.max(...xs),my=Math.min(...ys),My=Math.max(...ys),w=Mx-mx,hh=My-my,pw=w*.8,ph=hh*.9;
+    Object.assign(cv.style,{left:mx-pw+"px",top:my-ph+"px",width:w+2*pw+"px",height:hh+2*ph+"px"});
+  };
+  const sync=()=>{if(img&&img.naturalWidth)box.style.setProperty("--ar",img.naturalWidth/img.naturalHeight);lay()};
+  if(img){img.complete?sync():img.addEventListener("load",sync)}
+  T.ro=new ResizeObserver(lay);T.ro.observe(box);lay();
+  /* glow: a tiny copy of the current picture, blurred and added as light */
+  const loop=()=>{if(T.dead)return;if(T.on&&!v.paused&&v.readyState>=2&&(T.n++&1)===0){try{cx.drawImage(v,0,0,32,18)}catch(e){}}T.raf=requestAnimationFrame(loop)};T.raf=requestAnimationFrame(loop);
+  const set=on=>{T.on=on;box.classList.toggle("on",on);btn.setAttribute("aria-pressed",on?"true":"false");btn.querySelector(".lb").textContent=on?"Turn it off":"Click to play";btn.querySelector(".fp").textContent=on?"\u2212":"+"};
+  const toggle=()=>{
+    if(T.on){v.pause();set(false);return}
+    v.muted=false;set(true);
+    const pr=v.play();if(pr&&pr.catch)pr.catch(()=>{v.muted=true;v.play().catch(()=>set(false))});
+  };
+  scr.addEventListener("click",toggle);btn.addEventListener("click",toggle);
+  v.addEventListener("ended",()=>{set(false);try{v.currentTime=0}catch(e){}});
 }
 
 /* ---------- Mito chest fridge ----------
@@ -1149,7 +1206,7 @@ function detail(i){
   const body=paras.map((t,j)=>`<p style="--i:${j}">${esc(t).replace(/\n/g,"<br>")}</p>`).join("");
   return `<div class="dt"><div class="dl"><h1>${esc(p.title)}</h1><div class="ck">/ ${esc(p.category)}</div>${body}${p.note?`<p class="nt" style="--i:${paras.length}">${esc(p.note)}</p>`:""}
   <div class="ar"><a href="#project-${pv.slug}" aria-label="Previous project">${ARROW}</a><a class="r" href="#project-${nx.slug}" aria-label="Next project">${ARROW}</a></div></div>
-  <div class="rc">${isRing(p)||isPend(p)?'<div class="rgw"></div>':""}${p.table?'<div class="tbw"></div>':""}${p.fridge?'<div class="czw"></div>':""}${isBook(p)?'<div class="bkw"></div>':""}${p.fold&&p.fold.src?'<div class="fow"></div>':""}<div class="gl"></div></div></div>`;
+  <div class="rc">${isRing(p)||isPend(p)?'<div class="rgw"></div>':""}${p.table?'<div class="tbw"></div>':""}${p.fridge?'<div class="czw"></div>':""}${p.tv?'<div class="tvxw"></div>':""}${isBook(p)?'<div class="bkw"></div>':""}${p.fold&&p.fold.src?'<div class="fow"></div>':""}<div class="gl"></div></div></div>`;
 }
 
 /* gallery tiles open as they scroll into view */
@@ -1248,7 +1305,7 @@ function fit(){
 /* hash routing: #home #projects #about #contact #project-<folder name> */
 const VIEWS=["home","projects","about","contact"];
 function route(){
-  killBook();killFold();killTable();killRing();killFridge();gTok++;
+  killBook();killFold();killTable();killRing();killFridge();killTV();gTok++;
   document.documentElement.style.removeProperty("--bg");
   document.querySelectorAll(".tick").forEach(e=>e.classList.remove("tick"));
   const h=decodeURIComponent(location.hash.slice(1))||"home";let v=h,pi=-1;
@@ -1332,7 +1389,7 @@ tick();setInterval(tick,500);
   const tick=()=>{got++;pct()};
   const grab=u=>new Promise(r=>{const im=new Image();im.onload=im.onerror=()=>{(im.decode?im.decode().catch(()=>{}):Promise.resolve()).then(r)};im.src=u});
   const urls=ps=>{const o=new Set,add=u=>{if(typeof u==="string"&&/\.(png|jpe?g|webp|gif|avif|svg)(\?|$)/i.test(u))o.add(u)};
-    ps.forEach(p=>{add(p.cover);(p.pages||[]).forEach(add);(p.media||[]).forEach(m=>add(typeof m==="string"?m:m&&m.src));if(p.table){["menu","tee","box"].forEach(k=>Object.values(p.table[k]||{}).forEach(add));(p.table.prints||[]).forEach(add)}if(p.fold){add(p.fold.src)}if(p.fridge){(p.fridge.slides||[]).forEach(m=>m.type==="image"&&add(m.src));add(p.fridge.bg)}});return[...o]};
+    ps.forEach(p=>{add(p.cover);(p.pages||[]).forEach(add);(p.media||[]).forEach(m=>add(typeof m==="string"?m:m&&m.src));if(p.table){["menu","tee","box"].forEach(k=>Object.values(p.table[k]||{}).forEach(add));(p.table.prints||[]).forEach(add)}if(p.fold){add(p.fold.src)}if(p.fridge){(p.fridge.slides||[]).forEach(m=>m.type==="image"&&add(m.src));add(p.fridge.bg)}if(p.tv)add(p.tv.photo);});return[...o]};
   function reveal2(){
     const go=()=>{buildList();route();armed=true};
     go();
