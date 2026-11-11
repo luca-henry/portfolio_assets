@@ -34,6 +34,13 @@ for (const d of fs.readdirSync(ROOT, { withFileTypes: true })) {
   }
   const isCover = f => path.parse(f.name).name.toLowerCase() === "cover";
   const cover = files.find(f => isCover(f) && f.type === "image") || null;
+
+  // fold-out poster: info.txt lines  fold: calendar.jpg / cols: 6 / rows: 4 / zoom: calendar-hires.jpg (optional)
+  const byName = n => n && files.find(f => f.name.toLowerCase() === n.toLowerCase());
+  const foldFile = byName(meta.fold), zoomFile = byName(meta.zoom);
+  const used = new Set([foldFile, zoomFile].filter(Boolean));
+  const fold = foldFile ? { src: foldFile.src, cols: Number(meta.cols) || 6, rows: Number(meta.rows) || 4, ...(zoomFile ? { zoom: zoomFile.src } : {}) } : null;
+  if (meta.fold && !foldFile) console.warn(`WARNING: ${d.name}/info.txt says fold: ${meta.fold} but that file was not found`);
   projects.push({
     slug: d.name,
     title: meta.title || d.name.replace(/[-_]+/g, " "),
@@ -42,7 +49,9 @@ for (const d of fs.readdirSync(ROOT, { withFileTypes: true })) {
     note: meta.note || "",
     body,
     cover: cover && cover.src,
-    media: files.filter(f => !isCover(f)).map(({ src, type }) => ({ src, type }))
+    ...(fold ? { fold } : {}),
+    ...(meta.format ? { format: meta.format } : {}),   // format: booklet  turns the project into a flip-through book
+    media: files.filter(f => !isCover(f) && !used.has(f)).map(({ src, type }) => ({ src, type }))
   });
 }
 projects.sort((a, b) => a.order - b.order || nat(a.title, b.title));
