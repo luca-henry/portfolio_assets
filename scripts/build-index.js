@@ -62,6 +62,7 @@ for (const d of fs.readdirSync(ROOT, { withFileTypes: true })) {
     cover: cover && cover.src,
     ...(fold ? { fold } : {}),
     ...(table ? { table } : {}),
+    ...(meta.tone ? { tone: meta.tone } : {}),
     ...(meta.format ? { format: meta.format } : {}),   // format: booklet  turns the project into a flip-through book
     media: files.filter(f => !isCover(f) && !used.has(f) && !tableUsed.has(f)).map(({ src, type }) => ({ src, type }))
   });
