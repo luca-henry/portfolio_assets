@@ -155,6 +155,36 @@ main{flex:1;display:flex;flex-direction:column}
 #tz .zc{position:fixed;left:0;right:0;bottom:calc(2.6 * var(--u));text-align:center;font:700 calc(1.3 * var(--u))/1 "Helvetica Neue",Helvetica,Arial,sans-serif;letter-spacing:.12em;text-transform:uppercase}
 @media (max-width:800px){.tbw{margin-bottom:calc(3 * var(--u))}.lc .cap,.lph,#tz .zc{font-size:calc(2.4 * var(--u))}.tb{gap:calc(7 * var(--u))}.sf{padding-bottom:calc(5 * var(--u))}.sf::before{bottom:calc(2.4 * var(--u));height:calc(7 * var(--u))}.sf::after{height:calc(2.6 * var(--u))}.lc .cap{top:calc(100% + 8.6 * var(--u))}#tz .x{font-size:calc(3.4 * var(--u));padding:calc(2.6 * var(--u)) calc(4 * var(--u))}}
 /* turntable ring: logo marks stand around a rotating ring on black */
+/* Mito freezer, seen from above (your photo). Two glass lids slide apart; click a pack to look at it. */
+.czw{margin-bottom:calc(1.7 * var(--u))}
+.cz{position:relative;width:100%;height:min(calc(100svh - 12 * var(--u)),calc(100vw * .43));container-type:size;overflow:hidden;--T:min(94cqw,calc(94cqh * 1.4));--k:calc(var(--T) / 100);--red:#ea2150;user-select:none;-webkit-user-select:none}
+.cz .czc{position:absolute;width:calc(3.4 * var(--u));height:calc(3.4 * var(--u));border:0 solid #000;pointer-events:none}
+.cz .czc.c1{left:0;top:0;border-width:var(--bw) 0 0 var(--bw)}
+.cz .czc.c2{right:0;bottom:0;border-width:0 var(--bw) var(--bw) 0}
+.cz .czb{position:absolute;left:50%;top:47%;width:var(--T);aspect-ratio:1159 / 796;translate:-50% -50%;overflow:hidden}
+.cz .czf{position:absolute;inset:0;width:100%;height:100%;display:block;pointer-events:none;-webkit-user-drag:none}
+.cz .czp{all:unset;position:absolute;display:block;cursor:pointer;translate:-50% -50%;rotate:var(--r,0deg);transition:translate .2s steps(2,end);-webkit-tap-highlight-color:transparent}
+.cz .czp img{display:block;width:100%;height:auto;pointer-events:none;-webkit-user-drag:none}
+.cz .czp:hover,.cz .czp:focus-visible{translate:-50% calc(-50% - var(--k) * 1)}
+.cz .czp:focus-visible{outline:calc(.4 * var(--u)) solid #000;outline-offset:calc(.4 * var(--u))}
+.cz:not(.op) .czp{pointer-events:none}
+.cz .czs{position:absolute;left:calc(var(--k) * 9);top:90.3%;width:calc(var(--k) * 19);height:7.3%;background:#000;border-radius:calc(var(--k) * .8);overflow:hidden}
+.cz .czs .bd{position:absolute;inset:0;filter:url(#czgoo)}
+.cz .czs i{position:absolute;display:block;background:var(--red)}
+.cz .czl{position:absolute;top:6.2%;height:82.6%;width:44.6%;box-sizing:border-box;background:linear-gradient(112deg,rgba(255,255,255,.5),rgba(232,238,243,.3) 46%,rgba(255,255,255,.55));border:calc(var(--k) * .8) solid #d3d7da;border-radius:calc(var(--k) * 1.1);box-shadow:inset 0 0 0 calc(var(--k) * .18) #8a9096,0 calc(var(--k) * .5) calc(var(--k) * 1.2) rgba(0,0,0,.3);cursor:grab;touch-action:pan-y;transition:translate .75s cubic-bezier(.6,0,.25,1)}
+.cz .czl.l1{left:6.1%}.cz .czl.l2{right:6.1%;z-index:2}
+.cz .czl::before{content:"";position:absolute;top:50%;translate:0 -50%;width:calc(var(--k) * 1.7);height:calc(var(--k) * 13);background:linear-gradient(90deg,#50555a,#8f959b);border-radius:calc(var(--k) * .9);box-shadow:0 0 0 calc(var(--k) * .3) #d3d7da}
+.cz .czl.l1::before{right:calc(var(--k) * 2.4)}.cz .czl.l2::before{left:calc(var(--k) * 2.4)}
+.cz .czl::after{content:"";position:absolute;inset:0;pointer-events:none;background:linear-gradient(112deg,transparent 16%,rgba(255,255,255,.65) 20%,transparent 25%,transparent 58%,rgba(255,255,255,.45) 61%,transparent 65%)}
+.cz .czl.dg{transition:none;cursor:grabbing}
+.cz.op .czl.l1{translate:calc(var(--k) * -46) 0}.cz.op .czl.l2{translate:calc(var(--k) * 46) 0}
+.cz .czh{all:unset;position:absolute;left:0;right:0;text-align:center;font:700 calc(1.4 * var(--u))/1 "Helvetica Neue",Helvetica,Arial,sans-serif;letter-spacing:.14em;text-transform:uppercase;cursor:pointer}
+.cz .czh:hover,.cz .czh:focus-visible{text-decoration:underline;text-underline-offset:.3em}
+#tz .czm{display:grid;place-items:center}
+#tz .pza{all:unset;position:fixed;top:50%;translate:0 -50%;background:#000;color:#fff;width:calc(5 * var(--u));height:calc(5 * var(--u));display:grid;place-items:center;font:700 calc(2.2 * var(--u))/1 "Helvetica Neue",Helvetica,Arial,sans-serif;cursor:pointer;z-index:2}
+#tz .pza.l{left:calc(2.6 * var(--u))}#tz .pza.r{right:calc(2.6 * var(--u))}
+#tz .pza:hover,#tz .pza:focus-visible{background:#fff;color:#000;outline:calc(.3 * var(--u)) solid #000}
+@media (max-width:800px){.czw{margin-bottom:calc(3 * var(--u))}.cz{height:min(calc(100vw * .85),calc(100svh - 24 * var(--u)))}.cz .czh{font-size:calc(2.6 * var(--u))}#tz .pza{width:calc(9 * var(--u));height:calc(9 * var(--u));font-size:calc(4 * var(--u))}#tz .pza.l{left:calc(1.6 * var(--u))}#tz .pza.r{right:calc(1.6 * var(--u))}}
 .rgw{margin-bottom:calc(1.7 * var(--u))}
 body.pbg{background:transparent}
 .rg{position:relative;width:100%;height:min(calc(100svh - 12 * var(--u)),calc(100vw * .56));overflow:hidden;background:transparent;cursor:grab;touch-action:pan-y;user-select:none;-webkit-user-select:none;color:#000}
@@ -644,6 +674,7 @@ async function mountFold(p,tok){
 async function buildGallery(i){
   const tok=++gTok,p=P[i];
   if(p.table){mountTable(p,tok);return}
+  if(p.fridge){mountFridge(p,tok);return}
   if(isRing(p)){mountRing(p,tok);return}
   if(isPend(p)){mountPendant(p,tok);return}
   const hasFold=!!(p.fold&&p.fold.src);
@@ -772,6 +803,81 @@ function mountTable(p,tok){
   T.key=e=>{if(e.key==="Escape")close()};document.addEventListener("keydown",T.key);
   tb.querySelectorAll(".lc[data-k]").forEach(c=>c.addEventListener("click",()=>open(c.dataset.k,+c.dataset.i)));
   const loop=()=>{T.live.forEach(o=>o.tick());T.raf=requestAnimationFrame(loop)};T.raf=requestAnimationFrame(loop);
+}
+
+/* ---------- Mito chest fridge ----------
+   format: fridge. A flat top-down chest fridge with two glass lids. Click (or drag) the lids and they slide apart; click a pack to open the viewer.
+   The little black sign on the rim loops your animated logo (1 > 4 > 16 > 4 > 1). Files in projects/mito: item-1-steak.webp, item-2-sausages.webp are the packs; every other file is a slide in the viewer. */
+let CZ=null;
+function killFridge(){if(CZ){CZ.dead=true;cancelAnimationFrame(CZ.raf);if(CZ.ro)CZ.ro.disconnect();document.removeEventListener("keydown",CZ.key);if(CZ.zm)CZ.zm.remove();CZ=null}}
+const eBack=u=>{const d=u-1;return 1+3*d*d*d+2*d*d},eIO3=u=>u<.5?4*u*u*u:1-Math.pow(-2*u+2,3)/2;
+function mountFridge(p,tok){
+  const el=$("#project .czw");if(!el||tok!==gTok)return;
+  const F=p.fridge||{},items=F.items||[],slides=F.slides||[];
+  const mq=matchMedia("(prefers-reduced-motion:no-preference)").matches;
+  /* where each pack lies, as a percentage of the freezer picture: four on the floor, two in the basket */
+  const seq=[1,0,0,1,1,0],pos=[[28.5,45.9,-2],[50.5,45.8,2.2],[27.6,72.8,1.6],[50.9,74.1,-2],[78.5,29.5,1.5],[78.5,60.3,-1.4]];
+  const packs=items.length?pos.map((q,j)=>({j,it:items[seq[j]%items.length],idx:seq[j]%items.length,x:q[0],y:q[1],r:q[2]})):[];
+  el.innerHTML=`<div class="cz">
+    <svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false"><defs><filter id="czgoo" x="-10%" y="-10%" width="120%" height="120%" color-interpolation-filters="sRGB"><feGaussianBlur in="SourceGraphic" stdDeviation="1.6" result="b"/><feColorMatrix in="b" values="1 0 0 0 0  0 1 0 0 0  0 0 1 0 0  0 0 0 18 -7.5"/></filter></defs></svg>
+    <i class="czc c1"></i><i class="czc c2"></i>
+    <div class="czb">
+      ${F.bg?`<img class="czf" src="${esc(F.bg)}" alt="" draggable="false">`:""}
+      <div class="czs" aria-hidden="true"><div class="bd">${"<i></i>".repeat(16)}</div></div>
+      ${packs.map(k=>`<button type="button" class="czp" data-i="${k.idx}" style="left:${k.x}%;top:${k.y}%;--r:${k.r}deg" aria-label="Open ${esc(k.it.caption)}"><img src="${esc(k.it.src)}" alt="" draggable="false"></button>`).join("")}
+      <div class="czl l1"></div><div class="czl l2"></div>
+    </div>
+    <button type="button" class="czh">Open the lids</button></div>`;
+  const cz=el.querySelector(".cz"),body=cz.querySelector(".czb"),lids=[...cz.querySelectorAll(".czl")],lbl=cz.querySelector(".czh"),sign=cz.querySelector(".czs"),bd=sign.querySelector(".bd"),minis=[...bd.children],blur=cz.querySelector("feGaussianBlur");
+  const T=CZ={raf:0,dead:false,zm:null,open:false,drag:null};
+  /* every pack is drawn at the same footprint, whatever its shape */
+  cz.querySelectorAll(".czp").forEach(b=>{const im=b.querySelector("img"),fit=()=>{const r=im.naturalWidth/im.naturalHeight||1;b.style.width=`calc(var(--k) * ${(Math.sqrt(255*r)).toFixed(2)})`};im.complete?fit():im.addEventListener("load",fit)});
+  /* lids */
+  const kpx=()=>body.getBoundingClientRect().width/100;
+  const setOpen=o=>{T.open=o;cz.classList.toggle("op",o);lbl.textContent=o?"Close the lids":"Open the lids"};
+  lids.forEach((l,n)=>{
+    const dir=n?1:-1;
+    l.addEventListener("pointerdown",e=>{if(e.button>0)return;T.drag={x:e.clientX,p0:T.open?1:0,p:T.open?1:0,moved:false,l};lids.forEach(z=>z.classList.add("dg"));try{l.setPointerCapture(e.pointerId)}catch(_){}});
+    l.addEventListener("pointermove",e=>{const D=T.drag;if(!D)return;const dx=e.clientX-D.x;if(!D.moved&&Math.abs(dx)>6)D.moved=true;if(!D.moved)return;
+      D.p=Math.max(0,Math.min(1,D.p0+dir*dx/(46*kpx())));const k=kpx();lids[0].style.translate=`${-46*k*D.p}px 0`;lids[1].style.translate=`${46*k*D.p}px 0`});
+    const end=()=>{const D=T.drag;if(!D)return;T.drag=null;lids.forEach(z=>{z.classList.remove("dg");z.style.translate=""});setOpen(D.moved?D.p>.5:!T.open)};
+    l.addEventListener("pointerup",end);l.addEventListener("pointercancel",()=>{if(T.drag){T.drag=null;lids.forEach(z=>{z.classList.remove("dg");z.style.translate=""})}});
+  });
+  lbl.addEventListener("click",()=>setOpen(!T.open));
+  /* the sign: the animated logo on a loop */
+  const S={};
+  const sizeSign=()=>{const r=sign.getBoundingClientRect(),W=r.width,H=r.height,E=H*.72,ox=(W-E)/2,oy=(H-E)/2,ov=E*.03,g4=E*.1,w4=(E-g4)/2,m=E*.17,pitch=(E-m)/3,rd1=E*.02,rd16=E*.05;
+    const s1=[],s4=[],s16=[];
+    for(let i=0;i<16;i++){const c=i&3,rr=i>>2,qc=c>>1,qr=rr>>1,ic=c&1,ir=rr&1,x4=ox+qc*(w4+g4),y4=oy+qr*(w4+g4);
+      s1.push({x:ox+c*E/4-ov/2,y:oy+rr*E/4-ov/2,w:E/4+ov,h:E/4+ov});s4.push({x:x4+ic*w4/2-ov/2,y:y4+ir*w4/2-ov/2,w:w4/2+ov,h:w4/2+ov});s16.push({x:ox+c*pitch,y:oy+rr*pitch,w:m,h:m})}
+    S.s1={r:s1,rd:rd1};S.s4={r:s4,rd:rd1};S.s16={r:s16,rd:rd16};blur.setAttribute("stdDeviation",Math.max(1,E*.03).toFixed(2))};
+  const draw=st=>{S.cur=st;for(let i=0;i<16;i++){const q=st.r[i],s=minis[i].style;s.left=q.x+"px";s.top=q.y+"px";s.width=q.w+"px";s.height=q.h+"px";s.borderRadius=st.rd+"px"}};
+  const lerp=(a,b,u)=>({rd:a.rd+(b.rd-a.rd)*u,r:a.r.map((q,i)=>{const z=b.r[i];return{x:q.x+(z.x-q.x)*u,y:q.y+(z.y-q.y)*u,w:q.w+(z.w-q.w)*u,h:q.h+(z.h-q.h)*u}})});
+  const tween=(a,b,ms,ease)=>new Promise(res=>{const t0=performance.now();const f=now=>{if(T.dead)return;const u=Math.min(1,(now-t0)/ms);draw(lerp(a,b,Math.max(-.2,ease(u))));if(u<1)T.raf=requestAnimationFrame(f);else{draw(b);res()}};T.raf=requestAnimationFrame(f)});
+  const wait=ms=>new Promise(r=>setTimeout(r,ms));
+  const loop=async()=>{while(!T.dead){await wait(900);if(T.dead)return;await tween(S.s1,S.s4,540,eBack);await wait(300);if(T.dead)return;await tween(S.s4,S.s16,560,eBack);await wait(1000);if(T.dead)return;await tween(S.s16,S.s4,420,eIO3);await wait(140);if(T.dead)return;await tween(S.s4,S.s1,380,eIO3)}};
+  const layout=()=>{sizeSign();if(!T.looping)draw(S.s1);
+    const a=cz.getBoundingClientRect(),b=body.getBoundingClientRect();lbl.style.top=(b.bottom-a.top+16)+"px"};
+  T.ro=new ResizeObserver(layout);T.ro.observe(cz);layout();
+  if(mq){T.looping=true;loop()}
+  /* viewer */
+  const close=()=>{const z=T.zm;if(!z)return;T.zm=null;const done=()=>z.remove();if(mq)z.animate([{clipPath:"inset(0 0 0 0)"},{clipPath:"inset(0 0 100% 0)"}],{duration:300,easing:"steps(5,end)",fill:"both"}).finished.then(done);else done()};
+  const open=i0=>{
+    if(T.zm||!slides.length)return;let i=Math.max(0,Math.min(slides.length-1,i0|0));
+    const z=document.createElement("div");z.id="tz";
+    z.innerHTML=`<button type="button" class="x">Close ×</button><div class="zs"><div class="czm"></div></div>${slides.length>1?'<button type="button" class="pza l" aria-label="Previous">←</button><button type="button" class="pza r" aria-label="Next">→</button>':""}<p class="zc"></p>`;
+    const h=z.querySelector(".czm"),zc=z.querySelector(".zc");
+    const show=()=>{const m=slides[i],st="width:auto;height:auto;max-width:86vw;max-height:76svh;display:block";
+      h.innerHTML=m.type==="video"?`<video src="${esc(m.src)}" autoplay loop muted playsinline style="${st}"></video>`:`<img src="${esc(m.src)}" alt="${esc(m.caption)}" draggable="false" style="${st}">`;
+      zc.textContent=m.caption+(slides.length>1?` / ${i+1} of ${slides.length}`:"")};
+    const go=d=>{i=(i+d+slides.length)%slides.length;show()};show();
+    z.addEventListener("click",e=>{const t=e.target;if(t===z||t.classList.contains("zs")||t.classList.contains("x"))close();else if(t.classList.contains("pza"))go(t.classList.contains("r")?1:-1)});
+    T.zkey=e=>{if(e.key==="ArrowRight")go(1);else if(e.key==="ArrowLeft")go(-1)};
+    document.body.appendChild(z);T.zm=z;z.querySelector(".x").focus({preventScroll:true});
+    if(mq)z.animate([{clipPath:"inset(100% 0 0 0)"},{clipPath:"inset(0 0 0 0)"}],{duration:340,easing:"steps(6,end)",fill:"both"});
+  };
+  T.key=e=>{if(!T.zm)return;if(e.key==="Escape")close();else if(T.zkey)T.zkey(e)};document.addEventListener("keydown",T.key);
+  cz.querySelectorAll(".czp").forEach(b=>b.addEventListener("click",()=>open(+b.dataset.i)));
 }
 
 /* ---------- turntable ring ---------- */
@@ -1043,7 +1149,7 @@ function detail(i){
   const body=paras.map((t,j)=>`<p style="--i:${j}">${esc(t).replace(/\n/g,"<br>")}</p>`).join("");
   return `<div class="dt"><div class="dl"><h1>${esc(p.title)}</h1><div class="ck">/ ${esc(p.category)}</div>${body}${p.note?`<p class="nt" style="--i:${paras.length}">${esc(p.note)}</p>`:""}
   <div class="ar"><a href="#project-${pv.slug}" aria-label="Previous project">${ARROW}</a><a class="r" href="#project-${nx.slug}" aria-label="Next project">${ARROW}</a></div></div>
-  <div class="rc">${isRing(p)||isPend(p)?'<div class="rgw"></div>':""}${p.table?'<div class="tbw"></div>':""}${isBook(p)?'<div class="bkw"></div>':""}${p.fold&&p.fold.src?'<div class="fow"></div>':""}<div class="gl"></div></div></div>`;
+  <div class="rc">${isRing(p)||isPend(p)?'<div class="rgw"></div>':""}${p.table?'<div class="tbw"></div>':""}${p.fridge?'<div class="czw"></div>':""}${isBook(p)?'<div class="bkw"></div>':""}${p.fold&&p.fold.src?'<div class="fow"></div>':""}<div class="gl"></div></div></div>`;
 }
 
 /* gallery tiles open as they scroll into view */
@@ -1142,7 +1248,7 @@ function fit(){
 /* hash routing: #home #projects #about #contact #project-<folder name> */
 const VIEWS=["home","projects","about","contact"];
 function route(){
-  killBook();killFold();killTable();killRing();gTok++;
+  killBook();killFold();killTable();killRing();killFridge();gTok++;
   document.documentElement.style.removeProperty("--bg");
   document.querySelectorAll(".tick").forEach(e=>e.classList.remove("tick"));
   const h=decodeURIComponent(location.hash.slice(1))||"home";let v=h,pi=-1;
@@ -1226,7 +1332,7 @@ tick();setInterval(tick,500);
   const tick=()=>{got++;pct()};
   const grab=u=>new Promise(r=>{const im=new Image();im.onload=im.onerror=()=>{(im.decode?im.decode().catch(()=>{}):Promise.resolve()).then(r)};im.src=u});
   const urls=ps=>{const o=new Set,add=u=>{if(typeof u==="string"&&/\.(png|jpe?g|webp|gif|avif|svg)(\?|$)/i.test(u))o.add(u)};
-    ps.forEach(p=>{add(p.cover);(p.pages||[]).forEach(add);(p.media||[]).forEach(m=>add(typeof m==="string"?m:m&&m.src));if(p.table){["menu","tee","box"].forEach(k=>Object.values(p.table[k]||{}).forEach(add));(p.table.prints||[]).forEach(add)}if(p.fold){add(p.fold.src)}});return[...o]};
+    ps.forEach(p=>{add(p.cover);(p.pages||[]).forEach(add);(p.media||[]).forEach(m=>add(typeof m==="string"?m:m&&m.src));if(p.table){["menu","tee","box"].forEach(k=>Object.values(p.table[k]||{}).forEach(add));(p.table.prints||[]).forEach(add)}if(p.fold){add(p.fold.src)}if(p.fridge){(p.fridge.slides||[]).forEach(m=>m.type==="image"&&add(m.src));add(p.fridge.bg)}});return[...o]};
   function reveal2(){
     const go=()=>{buildList();route();armed=true};
     go();
