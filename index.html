@@ -114,18 +114,16 @@ main{flex:1;display:flex;flex-direction:column}
 .fr,.pn{position:absolute;left:0;top:0;width:var(--pw);height:var(--ph);transform-style:preserve-3d;transform-origin:0 0}
 .fr .fr{top:100%}
 .pn .pn{left:100%}
-.po{transform:rotateY(calc(var(--a) * 1deg))}
-.pe{transform:rotateY(calc(var(--a) * -1deg))}
-.ro{transform:rotateX(calc(var(--v) * -1deg))}
-.re{transform:rotateX(calc(var(--v) * 1deg))}
 .f,.b{position:absolute;inset:-.5px;backface-visibility:hidden;-webkit-backface-visibility:hidden}
 .f{background-repeat:no-repeat;background-size:calc(var(--cols) * 100%) calc(var(--rows) * 100%);background-color:#fff}
 .b{transform:rotateY(180deg);background:#e8e5de}
-.f i,.b i{position:absolute;inset:0;background:#000;opacity:var(--sh,0);pointer-events:none}
+.f i,.b i{position:absolute;inset:0;background:#000;opacity:0;pointer-events:none;will-change:opacity}
+.tc{position:absolute;inset:0;width:100%;height:100%;display:block;pointer-events:none;-webkit-user-drag:none;user-select:none}
+.fo-sheet,.fr,.pn{will-change:transform}   /* each fold piece stays its own GPU layer, painted once */
 .pn .pn>.f::before{content:"";position:absolute;inset:0;background:linear-gradient(90deg,rgba(0,0,0,.2),rgba(0,0,0,0) 5%);pointer-events:none}
 .fr .fr .pn>.f::after{content:"";position:absolute;inset:0;background:linear-gradient(180deg,rgba(0,0,0,.16),rgba(0,0,0,0) 4%);pointer-events:none}
 .fo.closed .pn .pn,.fo.closed .fr .fr{visibility:hidden}
-.fo-btn{display:flex;justify-content:space-between;align-items:center;width:100%;border:0;cursor:pointer;background:#000;color:#fff;margin-top:var(--g);height:calc(5.2 * var(--u));padding:0 calc(1.6 * var(--u));font-family:Archivo,"Helvetica Neue",Arial,sans-serif;font-stretch:72%;font-weight:800;font-size:calc(3 * var(--u));letter-spacing:-.03em;text-transform:uppercase;line-height:1}
+.fo-btn{display:flex;align-items:center;gap:calc(1.6 * var(--u));width:fit-content;margin:var(--g) auto 0;border:0;cursor:pointer;background:#000;color:#fff;height:calc(3 * var(--u));padding:0 calc(1.2 * var(--u));font-family:Archivo,"Helvetica Neue",Arial,sans-serif;font-stretch:72%;font-weight:800;font-size:calc(1.7 * var(--u));letter-spacing:-.03em;text-transform:uppercase;line-height:1}
 .fp{font-size:1.5em;line-height:1}
 .fo-btn:hover{background:#fff;color:#000;outline:var(--bw) solid #000;outline-offset:calc(var(--bw) * -1)}
 
@@ -163,7 +161,7 @@ main{flex:1;display:flex;flex-direction:column}
  .ar{margin-top:calc(6 * var(--u));gap:calc(4 * var(--u))}.ar a{padding:calc(2 * var(--u))}
  .gl{--g:calc(3 * var(--u))}
  #zm{--g:calc(3 * var(--u));padding-top:calc(20 * var(--u))}#zm .bc{max-width:none}.zx{height:calc(11 * var(--u));font-size:calc(6 * var(--u));padding:0 calc(3 * var(--u))}
- .fow{--g:calc(3 * var(--u))}.fo-btn{height:calc(13 * var(--u));font-size:calc(7 * var(--u));padding:0 calc(3 * var(--u))}
+ .fow{--g:calc(3 * var(--u))}.fo-btn{height:calc(8.5 * var(--u));font-size:calc(4.6 * var(--u));padding:0 calc(4 * var(--u));gap:calc(4 * var(--u))}
  .bkw{--g:calc(3 * var(--u))}.bk{padding:calc(3 * var(--u))}.bp{width:calc(24 * var(--u))}.bn{font-size:calc(8 * var(--u))}.bh{font-size:calc(3.2 * var(--u))}
  .at{grid-template-columns:1fr 1fr;height:auto;gap:calc(3 * var(--u))}
  .blk{grid-column:1/3;height:calc(55 * var(--u));padding:calc(5 * var(--u))}.shot{aspect-ratio:1;height:auto}
@@ -442,12 +440,11 @@ addEventListener("keydown",e=>{
    The artwork is cut into cols x rows panels. Each row hinges on the row above, each panel on the panel before it (alternating direction, like a map fold).
    Starts as the top-left panel (the cover); click or drag to unfold across, then down. The paper shades and shows its blank back as it turns. */
 let fold=null;
-const FFR=70;   // ms per drawn frame while it animates (same chopped frame rate feel as the rest of the site)
 const clamp01=x=>Math.max(0,Math.min(1,x)),sm3=t=>t*t*(3-2*t);
-function killFold(){closeZoom();if(fold){cancelAnimationFrame(fold.raf);if(fold.ro)fold.ro.disconnect();fold=null}}
-function foldHTML(src,cols,rows){
-  const pn=(r,c)=>`<div class="pn${c?(c%2?" po":" pe"):""}" data-c="${c}" data-r="${r}"><div class="f" style="background-image:url('${esc(src)}');background-position:${cols>1?c/(cols-1)*100:0}% ${rows>1?r/(rows-1)*100:0}%"><i></i></div><div class="b"><i></i></div>${c<cols-1?pn(r,c+1):""}</div>`;
-  const fr=r=>`<div class="fr${r?(r%2?" ro":" re"):""}" data-r="${r}">${pn(r,0)}${r<rows-1?fr(r+1):""}</div>`;
+function killFold(){closeZoom();if(fold){cancelAnimationFrame(fold.raf);if(fold.ro)fold.ro.disconnect();(fold.urls||[]).forEach(u=>URL.revokeObjectURL(u));fold=null}}
+function foldHTML(cols,rows){
+  const pn=(r,c)=>`<div class="pn" data-c="${c}" data-r="${r}"><div class="f"><img class="tc" alt="" draggable="false"><i></i></div><div class="b"><i></i></div>${c<cols-1?pn(r,c+1):""}</div>`;
+  const fr=r=>`<div class="fr" data-r="${r}">${pn(r,0)}${r<rows-1?fr(r+1):""}</div>`;
   return fr(0);
 }
 function foldLabel(){const F=fold;if(!F)return;F.btn.setAttribute("aria-expanded",F.state?"true":"false");F.btn.querySelector(".lb").textContent=F.state?"Fold it back":"Click to unfold";F.btn.querySelector(".fp").textContent=F.state?"−":"+"}
@@ -461,9 +458,14 @@ function renderFold(){
   for(let k=1;k<cols;k++){abs+=(k%2?1:-1)*A[k];x+=pw*Math.cos(abs*D);mx=Math.max(mx,x)}
   abs=0;for(let r=1;r<rows;r++){abs+=(r%2?1:-1)*V[r];y+=ph*Math.cos(abs*D);my=Math.max(my,y)}
   const s=Math.min(F.s0,Wc/mx);                                      // big while folded, shrinks to fit the column as it opens
-  F.sheet.style.scale=s;F.sheet.style.translate=((Wc-mx*s)/2)+"px 0";F.stage.style.height=(my*s)+"px";
-  F.pans.forEach(n=>{const c=+n.dataset.c,r=+n.dataset.r;if(c)n.style.setProperty("--a",A[c].toFixed(2));n.style.setProperty("--sh",((c?.3*A[c]/MAX:0)+(r?.22*V[r]/MAX:0)).toFixed(3))});
-  F.rws.forEach(n=>{const r=+n.dataset.r;if(r)n.style.setProperty("--v",V[r].toFixed(2))});
+  F.sheet.style.scale=s;F.sheet.style.translate=((Wc-mx*s)/2)+"px 0";
+  const h=Math.round(my*s);if(h!==F.h){F.h=h;F.stage.style.height=h+"px"}
+  F.pans.forEach(n=>{                                                // set transforms / shading directly: no custom properties, so nothing cascades through the nested panels
+    if(n.c)n.el.style.transform=`rotateY(${((n.c%2?1:-1)*A[n.c]).toFixed(2)}deg)`;
+    const o=((n.c?.3*A[n.c]/MAX:0)+(n.r?.22*V[n.r]/MAX:0)).toFixed(3);
+    if(o!==n.o){n.o=o;for(const i of n.sh)i.style.opacity=o}
+  });
+  F.rws.forEach(n=>{if(n.r)n.el.style.transform=`rotateX(${((n.r%2?-1:1)*V[n.r]).toFixed(2)}deg)`});
   F.el.classList.toggle("closed",p<.0005);F.el.classList.toggle("open",p>.985);if(p<=.985)F.hlEl.style.display="none";
 }
 function fitFold(){
@@ -477,7 +479,7 @@ function foldTo(to,d){
   const F=fold;if(!F)return;cancelAnimationFrame(F.raf);
   if(!d||!matchMedia("(prefers-reduced-motion:no-preference)").matches){F.p=to;renderFold();return}
   const from=F.p,t0=performance.now();
-  const step=now=>{const e=now-t0,q=Math.min(1,Math.ceil(e/FFR)*FFR/d);F.p=from+(to-from)*sm3(q);renderFold();if(e<d)F.raf=requestAnimationFrame(step)};
+  const step=now=>{const e=now-t0,q=Math.min(1,e/d);F.p=from+(to-from)*q;renderFold();if(e<d)F.raf=requestAnimationFrame(step)};   // full frame rate; each panel already eases itself
   F.raf=requestAnimationFrame(step);
 }
 /* PANEL ZOOM: once the calendar is open, clicking a panel opens it large. Arrows / keys step through all panels, Esc closes.
@@ -512,20 +514,37 @@ addEventListener("keydown",e=>{
 });
 
 async function mountFold(p,tok){
-  const w=$("#project .fow"),f=p.fold;if(!w||!f||!f.src)return;
-  const cols=(f.cols|0)||6,rows=(f.rows|0)||4,R=await measure({src:f.src,ratio:f.ratio});
-  if(tok!==gTok)return;
-  w.innerHTML=`<div class="fo closed" style="--cols:${cols};--rows:${rows}"><div class="fo-stage"><div class="fo-sheet">${foldHTML(f.src,cols,rows)}</div><div class="fo-hl"></div></div><button type="button" class="fo-btn" aria-expanded="false"><span class="lb">Click to unfold</span><span class="fp">+</span></button></div>`;
+  const w=$("#project .fow"),f=p.fold;if(!w||!f||!f.src||tok!==gTok)return;
+  const cols=(f.cols|0)||6,rows=(f.rows|0)||4;
+  w.innerHTML=`<div class="fo closed"><div class="fo-stage"><div class="fo-sheet">${foldHTML(cols,rows)}</div><div class="fo-hl"></div></div><button type="button" class="fo-btn" aria-expanded="false"><span class="lb">Click to unfold</span><span class="fp">+</span></button></div>`;
   const el=w.querySelector(".fo"),sheet=el.querySelector(".fo-sheet");
-  const F=fold={el,sheet,stage:el.querySelector(".fo-stage"),btn:el.querySelector(".fo-btn"),pans:[...sheet.querySelectorAll(".pn")],rws:[...sheet.querySelectorAll(".fr")],hlEl:el.querySelector(".fo-hl"),src:f.src,zoom:f.zoom,labels:f.labels,cols,rows,R,p:0,state:0,drag:null,raf:0,pw:0,ph:0,Wc:0,s0:2,ro:null};
+  const F=fold={el,sheet,stage:el.querySelector(".fo-stage"),btn:el.querySelector(".fo-btn"),hlEl:el.querySelector(".fo-hl"),
+    pans:[...sheet.querySelectorAll(".pn")].map(n=>({el:n,c:+n.dataset.c,r:+n.dataset.r,o:"",cv:n.querySelector(":scope>.f>.tc"),sh:[...n.querySelectorAll(":scope>.f>i,:scope>.b>i")]})),
+    rws:[...sheet.querySelectorAll(".fr")].map(n=>({el:n,r:+n.dataset.r})),
+    src:f.src,zoom:f.zoom,labels:f.labels,cols,rows,R:+f.ratio||.7062,p:0,state:0,drag:null,raf:0,pw:0,ph:0,Wc:0,s0:2,ro:null,h:0};
+  // start with the right proportions straight away (your calendar's), then correct from the real image and paint each panel once onto its own small canvas
+  const im=new Image();
+  im.onload=()=>{
+    if(fold!==F)return;const iw=im.naturalWidth,ih=im.naturalHeight;if(!iw||!ih)return;
+    if(!f.ratio)F.R=iw/ih;
+    const tw=iw/cols,th=ih/rows;
+    F.urls=[];                                                          // cut the artwork into 24 small pictures once; as plain images they cost nothing per frame
+    F.pans.forEach(n=>{
+      const c=document.createElement("canvas");c.width=Math.round(tw);c.height=Math.round(th);
+      c.getContext("2d").drawImage(im,n.c*tw,n.r*th,tw,th,0,0,c.width,c.height);
+      c.toBlob(bl=>{if(fold!==F||!bl)return;const u=URL.createObjectURL(bl);F.urls.push(u);n.cv.src=u},"image/jpeg",.92);
+    });
+    fitFold();
+  };
+  im.src=f.src;
   const isOpen=()=>F.state&&F.p>.985;
   const cellAt=e=>{const r=F.stage.getBoundingClientRect();return{c:Math.min(F.cols-1,Math.max(0,Math.floor((e.clientX-r.left)/F.pw))),r:Math.min(F.rows-1,Math.max(0,Math.floor((e.clientY-r.top)/F.ph)))}};
   const hl=e=>{if(!isOpen()){F.hlEl.style.display="none";return}const k=cellAt(e);Object.assign(F.hlEl.style,{display:"block",width:F.pw+"px",height:F.ph+"px",transform:`translate(${k.c*F.pw}px,${k.r*F.ph}px)`})};   // outline the panel under the pointer once it's open
-  const toggle=()=>{F.state=F.state?0:1;foldLabel();foldTo(F.state,F.state?1600:1200)};
+  const toggle=()=>{F.state=F.state?0:1;foldLabel();foldTo(F.state,F.state?1800:1400)};
   F.btn.addEventListener("click",toggle);
   sheet.addEventListener("pointerdown",e=>{if(e.button>0)return;F.drag={x:e.clientX,y:e.clientY,p0:F.p,moved:false};cancelAnimationFrame(F.raf);try{sheet.setPointerCapture(e.pointerId)}catch(_){}});
   sheet.addEventListener("pointermove",e=>{const D=F.drag;if(!D){hl(e);return}const dx=e.clientX-D.x,dy=e.clientY-D.y;if(!D.moved&&Math.hypot(dx,dy)>6)D.moved=true;if(D.moved){F.p=clamp01(D.p0+(dx+dy*.6)/(F.Wc*.8));renderFold()}});   // drag to scrub the fold by hand
-  sheet.addEventListener("pointerup",e=>{const D=F.drag;if(!D)return;F.drag=null;if(D.moved){F.state=F.p>.45?1:0;foldLabel();foldTo(F.state,Math.max(350,(F.state?1-F.p:F.p)*1600))}else if(isOpen()){const k=cellAt(e);openZoom(k.r*F.cols+k.c)}else toggle()});   // open: click a panel to zoom. folded: click to unfold
+  sheet.addEventListener("pointerup",e=>{const D=F.drag;if(!D)return;F.drag=null;if(D.moved){F.state=F.p>.45?1:0;foldLabel();foldTo(F.state,Math.max(350,(F.state?1-F.p:F.p)*1800))}else if(isOpen()){const k=cellAt(e);openZoom(k.r*F.cols+k.c)}else toggle()});   // open: click a panel to zoom. folded: click to unfold
   sheet.addEventListener("pointercancel",()=>{if(F.drag){F.drag=null;foldTo(F.state,500)}});
   sheet.addEventListener("pointerenter",e=>{if(e.pointerType==="mouse"&&!F.state&&!F.drag)foldTo(.06,350)});    // corner lifts a touch on hover
   sheet.addEventListener("pointerleave",e=>{F.hlEl.style.display="none";if(e.pointerType==="mouse"&&!F.state&&!F.drag)foldTo(0,350)});
