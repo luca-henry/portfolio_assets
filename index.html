@@ -11,7 +11,7 @@
 /* font-weight range = the browser uses your file as-is instead of faking bold on top of it */
 @font-face{font-family:"Main";src:url("fonts/main_font.woff2") format("woff2"),url("fonts/main_font.woff") format("woff"),url("fonts/main_font.otf") format("opentype"),url("fonts/main_font.ttf") format("truetype");font-weight:100 900;font-style:normal;font-display:swap}
 @font-face{font-family:"Secondary";src:local("Helvetica Neue"),local("Helvetica"),url("fonts/secondary_font.woff2") format("woff2"),url("fonts/secondary_font.ttf") format("truetype");font-display:swap}
-:root{--u:min(1vw,1.7778svh);--bg:#fff;--fg:#000;--mute:#8c8c8c;--pad:calc(2.6 * var(--u));--bw:clamp(3px,calc(.45 * var(--u)),12px);--ease:steps(7,end);--out:steps(4,end)}
+:root{--u:min(1vw,1.7778svh);--acc:#44EE55;--bg:#fff;--fg:#000;--mute:#8c8c8c;--pad:calc(2.6 * var(--u));--bw:clamp(3px,calc(.45 * var(--u)),12px);--ease:steps(7,end);--out:steps(4,end)}
 *{box-sizing:border-box;margin:0;padding:0}
 html{background:var(--bg);-webkit-text-size-adjust:100%;text-size-adjust:100%}
 a,button{-webkit-tap-highlight-color:transparent}
@@ -40,7 +40,7 @@ main{flex:1;display:flex;flex-direction:column}
 
 /* home */
 .logo{flex:1 1 auto;min-height:calc(45 * var(--u));position:relative;background:#000;padding:calc(2 * var(--u));display:grid;grid-template-rows:1fr 1fr;gap:calc(2 * var(--u))}
-.logo .fit{color:#fff}
+.logo .fit{color:var(--acc)}
 .logo .r1{margin-right:9.2%}
 .stamp{position:absolute;top:0;right:0;width:9.3%;height:47.8%;background:#fff;padding:calc(.5 * var(--u)) calc(.6 * var(--u)) calc(1 * var(--u)) 0;display:grid;grid-template-rows:1fr 1fr;gap:calc(1.1 * var(--u))}
 .stamp .fit{color:#000;font-family:"Helvetica Neue",Helvetica,Arial,sans-serif;font-weight:700;letter-spacing:-.04em}
@@ -56,12 +56,12 @@ main{flex:1;display:flex;flex-direction:column}
 
 /* projects index */
 .banner{background:#000;height:calc(6.8 * var(--u));padding:calc(.45 * var(--u)) calc(.8 * var(--u))}
-.banner .fb{height:100%}.banner .fit{color:#fff}
+.banner .fb{height:100%}.banner .fit{color:var(--acc)}
 .pl{display:grid;grid-template-columns:52% 1fr;gap:calc(1.7 * var(--u));margin-top:calc(3 * var(--u));align-items:stretch}
 #pv{aspect-ratio:1244/958;display:grid}
 #pl{list-style:none;display:flex;flex-direction:column;justify-content:space-between;align-items:stretch}
 #pl a{display:block;text-align:right;color:var(--mute);font-family:Archivo,"Helvetica Neue",Arial,sans-serif;font-stretch:75%;font-weight:400;font-size:calc(2.3 * var(--u));line-height:1.1;letter-spacing:-.03em;padding:calc(.5 * var(--u)) calc(1 * var(--u))}
-#pl a.on{color:#fff;padding:calc(1.6 * var(--u)) calc(1.1 * var(--u))}
+#pl a.on{color:var(--acc);padding:calc(1.6 * var(--u)) calc(1.1 * var(--u))}
 #pl .fb{display:block;z-index:1}
 #pl a{position:relative;isolation:isolate}
 #pl a::before{content:"";position:absolute;inset:0;z-index:-1;background:#000;transform:scaleX(var(--t,0));transform-origin:100% 50%}
@@ -314,7 +314,7 @@ body.pbg{background:transparent}
 /* about */
 .at{display:grid;grid-template-columns:48.3fr 27.4fr 20.1fr;gap:calc(2 * var(--u));height:calc(24.5 * var(--u))}
 .blk{background:#000;padding:calc(2.6 * var(--u)) calc(3.2 * var(--u)) calc(2.9 * var(--u)) calc(2.7 * var(--u))}
-.blk .fb,.meb .fb{height:100%}.blk .fit,.meb .fit{color:#fff}
+.blk .fb,.meb .fb{height:100%}.blk .fit,.meb .fit{color:var(--acc)}
 .shot{height:100%;background:#eee}
 .shot img{filter:grayscale(1)}
 .shot.inv{background:#000}.shot.inv img{filter:grayscale(1) invert(1) contrast(1.1)}
@@ -326,12 +326,12 @@ body.pbg{background:transparent}
 /* contact */
 .cl{display:block;margin-bottom:calc(2.4 * var(--u))}
 .cb{background:#000;height:calc(21 * var(--u));padding:calc(2.8 * var(--u)) calc(3.4 * var(--u))}
-.cb .fb{height:100%}.cb .fit{color:#fff}
+.cb .fb{height:100%}.cb .fit{color:var(--acc)}
 .cl{position:relative}
 .cl::before{content:"";position:absolute;inset:calc(-.4 * var(--u)) calc(-.8 * var(--u));background:#000;transform:scaleX(0);transform-origin:50% 50%}
 .cl .fb{z-index:1}
 .cl:hover::before,.cl:focus-visible::before{transform:scaleX(1)}
-.cl:hover .fit,.cl:focus-visible .fit{color:#fff}
+.cl:hover .fit,.cl:focus-visible .fit{color:var(--acc)}
 
 @media (max-width:800px){
  :root{--u:1vw;--pad:calc(5 * var(--u))}
@@ -1562,10 +1562,10 @@ function applyList(){
   const G=M?{fs:6,py0:1.5,px0:2,py1:3,px1:2.5,h1:8}:{fs:2.3,py0:.5,px0:1,py1:1.6,px1:1.1,h1:3.6};
   const fs=G.fs*u,h0=fs*1.1,h1=G.h1*u;
   items.forEach(a=>{
-    const t=T[+a.dataset.i]||0,fb=a.firstElementChild,el=fb.firstElementChild,g=Math.round(lerp(140,255,t));
+    const t=T[+a.dataset.i]||0,fb=a.firstElementChild,el=fb.firstElementChild,cr=Math.round(lerp(140,68,t)),cg=Math.round(lerp(140,238,t)),cb=Math.round(lerp(140,85,t));
     a.style.setProperty("--t",t);
     a.style.padding=`${lerp(G.py0,G.py1,t)*u}px ${lerp(G.px0,G.px1,t)*u}px`;
-    a.style.color=`rgb(${g},${g},${g})`;
+    a.style.color=`rgb(${cr},${cg},${cb})`;
     const h=lerp(h0,h1,t);fb.style.height=h+"px";
     el.style.cssText=`font-size:${fs}px;font-weight:${lerp(400,700,t)};font-stretch:${lerp(75,100,t)}%;text-transform:${t>.4?"uppercase":"none"};transform:none`;
     const bw=fb.clientWidth,W=el.offsetWidth,H=el.offsetHeight;if(!bw||!W)return;
