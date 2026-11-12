@@ -1,8 +1,8 @@
 // Scans /projects, reads each info.txt + media, writes projects/projects.json
 const fs = require("fs"), path = require("path");
 const ROOT = path.join(__dirname, "..", "projects");
-const IMG = /\.(png|jpe?g|webp|gif|avif|svg)$/i, VID = /\.(mp4|webm|mov)$/i, PDF = /\.pdf$/i;
-const type = f => IMG.test(f) ? "image" : VID.test(f) ? "video" : PDF.test(f) ? "pdf" : null;
+const IMG = /\.(png|jpe?g|webp|gif|avif|svg)$/i, VID = /\.(mp4|webm|mov)$/i, PDF = /\.pdf$/i, AUD = /\.(mp3|m4a|aac|wav|ogg|opus)$/i;
+const type = f => IMG.test(f) ? "image" : VID.test(f) ? "video" : PDF.test(f) ? "pdf" : AUD.test(f) ? "audio" : null;
 const nat = (a, b) => a.localeCompare(b, undefined, { numeric: true, sensitivity: "base" });
 const url = (...p) => p.map(s => encodeURIComponent(s)).join("/");
 
@@ -62,7 +62,7 @@ for (const d of fs.readdirSync(ROOT, { withFileTypes: true })) {
     if (!fs.existsSync(p)) continue;
     for (const f of fs.readdirSync(p).sort(nat))
       if (type(f) && fs.statSync(path.join(p, f)).isFile())
-        files.push({ name: f, src: "projects/" + url(d.name, ...(sub ? [sub] : []), f), type: type(f), ratio: type(f) === "image" && !/\.svg$/i.test(f) ? imgRatio(path.join(p, f)) : 0 });
+        files.push({ name: f, src: "projects/" + url(d.name, ...(sub ? [sub] : []), f), type: type(f), size: fs.statSync(path.join(p, f)).size, ratio: type(f) === "image" && !/\.svg$/i.test(f) ? imgRatio(path.join(p, f)) : 0 });
   }
   const isCover = f => path.parse(f.name).name.toLowerCase() === "cover";
   const cover = files.find(f => isCover(f) && f.type === "image") || null;
@@ -115,13 +115,20 @@ for (const d of fs.readdirSync(ROOT, { withFileTypes: true })) {
   }
   // Magazine poster that can be ripped out (format: booklet). Files: poster.jpg = the big poster, torn-1.jpg / torn-2.jpg = the left and right page left behind once it is gone.
   // info.txt:  rip: 30   (the page the RIP ME poster is on; it and the next page are the pair that gets torn out)
-  let poster = null, posterUsed = new Set();
+  let poster = null, audio = null, posterUsed = new Set();
   if (/book/i.test(meta.format || "")) {
     const base = f => path.basename(f.src);
     const po = files.find(f => f.type === "image" && /^poster[-_. ]/i.test(base(f)));
     const torn = files.filter(f => f.type === "image" && /^torn[-_. ]/i.test(base(f)));
     if (po) { poster = { src: po.src, page: Number(meta.rip) || 30, torn: torn.map(f => f.src) }; posterUsed.add(po); }
     torn.forEach(f => posterUsed.add(f));
+    // Boombox that plays the magazine's audio. Files: audio.mp3 (any .mp3 .m4a .wav .ogg) = the sound, boombox.png = the picture of the boombox. It floats in the corner of the page and toggles play / pause.
+    const au = files.find(f => f.type === "audio"), bx = files.find(f => f.type === "image" && /^boombox([-_. ]|$)/i.test(base(f)));
+    if (au && bx) {
+      audio = { src: au.src, boombox: bx.src }; posterUsed.add(au); posterUsed.add(bx);
+      const mb = au.size / 1048576;
+      if (mb > 25) console.warn(`WARNING: ${d.name} audio is ${mb.toFixed(1)} MB, over Cloudflare's 25 MB per-file limit - compress it`);
+    } else if (au) console.warn(`NOTE: ${d.name} has audio but no boombox.png`);
   }
   // 3D model: info.txt  model: ring.glb   (.glb .gltf .obj .fbx .stl)   optional:  modelrotate: 0 90 0   modeltexture: ring-texture.png
   // textures that sit next to a .gltf / .fbx / .obj+.mtl are found automatically (keep every file in the same folder as the model)
@@ -147,10 +154,11 @@ for (const d of fs.readdirSync(ROOT, { withFileTypes: true })) {
     ...(fridge ? { fridge } : {}),
     ...(tv ? { tv } : {}),
     ...(poster ? { poster } : {}),
+    ...(audio ? { audio } : {}),
     ...(meta.tone ? { tone: meta.tone } : {}),
     ...(model ? { model, ...(mtl ? { modelmtl: mtl } : {}), ...(texture ? { modeltexture: texture } : {}), ...(meta.modelrotate ? { modelrotate: meta.modelrotate } : {}) } : {}),
     ...(meta.format ? { format: meta.format } : {}),   // format: booklet  turns the project into a flip-through book
-    media: files.filter(f => !isCover(f) && !used.has(f) && !tableUsed.has(f) && !fridgeUsed.has(f) && !tvUsed.has(f) && !posterUsed.has(f)).map(({ src, type, ratio }) => ({ src, type, ...(ratio ? { ratio } : {}) }))
+    media: files.filter(f => !isCover(f) && !used.has(f) && !tableUsed.has(f) && !fridgeUsed.has(f) && !tvUsed.has(f) && !posterUsed.has(f) && f.type !== "audio").map(({ src, type, ratio }) => ({ src, type, ...(ratio ? { ratio } : {}) }))
   });
 }
 projects.sort((a, b) => a.order - b.order || nat(a.title, b.title));
