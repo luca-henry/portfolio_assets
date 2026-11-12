@@ -332,12 +332,8 @@ main,.view.on{min-height:0}
 }
 @media (max-width:800px){.cl{flex:none!important;height:calc(10 * var(--u))}.cl .fb{height:100%;overflow:visible}}
 
-#ld{position:fixed;inset:0;z-index:60;background:#fff;display:grid;place-items:center}
-#ld .ring{position:relative;width:calc(14*var(--u));height:calc(14*var(--u))}
-#ld .ring i{position:absolute;left:50%;top:50%;width:calc(1.5*var(--u));height:calc(4*var(--u));margin:calc(-2*var(--u)) 0 0 calc(-.75*var(--u));background:#000;opacity:.12;transform:rotate(calc(var(--k)*30deg)) translateY(calc(-5.5*var(--u)))}
-@media (prefers-reduced-motion:no-preference){#ld .ring i{animation:chase 1.2s steps(12,end) infinite;animation-delay:calc(var(--k)*-.1s)}}
-@keyframes chase{0%{opacity:1}100%{opacity:.12}}
-#ld b{position:fixed;left:calc(2*var(--u));bottom:calc(2*var(--u));z-index:2;font:700 calc(1.6*var(--u))/1 "Helvetica Neue",Helvetica,Arial,sans-serif;letter-spacing:.08em;color:#fff;mix-blend-mode:difference;text-transform:uppercase}
+#ld{position:fixed;inset:0;z-index:60;background:#fff;overflow:hidden}
+#ld b{position:absolute;left:0;top:0;transform-origin:0 0;font:700 200px/1 "Helvetica Neue",Helvetica,Arial,sans-serif;color:#000;white-space:nowrap;letter-spacing:0;will-change:transform}
 #sh{position:fixed;inset:0;z-index:50;pointer-events:none;display:flex;flex-direction:column;visibility:hidden}
 #sh i{flex:1;background:#000;transform:scaleX(0)}
 
@@ -499,7 +495,7 @@ main,.view.on{min-height:0}
   </section>
 </main>
 
-<div id="ld" aria-hidden="true"><div class="ring"><i style="--k:0"></i><i style="--k:1"></i><i style="--k:2"></i><i style="--k:3"></i><i style="--k:4"></i><i style="--k:5"></i><i style="--k:6"></i><i style="--k:7"></i><i style="--k:8"></i><i style="--k:9"></i><i style="--k:10"></i><i style="--k:11"></i></div><b>Loading 0%</b></div>
+<div id="ld" aria-hidden="true"><b>0%</b></div>
 <div id="sh" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i></div>
 
 <script>
@@ -1446,12 +1442,25 @@ function tick(){
 }
 tick();setInterval(tick,500);
 
-/* first visit: a ring of rectangles circles over a white page while every image, fold-out and booklet page is fetched into the cache; then the site is built underneath and the slats open onto it */
+/* first visit: a huge stretched percentage counts up over a white page while every image, fold-out and booklet page is fetched into the cache; then the site is built underneath and the slats open onto it */
 (function(){
   const ld=$("#ld"),lab=ld.querySelector("b");
   const motion=matchMedia("(prefers-reduced-motion:no-preference)").matches;
   let total=1,got=0;
-  const pct=()=>{lab.textContent="Loading "+Math.min(100,Math.round(got/total*100))+"%"};
+  /* the percentage is stretched until its ink fills the whole screen, so it changes shape as it counts */
+  const cvx=document.createElement("canvas").getContext("2d");
+  const fitLd=()=>{
+    const W=innerWidth,H=innerHeight,mx=W*.025,my=H*.05,t=lab.textContent;
+    cvx.font=getComputedStyle(lab).font;const m=cvx.measureText(t);
+    const iw=m.actualBoundingBoxLeft+m.actualBoundingBoxRight,ih=m.actualBoundingBoxAscent+m.actualBoundingBoxDescent;
+    if(!iw||!ih)return;
+    const sx=(W-2*mx)/iw,sy=(H-2*my)/ih,fh=parseFloat(getComputedStyle(lab).fontSize),asc=(m.fontBoundingBoxAscent!=null?m.fontBoundingBoxAscent:fh*.8),box=fh;
+    /* top of the ink sits at (box - lineheight)/2 + asc - inkAscent from the element top */
+    const top=(box-(m.fontBoundingBoxAscent+m.fontBoundingBoxDescent))/2+asc-m.actualBoundingBoxAscent;
+    lab.style.transform=`translate(${mx+m.actualBoundingBoxLeft*sx}px,${my-top*sy}px) scale(${sx},${sy})`;
+  };
+  const pct=()=>{lab.textContent=Math.min(100,Math.round(got/total*100))+"%";fitLd()};
+  addEventListener("resize",fitLd);fitLd();
   const tick=()=>{got++;pct()};
   const grab=u=>new Promise(r=>{const im=new Image();im.onload=im.onerror=()=>{(im.decode?im.decode().catch(()=>{}):Promise.resolve()).then(r)};im.src=u});
   const urls=ps=>{const o=new Set,add=u=>{if(typeof u==="string"&&/\.(png|jpe?g|webp|gif|avif|svg)(\?|$)/i.test(u))o.add(u)};
