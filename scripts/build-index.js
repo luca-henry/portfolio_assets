@@ -6,6 +6,38 @@ const type = f => IMG.test(f) ? "image" : VID.test(f) ? "video" : PDF.test(f) ? 
 const nat = (a, b) => a.localeCompare(b, undefined, { numeric: true, sensitivity: "base" });
 const url = (...p) => p.map(s => encodeURIComponent(s)).join("/");
 
+// Reads an image's width/height straight from the file header (jpg, png, gif, webp). Written into projects.json as "ratio" so the site never has to wait for an image to load to know its shape.
+function imgRatio(file) {
+  try {
+    const fd = fs.openSync(file, "r"), head = Buffer.alloc(32); fs.readSync(fd, head, 0, 32, 0);
+    let w = 0, h = 0, rot = false;
+    if (head.slice(0, 8).equals(Buffer.from([137, 80, 78, 71, 13, 10, 26, 10]))) { w = head.readUInt32BE(16); h = head.readUInt32BE(20); }
+    else if (head.toString("latin1", 0, 3) === "GIF") { w = head.readUInt16LE(6); h = head.readUInt16LE(8); }
+    else if (head.toString("latin1", 0, 4) === "RIFF" && head.toString("latin1", 8, 12) === "WEBP") {
+      const t = head.toString("latin1", 12, 16);
+      if (t === "VP8 ") { w = head.readUInt16LE(26) & 0x3fff; h = head.readUInt16LE(28) & 0x3fff; }
+      else if (t === "VP8L") { const b = head.readUInt32LE(21); w = (b & 0x3fff) + 1; h = ((b >> 14) & 0x3fff) + 1; }
+      else if (t === "VP8X") { w = 1 + (head[24] | head[25] << 8 | head[26] << 16); h = 1 + (head[27] | head[28] << 8 | head[29] << 16); }
+    } else if (head[0] === 0xff && head[1] === 0xd8) {
+      const buf = fs.readFileSync(file); let p = 2;
+      while (p + 9 < buf.length) {
+        if (buf[p] !== 0xff) { p++; continue; }
+        const m = buf[p + 1], len = buf.readUInt16BE(p + 2);
+        if (m === 0xe1 && buf.toString("latin1", p + 4, p + 8) === "Exif") {   // EXIF orientation 5-8 means the browser shows the photo turned on its side
+          const t = p + 10, le = buf.toString("latin1", t, t + 2) === "II", u16 = o => le ? buf.readUInt16LE(o) : buf.readUInt16BE(o), u32 = o => le ? buf.readUInt32LE(o) : buf.readUInt32BE(o);
+          const ifd = t + u32(t + 4), n = u16(ifd);
+          for (let i = 0; i < n; i++) { const e = ifd + 2 + i * 12; if (u16(e) === 0x0112) { const o = u16(e + 8); rot = o >= 5 && o <= 8; } }
+        }
+        if (m >= 0xc0 && m <= 0xcf && m !== 0xc4 && m !== 0xc8 && m !== 0xcc) { h = buf.readUInt16BE(p + 5); w = buf.readUInt16BE(p + 7); break; }
+        p += 2 + len;
+      }
+    }
+    fs.closeSync(fd);
+    if (!(w > 0 && h > 0)) return 0;
+    return Math.round((rot ? h / w : w / h) * 10000) / 10000;
+  } catch (e) { return 0; }
+}
+
 function parseInfo(txt) {
   const lines = txt.replace(/\r/g, "").split("\n"), meta = {};
   let i = 0;
@@ -30,7 +62,7 @@ for (const d of fs.readdirSync(ROOT, { withFileTypes: true })) {
     if (!fs.existsSync(p)) continue;
     for (const f of fs.readdirSync(p).sort(nat))
       if (type(f) && fs.statSync(path.join(p, f)).isFile())
-        files.push({ name: f, src: "projects/" + url(d.name, ...(sub ? [sub] : []), f), type: type(f) });
+        files.push({ name: f, src: "projects/" + url(d.name, ...(sub ? [sub] : []), f), type: type(f), ratio: type(f) === "image" && !/\.svg$/i.test(f) ? imgRatio(path.join(p, f)) : 0 });
   }
   const isCover = f => path.parse(f.name).name.toLowerCase() === "cover";
   const cover = files.find(f => isCover(f) && f.type === "image") || null;
@@ -118,7 +150,7 @@ for (const d of fs.readdirSync(ROOT, { withFileTypes: true })) {
     ...(meta.tone ? { tone: meta.tone } : {}),
     ...(model ? { model, ...(mtl ? { modelmtl: mtl } : {}), ...(texture ? { modeltexture: texture } : {}), ...(meta.modelrotate ? { modelrotate: meta.modelrotate } : {}) } : {}),
     ...(meta.format ? { format: meta.format } : {}),   // format: booklet  turns the project into a flip-through book
-    media: files.filter(f => !isCover(f) && !used.has(f) && !tableUsed.has(f) && !fridgeUsed.has(f) && !tvUsed.has(f) && !posterUsed.has(f)).map(({ src, type }) => ({ src, type }))
+    media: files.filter(f => !isCover(f) && !used.has(f) && !tableUsed.has(f) && !fridgeUsed.has(f) && !tvUsed.has(f) && !posterUsed.has(f)).map(({ src, type, ratio }) => ({ src, type, ...(ratio ? { ratio } : {}) }))
   });
 }
 projects.sort((a, b) => a.order - b.order || nat(a.title, b.title));
