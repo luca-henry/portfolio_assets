@@ -115,7 +115,7 @@ for (const d of fs.readdirSync(ROOT, { withFileTypes: true })) {
   }
   // Magazine poster that can be ripped out (format: booklet). Files: poster.jpg = the big poster, torn-1.jpg / torn-2.jpg = the left and right page left behind once it is gone.
   // info.txt:  rip: 30   (the page the RIP ME poster is on; it and the next page are the pair that gets torn out)
-  let poster = null, audio = null, posterUsed = new Set();
+  let poster = null, audio = null, bookPages = null, posterUsed = new Set();
   if (/book/i.test(meta.format || "")) {
     const base = f => path.basename(f.src);
     const po = files.find(f => f.type === "image" && /^poster[-_. ]/i.test(base(f)));
@@ -123,6 +123,9 @@ for (const d of fs.readdirSync(ROOT, { withFileTypes: true })) {
     if (po) { poster = { src: po.src, page: Number(meta.rip) || 30, torn: torn.map(f => f.src) }; posterUsed.add(po); }
     torn.forEach(f => posterUsed.add(f));
     // Boombox that plays the magazine's audio. Files: audio.mp3 (any .mp3 .m4a .wav .ogg) = the sound, boombox.png = the picture of the boombox. It floats in the corner of the page and toggles play / pause.
+    // The pages of the magazine are the files named page-01.jpg, page-02.jpg ... in order (when there are none named like that, every image in the folder is a page). Any other image in the folder (boombox.png, poster.jpg, torn-1.jpg, a stray file) can never turn up as a page.
+    const pg = files.filter(f => f.type === "image" && /^page[-_. ]?\d/i.test(base(f)));
+    if (pg.length > 1) bookPages = pg.map(({ src, ratio }) => ({ src, type: "image", ...(ratio ? { ratio } : {}) }));
     const au = files.find(f => f.type === "audio"), bx = files.find(f => f.type === "image" && /^boombox([-_. ]|$)/i.test(base(f)));
     if (au && bx) {
       audio = { src: au.src, boombox: bx.src }; posterUsed.add(au); posterUsed.add(bx);
@@ -155,6 +158,7 @@ for (const d of fs.readdirSync(ROOT, { withFileTypes: true })) {
     ...(tv ? { tv } : {}),
     ...(poster ? { poster } : {}),
     ...(audio ? { audio } : {}),
+    ...(bookPages ? { pages: bookPages } : {}),
     ...(meta.tone ? { tone: meta.tone } : {}),
     ...(model ? { model, ...(mtl ? { modelmtl: mtl } : {}), ...(texture ? { modeltexture: texture } : {}), ...(meta.modelrotate ? { modelrotate: meta.modelrotate } : {}) } : {}),
     ...(meta.format ? { format: meta.format } : {}),   // format: booklet  turns the project into a flip-through book
