@@ -161,6 +161,9 @@ for (const d of fs.readdirSync(ROOT, { withFileTypes: true })) {
     ...(bookPages ? { pages: bookPages } : {}),
     ...(meta.tone ? { tone: meta.tone } : {}),
     ...(model ? { model, ...(mtl ? { modelmtl: mtl } : {}), ...(texture ? { modeltexture: texture } : {}), ...(meta.modelrotate ? { modelrotate: meta.modelrotate } : {}) } : {}),
+    ...(meta.series ? { series: meta.series.toLowerCase() } : {}),   // series: hfash  puts the project into the HFASH magazine page instead of the projects list
+    ...(meta.year ? { year: meta.year } : {}),                       // year: 2026  = the year the issue came out (shown as its heading on the magazine page)
+    ...(meta.issue ? { issue: meta.issue } : {}),                     // issue: 2  (a number) = No.2; leave it out or write pre-release for the pre-release issue
     ...(meta.format ? { format: meta.format } : {}),   // format: booklet  turns the project into a flip-through book
     media: files.filter(f => !isCover(f) && !used.has(f) && !tableUsed.has(f) && !fridgeUsed.has(f) && !tvUsed.has(f) && !posterUsed.has(f) && f.type !== "audio").map(({ src, type, ratio }) => ({ src, type, ...(ratio ? { ratio } : {}) }))
   });
