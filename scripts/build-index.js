@@ -81,6 +81,16 @@ for (const d of fs.readdirSync(ROOT, { withFileTypes: true })) {
     if (!photo) console.warn(`NOTE: ${d.name} has format: tv but no photo yet (put an image in the folder)`);
     if (!video) console.warn(`NOTE: ${d.name} has format: tv but no video yet`);
   }
+  // Magazine poster that can be ripped out (format: booklet). Files: poster.jpg = the big poster, torn-1.jpg / torn-2.jpg = the left and right page left behind once it is gone.
+  // info.txt:  rip: 30   (the page the RIP ME poster is on; it and the next page are the pair that gets torn out)
+  let poster = null, posterUsed = new Set();
+  if (/book/i.test(meta.format || "")) {
+    const base = f => path.basename(f.src);
+    const po = files.find(f => f.type === "image" && /^poster[-_. ]/i.test(base(f)));
+    const torn = files.filter(f => f.type === "image" && /^torn[-_. ]/i.test(base(f)));
+    if (po) { poster = { src: po.src, page: Number(meta.rip) || 30, torn: torn.map(f => f.src) }; posterUsed.add(po); }
+    torn.forEach(f => posterUsed.add(f));
+  }
   // 3D model: info.txt  model: ring.glb   (.glb .gltf .obj .fbx .stl)   optional:  modelrotate: 0 90 0   modeltexture: ring-texture.png
   // textures that sit next to a .gltf / .fbx / .obj+.mtl are found automatically (keep every file in the same folder as the model)
   const findIn = name => { if (!name) return null; for (const sub of ["", "images", "model"]) { const f = path.join(dir, sub, name); if (fs.existsSync(f)) return "projects/" + url(d.name, ...(sub ? [sub] : []), name); } return null; };
@@ -104,10 +114,11 @@ for (const d of fs.readdirSync(ROOT, { withFileTypes: true })) {
     ...(table ? { table } : {}),
     ...(fridge ? { fridge } : {}),
     ...(tv ? { tv } : {}),
+    ...(poster ? { poster } : {}),
     ...(meta.tone ? { tone: meta.tone } : {}),
     ...(model ? { model, ...(mtl ? { modelmtl: mtl } : {}), ...(texture ? { modeltexture: texture } : {}), ...(meta.modelrotate ? { modelrotate: meta.modelrotate } : {}) } : {}),
     ...(meta.format ? { format: meta.format } : {}),   // format: booklet  turns the project into a flip-through book
-    media: files.filter(f => !isCover(f) && !used.has(f) && !tableUsed.has(f) && !fridgeUsed.has(f) && !tvUsed.has(f)).map(({ src, type }) => ({ src, type }))
+    media: files.filter(f => !isCover(f) && !used.has(f) && !tableUsed.has(f) && !fridgeUsed.has(f) && !tvUsed.has(f) && !posterUsed.has(f)).map(({ src, type }) => ({ src, type }))
   });
 }
 projects.sort((a, b) => a.order - b.order || nat(a.title, b.title));
