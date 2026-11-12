@@ -575,9 +575,14 @@ function mountBook(pages,r){
   pf.loadFromImages(pages.map(m=>m.src));
   const count=w.querySelector(".bn");
   const upd=()=>{if(book!==pf)return;const i=pf.getCurrentPageIndex(),pair=pf.getOrientation()==="landscape"&&i>0&&i<n-1;count.textContent=pair?`${pad2(i+1)}–${pad2(i+2)} / ${pad2(n)}`:`${pad2(i+1)} / ${pad2(n)}`};
-  ["init","flip","changeOrientation"].forEach(ev=>pf.on(ev,upd));upd();
+  /* the cover (and back cover) stand alone, centred, instead of sitting beside an empty page */
+  const solo=(clear)=>{const c=w.querySelector("canvas");if(!c)return;const i=pf.getCurrentPageIndex(),land=pf.getOrientation()==="landscape";
+    let cp="",tf="";if(!clear&&land&&i===0){cp="inset(0 0 0 50%)";tf="translateX(-25%)"}else if(!clear&&land&&i===n-1&&n%2===0){cp="inset(0 50% 0 0)";tf="translateX(25%)"}
+    c.style.clipPath=cp;c.style.transition=clear?"none":"transform .3s steps(5,end)";c.style.transform=tf};
+  pf.on("changeState",e=>{if(e.data==="flipping"||e.data==="user_fold")solo(true)});
+  ["init","flip","changeOrientation"].forEach(ev=>pf.on(ev,()=>{upd();solo(false)}));upd();
   const [prev,next]=w.querySelectorAll(".bp");prev.onclick=()=>pf.flipPrev();next.onclick=()=>pf.flipNext();
-  reveal();return true;
+  const bk=w.querySelector(".bk");requestAnimationFrame(()=>requestAnimationFrame(()=>bk.classList.add("vis")));return true;   // wipe the book in (the scroll observer can't see an element that is fully clipped)
 }
 addEventListener("keydown",e=>{
   if(!book||(e.target.closest&&e.target.closest("input,textarea")))return;
