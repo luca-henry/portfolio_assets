@@ -280,7 +280,7 @@ body.pbg{background:transparent}
 .rg .hl{position:absolute;inset:0;pointer-events:none;mix-blend-mode:soft-light;background:linear-gradient(100deg,transparent 14%,rgba(255,255,255,.9) 27%,transparent 38%,transparent 58%,rgba(255,255,255,.55) 68%,transparent 77%)}
 .rg .gl2{position:absolute;left:14%;right:14%;top:72%;height:16%;background:radial-gradient(closest-side,rgba(214,177,92,.28),transparent);pointer-events:none}
 .rg .hint{opacity:.75;text-align:center;flex:1}
-@media (max-width:800px){.rg{height:min(110vw,calc(100svh - 24 * var(--u)))}.rgw{margin-bottom:calc(3 * var(--u))}.rg .bar,.rg .ep{font-size:calc(2.6 * var(--u))}.rg .bar button{padding:calc(2 * var(--u)) calc(3 * var(--u))}}
+@media (max-width:800px){.rg{height:min(110vw,calc(100svh - 24 * var(--u)))}.rg.pgl{height:min(110vw,max(50vw,calc(100svh - var(--rgt,0px) - 3 * var(--u))))}.rgw{margin-bottom:calc(3 * var(--u))}.rg .bar,.rg .ep{font-size:calc(2.6 * var(--u))}.rg .bar button{padding:calc(2 * var(--u)) calc(3 * var(--u))}}
 .fow{--g:calc(1.7 * var(--u));margin-bottom:var(--g)}
 .fo{position:relative}
 .fo-stage{position:relative;perspective:2200px;perspective-origin:50% 22%}
@@ -371,8 +371,36 @@ main,.view.on{min-height:0}
  .cl .fb{flex:1;overflow:visible}
  .cb{flex:21 1 0;height:auto;min-height:0}
 }
-@media (max-width:800px){.cl{flex:none!important;height:calc(10 * var(--u))}.cl .fb{height:100%;overflow:visible}}
+@media (max-width:800px){   /* phone: the contact lines and the CONTACT block stretch and squish to fill the whole screen, like on desktop */
+ #contact.on{min-height:0}
+ .cl{display:flex;min-height:calc(3 * var(--u));margin-bottom:calc(2.4 * var(--u))}
+ .cl .fb{flex:1;height:auto;overflow:visible}
+ .cb{flex:21 1 0;height:auto;min-height:calc(8 * var(--u))}
+}
 
+/* boombox: floats in the corner of a magazine page that has audio; click = play / pause, it thumps while it plays */
+.bbx{position:fixed;right:calc(2 * var(--u));bottom:calc(2 * var(--u));width:calc(18 * var(--u));z-index:30;display:block;padding:0;border:0;background:none;cursor:pointer;-webkit-tap-highlight-color:transparent;touch-action:manipulation;animation:bbIn .5s steps(7,end) backwards}
+.bbi{position:relative;display:block;width:100%;isolation:isolate}
+.bbi img{display:block;width:100%;height:auto;position:relative;pointer-events:none;user-select:none;-webkit-user-select:none}
+.bbi i{position:absolute;display:block;pointer-events:none;border-radius:50%}
+.bbi .bs{width:25.18%;aspect-ratio:1;background-image:var(--bi);background-size:397.16% auto;z-index:1}
+.bbi .bs.l{left:4.58%;top:52.67%;background-position:6.12% 86.5%}
+.bbi .bs.r{left:69.4%;top:52.0%;background-position:92.7% 85.4%}
+.bbi .bw{width:32.04%;aspect-ratio:1;border:max(2px,calc(.35 * var(--u))) solid #000;opacity:0;z-index:-1}
+.bbi .bw.l{left:1.14%;top:47.3%}
+.bbi .bw.r{left:65.95%;top:46.67%}
+.bbl{display:block;width:max-content;margin:calc(.9 * var(--u)) auto 0;padding:calc(.7 * var(--u)) calc(1.4 * var(--u));background:#000;color:#fff;font:700 calc(1.7 * var(--u))/1 Secondary,"Helvetica Neue",Helvetica,Arial,sans-serif;letter-spacing:.04em;text-transform:uppercase}
+.bbx:focus-visible .bbl{outline:3px solid #000;outline-offset:3px}
+.bbx.on .bbi{animation:bbB .46s steps(1,end) infinite}
+.bbx.on .bs{animation:bbP .46s steps(1,end) infinite}
+.bbx.on .bw{animation:bbW .92s steps(5,end) infinite}
+.bbx.on .bw.b{animation-delay:.46s}
+@keyframes bbIn{from{transform:translateY(130%)}to{transform:none}}
+@keyframes bbB{0%{transform:translateY(-2.5%) rotate(-.7deg)}18%{transform:none}50%{transform:translateY(-1.2%) rotate(.7deg)}68%{transform:none}}
+@keyframes bbP{0%{transform:scale(1.11)}16%{transform:scale(1.04)}36%{transform:scale(1.08)}56%{transform:scale(1)}}
+@keyframes bbW{0%{opacity:1;transform:scale(1)}100%{opacity:0;transform:scale(2.1)}}
+@media (prefers-reduced-motion:reduce){.bbx{animation:none}.bbx.on .bbi,.bbx.on .bw{animation:none}.bbx.on .bs{animation-duration:.92s}}
+@media (max-width:800px){.bbx{width:calc(38 * var(--u));right:calc(3 * var(--u));bottom:calc(3 * var(--u))}.bbl{font-size:calc(3.4 * var(--u));padding:calc(1.4 * var(--u)) calc(2.6 * var(--u));margin-top:calc(1.6 * var(--u))}.bbi .bw{border-width:2px}}
 #ld{position:fixed;inset:0;z-index:60;background:#fff;overflow:hidden}
 #ld b{position:absolute;left:0;top:0;transform-origin:0 0;font:700 200px/1 "Helvetica Neue",Helvetica,Arial,sans-serif;color:#000;white-space:nowrap;letter-spacing:0;will-change:transform}
 #sh{position:fixed;inset:0;z-index:50;pointer-events:none;display:flex;flex-direction:column;visibility:hidden}
@@ -604,7 +632,25 @@ function paintGallery(){
    and export every page at the same proportions as the cover. Videos/PDFs listed in media show in a normal grid under the book. */
 const isBook=p=>p.format?/magazine|booklet|book|zine/i.test(p.format):/magazine|booklet/i.test(p.category||"");
 let book=null;
-function killBook(){if(book){const B=book.__b;if(B){B.dead=true;cancelAnimationFrame(B.raf);if(B.ro)B.ro.disconnect();if(B.kill)B.kill();(B.t||[]).forEach(clearTimeout);if(B.rs)removeEventListener("resize",B.rs);if(B.rz)removeEventListener("resize",B.rz);try{const r0=book.getRender();r0.dead=true;cancelAnimationFrame(r0.raf)}catch(e){}}try{book.destroy()}catch(e){}book=null}}
+function killBook(){if(book){const B=book.__b;if(B){B.dead=true;cancelAnimationFrame(B.raf);if(B.ro)B.ro.disconnect();if(B.kill)B.kill();(B.t||[]).forEach(clearTimeout);if(B.rs)removeEventListener("resize",B.rs);if(B.rz)removeEventListener("resize",B.rz);if(B.rt)removeEventListener("resize",B.rt);try{const r0=book.getRender();r0.dead=true;cancelAnimationFrame(r0.raf)}catch(e){}}try{book.destroy()}catch(e){}book=null}}
+let BOOM=null;
+function killBoom(){if(BOOM){try{BOOM.au.pause();BOOM.au.removeAttribute("src");BOOM.au.load()}catch(e){}BOOM.el.remove();BOOM=null}}
+function mountBoombox(P){
+  const a=P&&P.audio;if(!a||!a.src||!a.boombox)return;
+  if(BOOM&&BOOM.src===a.src)return;
+  killBoom();
+  const au=new Audio();au.preload="none";au.src=a.src;
+  const el=document.createElement("button");el.type="button";el.className="bbx";el.setAttribute("aria-pressed","false");el.setAttribute("aria-label","Play the Side B audio");
+  el.style.setProperty("--bi",`url("${a.boombox}")`);
+  el.innerHTML=`<span class="bbi"><img src="${esc(a.boombox)}" alt="" draggable="false"><i class="bw l"></i><i class="bw l b"></i><i class="bw r"></i><i class="bw r b"></i><i class="bs l"></i><i class="bs r"></i></span><span class="bbl">Play</span>`;
+  const lb=el.querySelector(".bbl");
+  const ui=on=>{el.classList.toggle("on",on);el.setAttribute("aria-pressed",on?"true":"false");el.setAttribute("aria-label",on?"Pause the Side B audio":"Play the Side B audio");lb.textContent=on?"Pause":"Play"};
+  au.addEventListener("play",()=>ui(true));au.addEventListener("pause",()=>ui(false));
+  au.addEventListener("ended",()=>{try{au.currentTime=0}catch(e){}ui(false)});
+  el.onclick=()=>{if(au.paused){const pr=au.play();if(pr&&pr.catch)pr.catch(()=>ui(false))}else au.pause()};
+  document.body.appendChild(el);
+  BOOM={el,au,src:a.src};
+}
 const pad2=n=>String(n).padStart(2,"0");
 function mountBook(pages,r,P){
   const w=$("#project .bkw");if(!w||!window.St)return false;
@@ -613,7 +659,9 @@ function mountBook(pages,r,P){
   w.innerHTML=`<div class="bk"><div class="bk-in"></div></div><div class="bc"><button type="button" class="bp" aria-label="Previous page">${ARROW}</button><span class="bn" aria-live="polite"></span><button type="button" class="bp r" aria-label="Next page">${ARROW}</button></div><p class="bh">Grab any corner or edge to turn the page. Arrow keys work too.</p>${rp?`<div class="pst"><div class="pwr"><div class="pw"><i class="tp a"></i><i class="tp b"></i><div class="pt"><img src="${esc(rp.src)}" alt="" draggable="false"></div><div class="pbm"><img src="${esc(rp.src)}" alt="" draggable="false"></div></div></div><button type="button" class="psb" aria-expanded="false"><span class="lb">Click to unfold</span><span class="fp">+</span></button></div>`:""}`;
   const bk=w.querySelector(".bk"),host=w.querySelector(".bk-in");
   const bw=400,bh=Math.round(bw/r),n=pages.length;
-  const pf=book=new St.PageFlip(host,{width:bw,height:bh,size:"stretch",minWidth:280,maxWidth:1600,minHeight:Math.round(280/r),maxHeight:Math.round(1600/r),
+  /* on a phone (upright or sideways) the book is allowed to be small enough to show a full two-page spread, like the real magazine */
+  const sideways=()=>innerWidth<=800||(innerWidth>innerHeight&&innerHeight<=520),mw=sideways()?130:280,sw0=sideways();
+  const pf=book=new St.PageFlip(host,{width:bw,height:bh,size:"stretch",minWidth:mw,maxWidth:1600,minHeight:Math.round(mw/r),maxHeight:Math.round(1600/r),
     showCover:true,drawShadow:true,maxShadowOpacity:.55,flippingTime:850,usePortrait:true,mobileScrollSupport:true,showPageCorners:true,swipeDistance:20});
   pf.loadFromImages(pages.map(m=>m.src));
   const B={dead:false,raf:0,ro:null,t:[]};book.__b=B;
@@ -702,6 +750,7 @@ function mountBook(pages,r,P){
   }
   pf.on("changeState",e=>{if(e.data==="flipping"||e.data==="user_fold"){if(layer)layer.style.visibility="hidden";if(stub)stub.style.visibility="hidden"}});
   addEventListener("resize",hs);B.rs=hs;
+  {let tm=0;const turn=()=>{clearTimeout(tm);tm=setTimeout(()=>{if(B.dead||book!==pf)return;if(sideways()!==sw0){const i=pf.getCurrentPageIndex();if(mountBook(pages,r,P)&&i>0){try{book.turnToPage(i)}catch(e){}}}},250)};addEventListener("resize",turn);B.rt=turn}
   const pst=w.querySelector(".pst");
   if(rp){
     const pw=pst.querySelector(".pwr"),btn=pst.querySelector(".psb");
@@ -879,6 +928,7 @@ async function buildGallery(i){
     if(pages.length>1){
       const r=await measure(pages[0],{wait:25000,fb:.7727});if(tok!==gTok)return;   // a book must never guess its shape: wait for the real one
       if(mountBook(pages,r,p)){
+        mountBoombox(p);
         {const im=new Image();im.onload=()=>{const q=im.naturalWidth/im.naturalHeight;if(tok===gTok&&q>0&&Math.abs(q-r)/r>.02)mountBook(pages,q,p)};im.src=pages[0].src}   // double-check against the real image once it has loaded
         if(extras.length){const it=await Promise.all(extras.map(async m=>({m,r:await measure(m)})));if(tok!==gTok)return;gItems=it;paintGallery()}
         return;
@@ -1322,9 +1372,9 @@ function mountPendant(p,tok){
   const logo=(p.media||[]).filter(m=>(m.type||"image")==="image").map(m=>m.src)[0];
   const tone=(p.tone||"silver").toLowerCase();
   const stops=tone==="gold"?["#fff2c4","#d9ae55","#a47a28","#efd27f","#8a6422","#cda64d"]:tone==="rose"?["#ffe6dc","#e6a592","#b0705f","#f3c1b1","#94594a","#d89483"]:["#ffffff","#d5d9dd","#8d959b","#eceff1","#6c747a","#c3c8cc"];
-  el.innerHTML=`<div class="rg" style="touch-action:none">${logo?"":'<div class="ep">Add your logo PNG (transparent) to this project folder.<br>It will hang as a pendant on the chain.</div>'}</div>`;
+  el.innerHTML=`<div class="rg pgl" style="touch-action:none">${logo?"":'<div class="ep">Add your logo PNG (transparent) to this project folder.<br>It will hang as a pendant on the chain.</div>'}</div>`;
   /* the drawing layer covers the whole window, behind the text, so the pendant can swing past the stage and off screen */
-  const cv=document.createElement("canvas");cv.style.cssText="position:fixed;left:0;top:0;width:100vw;height:100svh;pointer-events:none;z-index:-1";document.body.appendChild(cv);document.body.classList.add("pbg");
+  const cv=document.createElement("canvas");cv.style.cssText="position:fixed;left:0;top:0;width:100vw;height:100vh;pointer-events:none;z-index:-1";document.body.appendChild(cv);document.body.classList.add("pbg");
   const rg=el.querySelector(".rg"),ctx=cv.getContext("2d");
   const S={raf:0,drag:false};RG=S;
   const mq=matchMedia("(prefers-reduced-motion:no-preference)").matches;
@@ -1348,8 +1398,12 @@ function mountPendant(p,tok){
     pendTmp=document.createElement("canvas");pendTmp.width=pend.width;pendTmp.height=pend.height;
   };
   const anchor=()=>{const r=rg.getBoundingClientRect();ax0=r.left+r.width/2;jointY=r.top+SH*.36};
-  const setup=()=>{
-    VW=innerWidth;VH=innerHeight;dpr=Math.min(devicePixelRatio||1,2);cv.width=Math.round(VW*dpr);cv.height=Math.round(VH*dpr);
+  /* the drawing buffer and its CSS size are always the same number of pixels, so nothing is squashed when a phone's address bar slides in and out */
+  /* on a phone the pendant's stage is only as tall as the room left under the text, so it always hangs fully on screen (svh = the stable small viewport, so the address bar sliding does not move it) */
+  let lastT=-1;const place=()=>{const t=Math.round(rg.getBoundingClientRect().top+scrollY);if(t!==lastT){lastT=t;rg.style.setProperty("--rgt",t+"px")}};
+  const sizeCanvas=()=>{VW=innerWidth;VH=innerHeight;dpr=Math.min(devicePixelRatio||1,2);cv.width=Math.round(VW*dpr);cv.height=Math.round(VH*dpr);cv.style.width=VW+"px";cv.style.height=VH+"px"};
+  const setup=(first=true)=>{
+    place();sizeCanvas();
     SW=rg.clientWidth;SH=rg.clientHeight;
     const asp=img?img.naturalHeight/img.naturalWidth:1;
     pw=Math.min(SW*.54,SH*.5/asp);ph=pw*asp;
@@ -1359,7 +1413,8 @@ function mountPendant(p,tok){
     J=mk(ax0,jointY,.8);B=mk(ax0,jointY+ph*.92,1);
     const chain=(sx)=>{const o=[];for(let i=0;i<N;i++){const t=i/N;o.push(mk(sx+(ax0-sx)*t,topY+(jointY-topY)*t+Math.sin(Math.PI*t)*L*3,i===0?0:1))}o.push(J);return o};
     c1=chain(ax0-span);c2=chain(ax0+span);
-    if(mq){[c1,c2].forEach(c=>c.forEach((q,i)=>{if(i>0&&q!==J)q.px=q.x-(i/N)*.8}));B.px=B.x-1.2}
+    if(mq&&first){const k=Math.min(1,SH/500);   // the opening swing, gentler on short (sideways phone) screens; a rebuild after a resize does not swing at all
+      [c1,c2].forEach(c=>c.forEach((q,i)=>{if(i>0&&q!==J)q.px=q.x-(i/N)*.8*k}));B.px=B.x-1.2*k}
     buildPendant();still=0;
   };
   /* lighter, livelier physics: little damping, equal weights, fast but capped following of the cursor */
@@ -1423,8 +1478,10 @@ function mountPendant(p,tok){
   const start=()=>{if(started)return;started=true;S.raf=requestAnimationFrame(loop)};
   loadImg(logo).then(im=>{if(RG!==S)return;img=trim(im);setup();start()});
   if(!logo)requestAnimationFrame(()=>{setup();start()});
-  const onResize=()=>{if(img||!logo){const keep=shine;setup();shine=keep}};
+  /* a resize that does not change the stage (the address bar sliding on a phone) only refits the canvas: the pendant keeps hanging, it is not rebuilt */
+  const onResize=()=>{if(!(img||!logo))return;if(Math.abs(rg.clientWidth-SW)>2||Math.abs(rg.clientHeight-SH)>90){const keep=shine;setup(false);shine=keep}else{sizeCanvas();still=0}};
   addEventListener("resize",onResize);
+  const ro=window.ResizeObserver?new ResizeObserver(()=>{if(!(img||!logo))return;const o=lastT;place();if(lastT!==o)onResize()}):null;if(ro)ro.observe(document.body);
   /* grab it anywhere on the page, even where it hangs over the text */
   const hit=(x,y)=>{if(!J||!B)return false;const a=J,b=B;return Math.hypot(x-(a.x+b.x)/2,y-(a.y+b.y)/2)<Math.max(pw,ph)*.7};
   const down=e=>{if(!hit(e.clientX,e.clientY))return;S.drag=true;S.grab=B;S.grab.w=0;S.mx=S.grab.x;S.my=S.grab.y;e.preventDefault();document.body.style.cursor="grabbing"};
@@ -1434,7 +1491,7 @@ function mountPendant(p,tok){
   };
   const up=()=>{if(!S.drag)return;S.drag=false;const q=S.grab;q.w=1;q.px=q.x;q.py=q.y;S.grab=null;document.body.style.cursor=""};
   addEventListener("pointerdown",down);addEventListener("pointermove",move);addEventListener("pointerup",up);addEventListener("pointercancel",up);
-  S.dispose=()=>{removeEventListener("resize",onResize);removeEventListener("pointerdown",down);removeEventListener("pointermove",move);removeEventListener("pointerup",up);removeEventListener("pointercancel",up);cv.remove();document.body.classList.remove("pbg");document.body.style.cursor=""};
+  S.dispose=()=>{if(ro)ro.disconnect();removeEventListener("resize",onResize);removeEventListener("pointerdown",down);removeEventListener("pointermove",move);removeEventListener("pointerup",up);removeEventListener("pointercancel",up);cv.remove();document.body.classList.remove("pbg");document.body.style.cursor=""};
 }
 matchMedia("(max-width:800px)").addEventListener("change",paintGallery);
 
@@ -1552,7 +1609,7 @@ function fit(){
 /* hash routing: #home #projects #about #contact #project-<folder name> */
 const VIEWS=["home","projects","about","contact"];
 function route(){
-  killBook();killFold();killTable();killRing();killFridge();killTV();gTok++;
+  killBook();killBoom();killFold();killTable();killRing();killFridge();killTV();gTok++;
   document.documentElement.style.removeProperty("--bg");
   document.querySelectorAll(".tick").forEach(e=>e.classList.remove("tick"));
   const h=decodeURIComponent(location.hash.slice(1))||"home";let v=h,pi=-1;
