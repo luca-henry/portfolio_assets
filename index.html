@@ -402,16 +402,13 @@ main,.view.on{min-height:0}
 @keyframes bbIn{from{opacity:0;transform:translateY(40%)}to{opacity:1;transform:none}}
 /* rubbery squash and stretch, planted in place (no hopping): it slams wide and flat on the beat, snaps tall and thin, then wobbles back to rest like jelly */
 @keyframes bbB{
- 0%{transform:scale(1.26,.76) skewX(0);animation-timing-function:cubic-bezier(.3,0,.2,1)}
- 13%{transform:scale(.8,1.28) skewX(-2deg);animation-timing-function:ease-in-out}
- 27%{transform:scale(1.14,.88) skewX(2deg);animation-timing-function:ease-in-out}
- 41%{transform:scale(.93,1.1) skewX(-1deg);animation-timing-function:ease-in-out}
- 55%{transform:scale(1.05,.96) skewX(.6deg);animation-timing-function:ease-in-out}
- 70%{transform:scale(.99,1.02) skewX(0);animation-timing-function:ease-in-out}
- 85%{transform:scale(1,1)}
+ 0%{transform:scale(1.045,.955);animation-timing-function:ease-out}
+ 22%{transform:scale(.975,1.03);animation-timing-function:ease-in-out}
+ 44%{transform:scale(1.015,.99);animation-timing-function:ease-in-out}
+ 66%{transform:scale(1,1)}
  100%{transform:scale(1,1)}}
-@keyframes bbP{0%{transform:scale(1.13)}13%{transform:scale(1.02)}27%{transform:scale(1.09)}45%{transform:scale(1.02)}60%{transform:scale(1.05)}80%{transform:scale(1)}}
-@keyframes bbW{0%{opacity:1;transform:scale(1)}100%{opacity:0;transform:scale(2.1)}}
+@keyframes bbP{0%{transform:scale(1.05)}25%{transform:scale(1.01)}50%{transform:scale(1.03)}75%{transform:scale(1)}}
+@keyframes bbW{0%{opacity:.4;transform:scale(1)}100%{opacity:0;transform:scale(1.7)}}
 @media (prefers-reduced-motion:reduce){.bbx{animation:none}.bbx.on .bbi,.bbx.on .bw{animation:none}.bbx.on .bs{animation-duration:1.2s}}
 @media (max-width:800px){.bbl{font-size:calc(3.4 * var(--u));padding:calc(1.4 * var(--u)) calc(2.6 * var(--u));margin-top:calc(1.6 * var(--u))}.bbi .bw{border-width:2px}}
 #ld{position:fixed;inset:0;z-index:60;background:#fff;overflow:hidden}
