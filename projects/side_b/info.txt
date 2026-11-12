@@ -2,8 +2,11 @@ title: Side B
 category: magazine
 order: 6
 format: booklet
-note: hfash, issue no. 1
+series: hfash
+issue: pre-release
+year: 2026
+note: hfash, pre-release issue
 rip: 30
 ---
-Side B is the first issue of hfash, a biannual magazine on UK street culture. Underground music, tape trading, grime, football and the clothes that tie it together.
+Side B is the pre-release issue of hfash, a quarterly magazine on UK street culture. Underground music, tape trading, grime, football and the clothes that tie it together.
 Flip through it from the cover.
