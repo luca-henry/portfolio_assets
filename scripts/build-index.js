@@ -49,10 +49,18 @@ function parseInfo(txt) {
 }
 
 const projects = [];
+// A project is a folder with an info.txt. A folder WITHOUT an info.txt is treated as a group (e.g. projects/hfash/) and every project folder inside it is picked up too.
+// Projects inside a group folder get that folder's name as their series (projects/hfash/side_b -> series hfash) unless their info.txt says otherwise.
+const found = [];
 for (const d of fs.readdirSync(ROOT, { withFileTypes: true })) {
   if (!d.isDirectory()) continue;
-  const dir = path.join(ROOT, d.name), info = path.join(dir, "info.txt");
-  if (!fs.existsSync(info)) continue;
+  const top = path.join(ROOT, d.name);
+  if (fs.existsSync(path.join(top, "info.txt"))) { found.push({ name: d.name, rel: [d.name], group: "" }); continue; }
+  for (const s of fs.readdirSync(top, { withFileTypes: true }))
+    if (s.isDirectory() && fs.existsSync(path.join(top, s.name, "info.txt"))) found.push({ name: s.name, rel: [d.name, s.name], group: d.name });
+}
+for (const d of found) {
+  const dir = path.join(ROOT, ...d.rel), info = path.join(dir, "info.txt");
   const { meta, body } = parseInfo(fs.readFileSync(info, "utf8"));
 
   // media may sit in the project folder or in an images/ subfolder
@@ -62,7 +70,7 @@ for (const d of fs.readdirSync(ROOT, { withFileTypes: true })) {
     if (!fs.existsSync(p)) continue;
     for (const f of fs.readdirSync(p).sort(nat))
       if (type(f) && fs.statSync(path.join(p, f)).isFile())
-        files.push({ name: f, src: "projects/" + url(d.name, ...(sub ? [sub] : []), f), type: type(f), size: fs.statSync(path.join(p, f)).size, ratio: type(f) === "image" && !/\.svg$/i.test(f) ? imgRatio(path.join(p, f)) : 0 });
+        files.push({ name: f, src: "projects/" + url(...d.rel, ...(sub ? [sub] : []), f), type: type(f), size: fs.statSync(path.join(p, f)).size, ratio: type(f) === "image" && !/\.svg$/i.test(f) ? imgRatio(path.join(p, f)) : 0 });
   }
   const isCover = f => path.parse(f.name).name.toLowerCase() === "cover";
   const cover = files.find(f => isCover(f) && f.type === "image") || null;
@@ -135,7 +143,7 @@ for (const d of fs.readdirSync(ROOT, { withFileTypes: true })) {
   }
   // 3D model: info.txt  model: ring.glb   (.glb .gltf .obj .fbx .stl)   optional:  modelrotate: 0 90 0   modeltexture: ring-texture.png
   // textures that sit next to a .gltf / .fbx / .obj+.mtl are found automatically (keep every file in the same folder as the model)
-  const findIn = name => { if (!name) return null; for (const sub of ["", "images", "model"]) { const f = path.join(dir, sub, name); if (fs.existsSync(f)) return "projects/" + url(d.name, ...(sub ? [sub] : []), name); } return null; };
+  const findIn = name => { if (!name) return null; for (const sub of ["", "images", "model"]) { const f = path.join(dir, sub, name); if (fs.existsSync(f)) return "projects/" + url(...d.rel, ...(sub ? [sub] : []), name); } return null; };
   const model = findIn(meta.model), texture = findIn(meta.modeltexture);
   let mtl = null;
   if (model && /\.obj$/i.test(meta.model)) {
@@ -161,7 +169,7 @@ for (const d of fs.readdirSync(ROOT, { withFileTypes: true })) {
     ...(bookPages ? { pages: bookPages } : {}),
     ...(meta.tone ? { tone: meta.tone } : {}),
     ...(model ? { model, ...(mtl ? { modelmtl: mtl } : {}), ...(texture ? { modeltexture: texture } : {}), ...(meta.modelrotate ? { modelrotate: meta.modelrotate } : {}) } : {}),
-    ...(meta.series ? { series: meta.series.toLowerCase() } : {}),   // series: hfash  puts the project into the HFASH magazine page instead of the projects list
+    ...((meta.series || d.group) ? { series: (meta.series || d.group).toLowerCase() } : {}),   // series: hfash  puts the project into the HFASH magazine page instead of the projects list
     ...(meta.year ? { year: meta.year } : {}),                       // year: 2026  = the year the issue came out (shown as its heading on the magazine page)
     ...(meta.issue ? { issue: meta.issue } : {}),                     // issue: 2  (a number) = No.2; leave it out or write pre-release for the pre-release issue
     ...(meta.format ? { format: meta.format } : {}),   // format: booklet  turns the project into a flip-through book
