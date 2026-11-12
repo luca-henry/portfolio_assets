@@ -379,6 +379,25 @@ main,.view.on{min-height:0}
  .cb{flex:21 1 0;height:auto;min-height:calc(8 * var(--u))}
 }
 
+/* hfash magazine page: a grid of covers, then a black box for every issue still to come */
+.yr{margin-top:calc(3 * var(--u))}
+.yh{background:#000;width:calc(13 * var(--u));height:calc(9 * var(--u));padding:calc(.6 * var(--u)) calc(.9 * var(--u))}
+.yh .fb{display:block;height:100%}.yh .fit{color:var(--acc)}
+.mg{list-style:none;display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:calc(1.7 * var(--u));margin-top:calc(1.7 * var(--u));align-items:start}
+.mt{display:block;color:inherit;text-decoration:none}
+.mt .cv{display:block;position:relative;aspect-ratio:.7726;border:var(--bw) solid #000;background:#fff;overflow:hidden}
+.mt .cv img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;display:block}
+.mt .fb{display:block}
+.mt .cap{display:block;background:#000;padding:calc(.45 * var(--u)) calc(.8 * var(--u));margin-top:calc(.6 * var(--u))}
+.mt .cap .fb{height:calc(2.6 * var(--u))}
+.mt .cap .fit{color:var(--acc)}
+.mt.soon .cv{background:#000;padding:calc(1.2 * var(--u))}
+.mt.soon .cv .fb{height:100%}
+.mt.soon .fit{color:var(--acc)}
+a.mt:hover .cap,a.mt:focus-visible .cap{background:var(--acc)}
+a.mt:hover .cap .fit,a.mt:focus-visible .cap .fit{color:#000}
+a.mt:focus-visible{outline:3px solid #000;outline-offset:4px}
+.view.on .mg li{animation:cutR .35s var(--ease) backwards;animation-delay:calc(.15s + var(--i,0) * .06s)}
 /* boombox: sits in the page (left column next to the arrows on desktop, under the book on a phone) so it never covers anything; click = play / pause, it squashes and stretches like rubber while it plays */
 .bbx{position:relative;display:block;flex:none;padding:0;border:0;background:none;cursor:pointer;-webkit-tap-highlight-color:transparent;touch-action:manipulation;animation:bbIn .5s steps(7,end) backwards}
 .ar.hasbb{align-items:center}
@@ -410,6 +429,7 @@ main,.view.on{min-height:0}
 @keyframes bbP{0%{transform:scale(1.05)}25%{transform:scale(1.01)}50%{transform:scale(1.03)}75%{transform:scale(1)}}
 @keyframes bbW{0%{opacity:.4;transform:scale(1)}100%{opacity:0;transform:scale(1.7)}}
 @media (prefers-reduced-motion:reduce){.bbx{animation:none}.bbx.on .bbi,.bbx.on .bw{animation:none}.bbx.on .bs{animation-duration:1.2s}}
+@media (max-width:800px){.yh{width:calc(30 * var(--u));height:calc(18 * var(--u));padding:calc(1.5 * var(--u)) calc(2 * var(--u))}.mg{grid-template-columns:repeat(2,minmax(0,1fr));gap:calc(3 * var(--u));margin-top:calc(3 * var(--u))}.mt .cap .fb{height:calc(5.6 * var(--u))}.mt .cap{padding:calc(1 * var(--u)) calc(1.4 * var(--u))}}
 @media (max-width:800px){.bbl{font-size:calc(3.4 * var(--u));padding:calc(1.4 * var(--u)) calc(2.6 * var(--u));margin-top:calc(1.6 * var(--u))}.bbi .bw{border-width:2px}}
 #ld{position:fixed;inset:0;z-index:60;background:#fff;overflow:hidden}
 #ld b{position:absolute;left:0;top:0;transform-origin:0 0;font:700 200px/1 "Helvetica Neue",Helvetica,Arial,sans-serif;color:#000;white-space:nowrap;letter-spacing:0;will-change:transform}
@@ -545,6 +565,12 @@ main,.view.on{min-height:0}
     </div>
   </section>
 
+  <!-- HFASH MAGAZINE (all the issues, built by JS) -->
+  <section id="magazine" class="view">
+    <h1 class="banner" aria-label="HFASH Magazine"><div class="fb"><span class="fit" aria-hidden="true">HFASH MAGAZINE</span></div></h1>
+    <div id="mg"></div>
+  </section>
+
   <!-- PROJECT DETAIL (rendered by JS) -->
   <section id="project" class="view"></section>
 
@@ -586,7 +612,7 @@ main,.view.on{min-height:0}
 const $=s=>document.querySelector(s);
 const esc=s=>String(s??"").replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
 const ARROW='<svg viewBox="0 0 300 130" aria-hidden="true"><path d="M8 65 100 8v34h190v46H100v34z" fill="#fff"/></svg>';
-let P=[],cur=0,drawn=-1,io;
+let P=[],LP=[],cur=0,drawn=-1,io;
 
 /* MODULAR GALLERY
    Any size or shape of image works. Each file keeps its own aspect ratio and the tiles are packed into full-width rows
@@ -1518,11 +1544,12 @@ function mountPendant(p,tok){
 matchMedia("(max-width:800px)").addEventListener("change",paintGallery);
 
 function detail(i){
-  const p=P[i],n=P.length,pv=P[(i-1+n)%n],nx=P[(i+1)%n];
+  const p=P[i],grp=P.filter(q=>isSer(q)===isSer(p)),gi=grp.indexOf(p),n=grp.length;
+  const lk=q=>q===p&&isSer(p)?"#magazine":"#project-"+q.slug,pv=grp[(gi-1+n)%n],nx=grp[(gi+1)%n];
   const paras=p.body.split(/\n\s*\n/).filter(Boolean);
   const body=paras.map((t,j)=>`<p style="--i:${j}">${esc(t).replace(/\n/g,"<br>")}</p>`).join("");
   return `<div class="dt"><div class="dl"><h1>${esc(p.title)}</h1><div class="ck">/ ${esc(p.category)}</div>${body}${p.note?`<p class="nt" style="--i:${paras.length}">${esc(p.note)}</p>`:""}
-  <div class="ar"><a href="#project-${pv.slug}" aria-label="Previous project">${ARROW}</a><a class="r" href="#project-${nx.slug}" aria-label="Next project">${ARROW}</a></div></div>
+  <div class="ar"><a href="${lk(pv)}" aria-label="${isSer(p)?"Previous issue":"Previous project"}">${ARROW}</a><a class="r" href="${lk(nx)}" aria-label="${isSer(p)?"Next issue":"Next project"}">${ARROW}</a></div></div>
   <div class="rc">${isRing(p)||isPend(p)?'<div class="rgw"></div>':""}${p.table?'<div class="tbw"></div>':""}${p.fridge?'<div class="czw"></div>':""}${p.tv?'<div class="tvxw"></div>':""}${isBook(p)?'<div class="bkw"></div>':""}${p.fold&&p.fold.src?'<div class="fow"></div>':""}<div class="gl"></div></div></div>`;
 }
 
@@ -1535,16 +1562,46 @@ function reveal(){
   els.forEach(e=>io.observe(e));
 }
 
+/* the hfash magazine: any project whose info.txt says  series: hfash  is an issue. The projects list shows ONE row for all of them (at the bottom) that opens the magazine page. */
+const isSer=p=>p&&p.series==="hfash";
+const issueNo=p=>/^\d+$/.test(String(p.issue||""))?+p.issue:0;     // issue: pre-release (or nothing) = 0, issue: 2 = No.2
+const coverOf=p=>{const g=p.pages&&p.pages[0];return p.cover||(g&&(g.src||g))||""};
+function prep(){
+  const ser=P.filter(isSer).sort((a,b)=>issueNo(a)-issueNo(b)||(a.order||0)-(b.order||0)),rest=P.filter(p=>!isSer(p));
+  P=[...rest,...ser];
+  LP=[...rest];
+  if(ser.length){const c=coverOf(ser[ser.length-1]);LP.push({slug:"hfash-magazine",title:"HFASH",category:"magazine",href:"#magazine",cover:c})}
+}
+/* release schedule: 4 issues a year, one every 3 months, each out at the END of its month, shown under a heading for its year.
+   FIRST = [year, month] of No.1. The month must be 1, 2 or 3 so all four issues of a year land in that year (March = end of Mar, Jun, Sep, Dec).
+   Change this one line to move the whole schedule. No.5 is the first issue of the next year, and so on. */
+const FIRST=[2027,3];
+const NEWEST_FIRST=false;   // false: oldest year at the top (2026, then 2027...). true: newest year at the top
+const MONTHS=["JANUARY","FEBRUARY","MARCH","APRIL","MAY","JUNE","JULY","AUGUST","SEPTEMBER","OCTOBER","NOVEMBER","DECEMBER"];
+const dueOf=n=>({m:MONTHS[(FIRST[1]-1+3*((n-1)%4))%12],y:FIRST[0]+Math.floor((n-1)/4)});
+function buildMag(){
+  const ser=P.filter(isSer);
+  const yearOf=p=>+p.year||(issueNo(p)?dueOf(issueNo(p)).y:FIRST[0]-1);     // info.txt:  year: 2026
+  const real=p=>{const n=issueNo(p),lb=((n?"No."+n:"Pre-release")+" / "+p.title).toUpperCase(),c=coverOf(p);
+    return `<a class="mt" href="#project-${p.slug}" aria-label="Open ${esc(p.title)}${n?", issue "+n:", the pre-release issue"}"><span class="cv">${c?`<img src="${esc(c)}" alt="" decoding="async">`:""}</span><span class="cap"><span class="fb"><span class="fit">${esc(lb)}</span></span></span></a>`};
+  const soon=n=>`<div class="mt soon" role="img" aria-label="Issue ${n}, out at the end of ${dueOf(n).m.toLowerCase()} ${dueOf(n).y}"><span class="cv"><span class="fb"><span class="fit" aria-hidden="true">NO.${n}</span></span></span><span class="cap"><span class="fb"><span class="fit" aria-hidden="true">END OF ${dueOf(n).m} ${dueOf(n).y}</span></span></span></div>`;
+  const yrs=new Map(),add=(y,k,t)=>{if(!yrs.has(y))yrs.set(y,[]);yrs.get(y).push({k,t})};
+  ser.forEach(p=>add(yearOf(p),issueNo(p),real(p)));
+  const last=Math.max(FIRST[0],...ser.map(yearOf));
+  for(let y=FIRST[0];y<=last;y++)for(let q=1;q<=4;q++){const n=4*(y-FIRST[0])+q;if(!ser.some(p=>issueNo(p)===n))add(y,n,soon(n))}
+  let i=0;
+  $("#mg").innerHTML=[...yrs.keys()].sort((a,b)=>NEWEST_FIRST?b-a:a-b).map(y=>`<section class="yr" aria-label="${y}"><h2 class="yh"><span class="fb"><span class="fit" aria-hidden="true">${y}</span></span></h2><ul class="mg">${yrs.get(y).sort((a,b)=>a.k-b.k).map(o=>`<li style="--i:${i++}">${o.t}</li>`).join("")}</ul></section>`).join("");
+}
 function buildList(){
   drawn=-1;T=[];A=[];
-  $("#pl").innerHTML=P.length?P.map((p,i)=>`<li style="--i:${i}"><a href="#project-${p.slug}" data-i="${i}"><span class="fb"><span class="fit">${esc(p.title)} / ${esc(p.category)}</span></span></a></li>`).join(""):"<li><a>no projects yet</a></li>";
-  if(P.length)setCur(0);
+  $("#pl").innerHTML=LP.length?LP.map((p,i)=>`<li style="--i:${i}"><a href="${p.href||"#project-"+p.slug}" data-i="${i}"><span class="fb"><span class="fit">${esc(p.title)} / ${esc(p.category)}</span></span></a></li>`).join(""):"<li><a>no projects yet</a></li>";
+  if(LP.length)setCur(0);
 }
 function setCur(i){
   cur=i;
-  if(i!==drawn&&P.length){const first=drawn===-1;drawn=i;retarget(i,first)}
-  const pv=$("#pv"),p=P[i];if(!p)return;
-  pv.href="#project-"+p.slug;pv.setAttribute("aria-label","Open "+p.title);
+  if(i!==drawn&&LP.length){const first=drawn===-1;drawn=i;retarget(i,first)}
+  const pv=$("#pv"),p=LP[i];if(!p)return;
+  pv.href=p.href||"#project-"+p.slug;pv.setAttribute("aria-label","Open "+p.title);
   pv.innerHTML=(p.cover?`<img src="${p.cover}" alt="">`:"")+"<span>WORK DISPLAY<br>PHOTO</span>";
 }
 /* PROJECT LIST MORPH
@@ -1586,7 +1643,7 @@ function tickList(now){
 }
 function retarget(sel,instant){
   const d=instant||!matchMedia("(prefers-reduced-motion:no-preference)").matches?0:520;
-  P.forEach((_,j)=>{
+  LP.forEach((_,j)=>{
     const to=j===sel?1:0;
     if(d===0){T[j]=to;A[j]=null}
     else if((A[j]?A[j].to:(T[j]||0))!==to)A[j]={from:T[j]||0,to,t0:performance.now(),d};
@@ -1629,7 +1686,7 @@ function fit(){
 }
 
 /* hash routing: #home #projects #about #contact #project-<folder name> */
-const VIEWS=["home","projects","about","contact"];
+const VIEWS=["home","projects","about","contact","magazine"];
 function route(){
   killBook();killBoom();killFold();killTable();killRing();killFridge();killTV();gTok++;
   document.documentElement.style.removeProperty("--bg");
@@ -1638,11 +1695,11 @@ function route(){
   if(h.startsWith("project-")){pi=P.findIndex(p=>"project-"+p.slug===h);v=pi<0?"projects":"project"}
   else if(!VIEWS.includes(h))v="home";
   document.querySelectorAll(".view").forEach(e=>e.classList.toggle("on",e.id===v));
-  document.body.classList.toggle("fixed",v!=="project");
-  const key=v==="project"?"projects":v;
+  document.body.classList.toggle("fixed",v!=="project"&&v!=="magazine");
+  const key=v==="project"||v==="magazine"?"projects":v;
   document.querySelectorAll("nav [data-n]").forEach(a=>{a.dataset.n===key?a.setAttribute("aria-current","page"):a.removeAttribute("aria-current")});
-  if(v==="project"){if(P[pi].table&&P[pi].table.tint)document.documentElement.style.setProperty("--bg",P[pi].table.tint);$("#project").innerHTML=detail(pi);document.title=P[pi].title+" — Luca Henry";setCur(pi);buildGallery(pi)}
-  else document.title=(v==="home"?"Luca Henry":key[0].toUpperCase()+key.slice(1)+" — Luca Henry");
+  if(v==="project"){if(P[pi].table&&P[pi].table.tint)document.documentElement.style.setProperty("--bg",P[pi].table.tint);$("#project").innerHTML=detail(pi);document.title=P[pi].title+" — Luca Henry";setCur(Math.max(0,LP.findIndex(q=>isSer(P[pi])?q.href==='#magazine':q===P[pi])));buildGallery(pi)}
+  else document.title=(v==="home"?"Luca Henry":v==="magazine"?"HFASH Magazine — Luca Henry":key[0].toUpperCase()+key.slice(1)+" — Luca Henry");
   window.scrollTo({top:0,left:0,behavior:"instant"});
   requestAnimationFrame(fit);
 }
@@ -1738,14 +1795,14 @@ tick();setInterval(tick,500);
     const next=()=>{if(i>=later.length)return;const im=new Image();im.fetchPriority="low";im.decoding="async";im.onload=im.onerror=()=>setTimeout(next,40);im.src=later[i++]};
     for(let k=0;k<2;k++)next()};
   function reveal2(){
-    const go=()=>{buildList();route();armed=true};
+    const go=()=>{buildList();buildMag();route();armed=true};
     go();setTimeout(quiet,1500);
     if(!motion){ld.remove();return}
     ld.style.pointerEvents="none";
     ld.animate([{clipPath:"inset(0 0 0 0)"},{clipPath:"inset(0 0 0 100%)"}],{duration:520,easing:"steps(7,end)",fill:"both"}).finished.then(()=>ld.remove());
   }
   const fontP=(document.fonts?document.fonts.load("900 100px Main","LUCA").catch(()=>{}):Promise.resolve());
-  const work=fetch("projects/projects.json").then(r=>r.json()).then(d=>{P=d.projects||[]}).catch(()=>{P=[]}).then(()=>{
+  const work=fetch("projects/projects.json").then(r=>r.json()).then(d=>{P=d.projects||[]}).catch(()=>{P=[]}).then(()=>{prep();
     const [u,rest]=urls(P);later=rest;total=u.length+1;pct();
     return Promise.all([fontP.then(tick),...u.map(x=>grab(x).then(tick))]);
   });
