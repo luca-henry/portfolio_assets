@@ -379,7 +379,7 @@ main,.view.on{min-height:0}
  .cb{flex:21 1 0;height:auto;min-height:calc(8 * var(--u))}
 }
 
-/* boombox: sits in the page (left column next to the arrows on desktop, under the book on a phone) so it never covers anything; click = play / pause, it hops with squash and stretch while it plays */
+/* boombox: sits in the page (left column next to the arrows on desktop, under the book on a phone) so it never covers anything; click = play / pause, it squashes and stretches like rubber while it plays */
 .bbx{position:relative;display:block;flex:none;padding:0;border:0;background:none;cursor:pointer;-webkit-tap-highlight-color:transparent;touch-action:manipulation;animation:bbIn .5s steps(7,end) backwards}
 .ar.hasbb{align-items:center}
 .ar .bbx{width:30%;margin-left:calc(1 * var(--u))}
@@ -400,16 +400,17 @@ main,.view.on{min-height:0}
 .bbx.on .bw{animation:bbW 1.2s steps(5,end) infinite}
 .bbx.on .bw.b{animation-delay:.6s}
 @keyframes bbIn{from{opacity:0;transform:translateY(40%)}to{opacity:1;transform:none}}
-/* squash (about to jump) > stretch (going up) > hang > stretch (coming down) > land and squash > settle */
+/* rubbery squash and stretch, planted in place (no hopping): it slams wide and flat on the beat, snaps tall and thin, then wobbles back to rest like jelly */
 @keyframes bbB{
- 0%{transform:scale(1.15,.82);animation-timing-function:cubic-bezier(.15,.75,.3,1)}
- 22%{transform:translateY(-24%) scale(.88,1.16);animation-timing-function:ease-out}
- 44%{transform:translateY(-30%) scale(1,1);animation-timing-function:ease-in}
- 68%{transform:translateY(-8%) scale(.9,1.12);animation-timing-function:ease-in}
- 82%{transform:scale(1.18,.8);animation-timing-function:ease-out}
- 92%{transform:scale(.97,1.05);animation-timing-function:ease-in-out}
- 100%{transform:scale(1.15,.82)}}
-@keyframes bbP{0%{transform:scale(1.04)}14%{transform:scale(1.11)}30%{transform:scale(1)}74%{transform:scale(1.02)}84%{transform:scale(1.12)}96%{transform:scale(1.03)}}
+ 0%{transform:scale(1.26,.76) skewX(0);animation-timing-function:cubic-bezier(.3,0,.2,1)}
+ 13%{transform:scale(.8,1.28) skewX(-2deg);animation-timing-function:ease-in-out}
+ 27%{transform:scale(1.14,.88) skewX(2deg);animation-timing-function:ease-in-out}
+ 41%{transform:scale(.93,1.1) skewX(-1deg);animation-timing-function:ease-in-out}
+ 55%{transform:scale(1.05,.96) skewX(.6deg);animation-timing-function:ease-in-out}
+ 70%{transform:scale(.99,1.02) skewX(0);animation-timing-function:ease-in-out}
+ 85%{transform:scale(1,1)}
+ 100%{transform:scale(1,1)}}
+@keyframes bbP{0%{transform:scale(1.13)}13%{transform:scale(1.02)}27%{transform:scale(1.09)}45%{transform:scale(1.02)}60%{transform:scale(1.05)}80%{transform:scale(1)}}
 @keyframes bbW{0%{opacity:1;transform:scale(1)}100%{opacity:0;transform:scale(2.1)}}
 @media (prefers-reduced-motion:reduce){.bbx{animation:none}.bbx.on .bbi,.bbx.on .bw{animation:none}.bbx.on .bs{animation-duration:1.2s}}
 @media (max-width:800px){.bbl{font-size:calc(3.4 * var(--u));padding:calc(1.4 * var(--u)) calc(2.6 * var(--u));margin-top:calc(1.6 * var(--u))}.bbi .bw{border-width:2px}}
