@@ -84,7 +84,37 @@ main{flex:1;display:flex;flex-direction:column}
 /* booklet / magazine viewer (page-flip library draws the pages on a canvas) */
 .rc{min-width:0}
 .bkw{--g:calc(1.7 * var(--u));margin-bottom:var(--g)}
-.bk{border:var(--bw) solid var(--fg);background:#e6e6e6;padding:calc(2 * var(--u))}
+.bk{position:relative;opacity:0}
+.bk.vis{opacity:1;transition:opacity .45s steps(4,end)}
+.bk-in{filter:drop-shadow(0 calc(1.2 * var(--u)) calc(2.4 * var(--u)) rgba(0,0,0,.28)) drop-shadow(0 calc(.15 * var(--u)) calc(.35 * var(--u)) rgba(0,0,0,.2))}
+@media (min-width:801px){.bk{margin:0 -1.6%}}
+.bhs{position:absolute;pointer-events:none}
+.bhs button{position:absolute;pointer-events:auto;border:0;background:transparent;cursor:pointer;padding:0}
+.bhs button:hover,.bhs button:focus-visible{background:rgba(0,0,0,.07);outline:calc(var(--bw) * .6) solid #000;outline-offset:calc(var(--bw) * -.6)}
+.brip{position:absolute;pointer-events:none;display:flex;z-index:3;transform-origin:50% 50%;filter:drop-shadow(0 calc(.6 * var(--u)) calc(1.2 * var(--u)) rgba(0,0,0,.35))}
+.brip img{display:block;height:100%;flex:1 1 0;min-width:0;object-fit:fill}
+/* the ripped-out poster hangs under the magazine: folded to half height, opens once along its middle crease */
+.pst{display:none;margin-top:calc(3 * var(--u))}
+.pst.on{display:block}
+.pwr{--pw:min(100%,calc((100svh - 8 * var(--u)) * .6471));width:var(--pw);margin:0 auto;position:relative;aspect-ratio:11 / 8.5;filter:drop-shadow(0 calc(1 * var(--u)) calc(2 * var(--u)) rgba(0,0,0,.32));transition:aspect-ratio .56s steps(7,end);visibility:hidden}
+.pw{position:absolute;left:0;top:0;width:100%;aspect-ratio:11 / 17;perspective:calc(var(--pw) * 2.4)}
+.pst.on .pwr{visibility:visible}
+.pwr.open{aspect-ratio:11 / 17}
+.pw .pt,.pw .pbm{position:absolute;left:0;width:100%;height:50%;overflow:hidden;background:#fff}
+.pw .pt{top:0}
+.pw .pt img,.pw .pbm img{position:absolute;left:0;width:100%;height:200%;display:block;-webkit-user-drag:none;user-select:none}
+.pw .pbm{top:50%;transform-origin:50% 0;transform:translateZ(-3px) rotateX(-180deg);transition:transform .56s steps(7,end);backface-visibility:hidden}
+.pw .pbm img{top:-100%}
+.pwr.open .pbm{transform:none}
+.pw,.pw img{pointer-events:none}.pw .pt,.pwr.open .pbm{pointer-events:auto}
+.pw .pt::after{content:"";position:absolute;left:0;right:0;bottom:0;height:3.5%;background:linear-gradient(to top,rgba(0,0,0,.28),transparent)}
+.pw .pbm::after{content:"";position:absolute;left:0;right:0;top:0;height:3.5%;background:linear-gradient(to bottom,rgba(0,0,0,.22),transparent)}
+.pw .tp{position:absolute;top:-1.6%;width:13%;height:3.4%;background:rgba(226,226,222,.82);box-shadow:0 1px 2px rgba(0,0,0,.25);z-index:4}
+.pw .tp.a{left:5%;transform:rotate(-6deg)}.pw .tp.b{right:5%;transform:rotate(5deg)}
+.pst .psb{display:flex;align-items:center;gap:calc(1.6 * var(--u));width:fit-content;margin:calc(1.7 * var(--u)) auto 0;border:0;cursor:pointer;background:#000;color:#fff;height:calc(3 * var(--u));padding:0 calc(1.2 * var(--u));font-family:Archivo,"Helvetica Neue",Arial,sans-serif;font-stretch:72%;font-weight:800;font-size:calc(1.7 * var(--u));letter-spacing:-.03em;text-transform:uppercase;line-height:1;white-space:nowrap}
+.pst .psb:hover,.pst .psb:focus-visible{background:#fff;color:#000;outline:var(--bw) solid #000;outline-offset:calc(var(--bw) * -1)}
+@media (prefers-reduced-motion:reduce){.pwr,.pw .pbm{transition:none}}
+
 .stf__parent{position:relative;display:block;box-sizing:border-box;transform:translateZ(0);touch-action:pan-y}
 .stf__wrapper{position:relative;width:100%;box-sizing:border-box}
 .stf__parent canvas{position:absolute;width:100%;height:100%;left:0;top:0}
@@ -308,7 +338,7 @@ body.pbg{background:transparent}
  .gl{--g:calc(3 * var(--u))}
  #zm{--g:calc(3 * var(--u));padding-top:calc(20 * var(--u))}#zm .bc{max-width:none}.zx{height:calc(11 * var(--u));font-size:calc(6 * var(--u));padding:0 calc(3 * var(--u))}
  .fow{--g:calc(3 * var(--u))}.fo-btn{height:calc(8.5 * var(--u));font-size:calc(4.6 * var(--u));padding:0 calc(4 * var(--u));gap:calc(4 * var(--u))}
- .bkw{--g:calc(3 * var(--u))}.bk{padding:calc(3 * var(--u))}.bp{width:calc(24 * var(--u))}.bn{font-size:calc(8 * var(--u))}.bh{font-size:calc(3.2 * var(--u))}
+ .bkw{--g:calc(3 * var(--u))}.bk{margin:0}.pst .psb{height:calc(8.5 * var(--u));font-size:calc(4.6 * var(--u));padding:0 calc(4 * var(--u));gap:calc(4 * var(--u));margin-top:calc(3 * var(--u))}.bp{width:calc(24 * var(--u))}.bn{font-size:calc(8 * var(--u))}.bh{font-size:calc(3.2 * var(--u))}
  .at{grid-template-columns:1fr 1fr;height:auto;gap:calc(3 * var(--u))}
  .blk{grid-column:1/3;height:calc(55 * var(--u));padding:calc(5 * var(--u))}.shot{aspect-ratio:1;height:auto}
  .ab{grid-template-columns:1fr;height:auto}.meb{height:calc(55 * var(--u));padding:calc(5 * var(--u))}
@@ -563,26 +593,122 @@ function paintGallery(){
    and export every page at the same proportions as the cover. Videos/PDFs listed in media show in a normal grid under the book. */
 const isBook=p=>p.format?/magazine|booklet|book|zine/i.test(p.format):/magazine|booklet/i.test(p.category||"");
 let book=null;
-function killBook(){if(book){try{book.destroy()}catch(e){}book=null}}
+function killBook(){if(book){const B=book.__b;if(B){B.dead=true;cancelAnimationFrame(B.raf);if(B.ro)B.ro.disconnect();if(B.kill)B.kill();(B.t||[]).forEach(clearTimeout);if(B.rs)removeEventListener("resize",B.rs)}try{book.destroy()}catch(e){}book=null}}
 const pad2=n=>String(n).padStart(2,"0");
-function mountBook(pages,r){
+function mountBook(pages,r,P){
   const w=$("#project .bkw");if(!w||!window.St)return false;
   killBook();
-  w.innerHTML=`<div class="bk rv"><div class="bk-in"></div></div><div class="bc"><button type="button" class="bp" aria-label="Previous page">${ARROW}</button><span class="bn" aria-live="polite"></span><button type="button" class="bp r" aria-label="Next page">${ARROW}</button></div><p class="bh">Drag a corner or click a page edge to turn it. Arrow keys work too.</p>`;
+  const rp=P&&P.poster,ri=rp?(rp.page||30)-1:-1;      // index of the left page of the rip-out pair
+  w.innerHTML=`<div class="bk"><div class="bk-in"></div></div><div class="bc"><button type="button" class="bp" aria-label="Previous page">${ARROW}</button><span class="bn" aria-live="polite"></span><button type="button" class="bp r" aria-label="Next page">${ARROW}</button></div><p class="bh">Grab any corner or edge to turn the page. Arrow keys work too.</p>${rp?`<div class="pst"><div class="pwr"><div class="pw"><i class="tp a"></i><i class="tp b"></i><div class="pt"><img src="${esc(rp.src)}" alt="" draggable="false"></div><div class="pbm"><img src="${esc(rp.src)}" alt="" draggable="false"></div></div></div><button type="button" class="psb" aria-expanded="false"><span class="lb">Click to unfold</span><span class="fp">+</span></button></div>`:""}`;
+  const bk=w.querySelector(".bk"),host=w.querySelector(".bk-in");
   const bw=400,bh=Math.round(bw/r),n=pages.length;
-  const pf=book=new St.PageFlip(w.querySelector(".bk-in"),{width:bw,height:bh,size:"stretch",minWidth:280,maxWidth:1600,minHeight:Math.round(280/r),maxHeight:Math.round(1600/r),
+  const pf=book=new St.PageFlip(host,{width:bw,height:bh,size:"stretch",minWidth:280,maxWidth:1600,minHeight:Math.round(280/r),maxHeight:Math.round(1600/r),
     showCover:true,drawShadow:true,maxShadowOpacity:.55,flippingTime:850,usePortrait:true,mobileScrollSupport:true,showPageCorners:true,swipeDistance:20});
   pf.loadFromImages(pages.map(m=>m.src));
-  const count=w.querySelector(".bn");
-  const upd=()=>{if(book!==pf)return;const i=pf.getCurrentPageIndex(),pair=pf.getOrientation()==="landscape"&&i>0&&i<n-1;count.textContent=pair?`${pad2(i+1)}–${pad2(i+2)} / ${pad2(n)}`:`${pad2(i+1)} / ${pad2(n)}`};
+  const B={dead:false,raf:0,ro:null,t:[]};book.__b=B;
+  const count=w.querySelector(".bn"),land=()=>pf.getOrientation()==="landscape";
+  let ripped=false,layer=null;const hint=w.querySelector(".bh"),hsText=hint.textContent;
+  const upd=()=>{if(book!==pf)return;const i=pf.getCurrentPageIndex(),pair=land()&&i>0&&i<n-1;count.textContent=pair?`${pad2(i+1)}–${pad2(i+2)} / ${pad2(n)}`:`${pad2(i+1)} / ${pad2(n)}`};
   /* the cover (and back cover) stand alone, centred, instead of sitting beside an empty page */
-  const solo=(clear)=>{const c=w.querySelector("canvas");if(!c)return;const i=pf.getCurrentPageIndex(),land=pf.getOrientation()==="landscape";
-    let cp="",tf="";if(!clear&&land&&i===0){cp="inset(0 0 0 50%)";tf="translateX(-25%)"}else if(!clear&&land&&i===n-1&&n%2===0){cp="inset(0 50% 0 0)";tf="translateX(25%)"}
-    c.style.clipPath=cp;c.style.transition=clear?"none":"transform .3s steps(5,end)";c.style.transform=tf};
+  const solo=clear=>{const c=host.querySelector("canvas");if(!c)return;const i=pf.getCurrentPageIndex();
+    let cp="",tf="";if(!clear&&land()&&i===0){cp="inset(0 0 0 50%)";tf="translateX(-25%)"}else if(!clear&&land()&&i===n-1&&n%2===0){cp="inset(0 50% 0 0)";tf="translateX(25%)"}
+    c.style.clipPath=cp;c.style.transition="transform .25s steps(5,end)";c.style.transform=tf};
   pf.on("changeState",e=>{if(e.data==="flipping"||e.data==="user_fold")solo(true)});
-  ["init","flip","changeOrientation"].forEach(ev=>pf.on(ev,()=>{upd();solo(false)}));upd();
+  const settle=()=>{upd();solo(false);hs()};
+  ["init","flip","changeOrientation","update"].forEach(ev=>pf.on(ev,settle));
+  settle();B.t.push(setTimeout(settle,60),setTimeout(settle,400));   // cached images can finish loading before the listeners above exist
+
+  /* grab the page by any corner or edge; the curl eases in as the mouse comes near, follows it smoothly, and eases back out */
+  (function(){
+    const fc=pf.getFlipController(),rd=pf.getRender();
+    const oShow=fc.showCorner.bind(fc),oFold=fc.fold.bind(fc),oStop=fc.stopMove.bind(fc),oFlip=fc.flip.bind(fc);
+    let mode=0,cur=null,tgt=null,rest=null,leaving=false,raf=0;
+    const stop=()=>{cancelAnimationFrame(raf);raf=0};
+    const end=()=>{stop();if(mode){try{rd.setBottomPage(null);rd.setFlippingPage(null);rd.clearShadow();fc.setState("read");fc.reset()}catch(e){}}mode=0;cur=tgt=rest=null;leaving=false;host.style.cursor=""};
+    const step=()=>{raf=0;if(B.dead||!cur||!tgt||!mode)return;
+      const k=mode===2?.5:.17;cur.x+=(tgt.x-cur.x)*k;cur.y+=(tgt.y-cur.y)*k;
+      try{fc.do(rd.convertToPage(cur))}catch(e){}
+      if(mode===1&&leaving&&Math.hypot(cur.x-tgt.x,cur.y-tgt.y)<.7){end();return}
+      raf=requestAnimationFrame(step)};
+    const go=()=>{if(!raf)raf=requestAnimationFrame(step)};
+    const geo=pos=>{const R=fc.getBoundsRect(),b=rd.convertToBook(pos),o={x:pos.x-b.x,y:pos.y-b.y},dir=b.x<R.width/2?1:0,top=b.y<R.height/2;
+      const cx=dir===1?.5:R.width-.5,cy=top?.5:R.height-.5;   // the page's own corner, which is what the curl pulls on
+      return{R,b,o,dir,top,rest:{x:o.x+cx,y:o.y+cy},ix:dir===1?1:-1,iy:top?1:-1}};
+    fc.showCorner=function(pos){
+      if(!land())return oShow(pos);
+      if(!fc.checkState("read","fold_corner"))return;
+      const g=geo(pos),{R,b,dir}=g,P2=R.pageWidth,H=R.height;
+      let t=2;if(b.x>0&&b.y>0&&b.x<R.width&&b.y<R.height&&fc.checkDirection(dir)){const dx=dir===1?b.x:R.width-b.x,dy=Math.min(b.y,H-b.y);t=Math.min(dx/(P2*.22),dy/(H*.16))}
+      if(t>=1){if(mode===1){leaving=true;tgt=rest;go()}host.style.cursor="";return}
+      if(mode===0){if(fc.calc!==null)return;if(!fc.start(pos))return;fc.setState("fold_corner");mode=1;cur={x:g.rest.x,y:g.rest.y}}
+      leaving=false;rest=g.rest;const m=P2*.13*Math.pow(1-t,1.45);
+      tgt={x:g.rest.x+g.ix*m,y:g.rest.y+g.iy*m*.8};host.style.cursor="grab";go()};
+    fc.fold=function(pos){
+      if(!land())return oFold(pos);
+      fc.setState("user_fold");
+      if(mode===0){if(fc.calc!==null)fc.reset();if(!fc.start(pos))return;cur={x:geo(pos).rest.x,y:geo(pos).rest.y}}
+      mode=2;leaving=false;tgt={x:pos.x,y:pos.y};host.style.cursor="grabbing";go()};
+    fc.stopMove=function(){
+      if(mode){if(tgt&&cur){cur={x:tgt.x,y:tgt.y};try{fc.do(rd.convertToPage(cur))}catch(e){}}stop();mode=0;cur=tgt=rest=null;host.style.cursor=""}
+      oStop()};
+    fc.flip=function(pos){if(mode){stop();mode=0;cur=tgt=rest=null;host.style.cursor=""}oFlip(pos)};
+    B.kill=()=>{stop();mode=0};
+  })();
+
   const [prev,next]=w.querySelectorAll(".bp");prev.onclick=()=>pf.flipPrev();next.onclick=()=>pf.flipNext();
-  const bk=w.querySelector(".bk");requestAnimationFrame(()=>requestAnimationFrame(()=>bk.classList.add("vis")));return true;   // wipe the book in (the scroll observer can't see an element that is fully clipped)
+
+  /* the poster: RIP ME / HANG ME on the pair of pages tears a sheet out, which then hangs under the magazine */
+  function hs(){
+    if(!rp||ripped)return;
+    const c=host.querySelector("canvas");if(!c)return;
+    if(!layer){layer=document.createElement("div");layer.className="bhs";bk.appendChild(layer)}
+    const i=pf.getCurrentPageIndex(),L=land(),both=L&&i===ri,single=!L&&(i===ri||i===ri+1);
+    layer.innerHTML="";
+    if(!(both||single)){hint.textContent=hsText;return}
+    hint.textContent="Click RIP ME to tear the poster out.";
+    const cr=c.getBoundingClientRect(),kr=bk.getBoundingClientRect();
+    Object.assign(layer.style,{left:cr.left-kr.left+"px",top:cr.top-kr.top+"px",width:cr.width+"px",height:cr.height+"px"});
+    const mk=(x0,x1,label)=>{const b=document.createElement("button");b.type="button";b.setAttribute("aria-label",label);b.title=label;Object.assign(b.style,{left:x0*100+"%",width:(x1-x0)*100+"%",top:"35%",height:"29%"});b.onclick=rip;layer.appendChild(b)};
+    if(both){mk(.5*.25,.5*.76,"Rip the poster out");mk(.5+.5*.24,.5+.5*.75,"Rip the poster out")}
+    else if(i===ri)mk(.25,.76,"Rip the poster out");else mk(.24,.75,"Rip the poster out");
+  }
+  addEventListener("resize",hs);B.rs=hs;
+  const pst=w.querySelector(".pst");
+  if(rp){
+    const pw=pst.querySelector(".pwr"),btn=pst.querySelector(".psb");
+    const lab=o=>{btn.setAttribute("aria-expanded",o?"true":"false");btn.querySelector(".lb").textContent=o?"Fold it up":"Click to unfold";btn.querySelector(".fp").textContent=o?"−":"+"};
+    btn.onclick=()=>{const o=!pw.classList.contains("open");pw.classList.toggle("open",o);lab(o);if(o)B.t.push(setTimeout(()=>pw.scrollIntoView({block:"center",behavior:matchMedia("(prefers-reduced-motion:reduce)").matches?"auto":"smooth"}),620))};
+    pw.querySelector(".pt").onclick=()=>btn.click();
+  }
+  const torn=(rp&&rp.torn||[]).map(u=>{const im=new Image();im.src=u;return im});
+  function rip(){
+    if(ripped||!rp)return;ripped=true;if(layer)layer.innerHTML="";hint.textContent=hsText;
+    const c=host.querySelector("canvas"),cr=c.getBoundingClientRect(),kr=bk.getBoundingClientRect(),L=land(),i=pf.getCurrentPageIndex();
+    const srcs=L?[pages[ri].src,pages[ri+1].src]:[pages[i].src];
+    const swap=()=>{[ri,ri+1].forEach((idx,k)=>{const pg=pf.getPage(idx),im=torn[k];if(pg&&im&&im.complete)pg.image=im});try{pf.update()}catch(e){}};
+    pst.classList.add("on");
+    const pw=pst.querySelector(".pwr"),reduce=matchMedia("(prefers-reduced-motion:reduce)").matches;
+    if(reduce){swap();return}
+    pw.style.visibility="hidden";
+    const ov=document.createElement("div");ov.className="brip";
+    Object.assign(ov.style,{left:cr.left-kr.left+"px",top:cr.top-kr.top+"px",width:cr.width+"px",height:cr.height+"px"});
+    ov.innerHTML=srcs.map(u=>`<img src="${esc(u)}" alt="" draggable="false">`).join("");
+    bk.appendChild(ov);swap();
+    const H1="steps(1,end)",shake=ov.animate([{transform:"translate(0,0) rotate(0)",easing:H1},{transform:"translate(-6px,2px) rotate(-.7deg)",easing:H1},{transform:"translate(7px,-2px) rotate(.6deg)",easing:H1},{transform:"translate(-5px,1px) rotate(-.4deg)",easing:H1},{transform:"translate(6px,0) rotate(.5deg)",easing:H1},{transform:"translate(-3px,-1px) rotate(-.2deg)",easing:H1},{transform:"translate(0,0) rotate(0)"}],{duration:420});
+    shake.onfinish=()=>{
+      const tr=pw.getBoundingClientRect(),o=ov.getBoundingClientRect(),sx=tr.width/o.width,sy=(tr.width*.7727)/o.height;
+      const dx=tr.left+tr.width/2-(o.left+o.width/2),dy=(tr.top+(tr.width*.7727)/2)-(o.top+o.height/2);
+      const fly=ov.animate([{transform:"translate(0,0) scale(1,1) rotate(0)",opacity:1},{transform:`translate(${dx}px,${dy}px) scale(${sx},${sy}) rotate(-5deg)`,opacity:1,offset:.9},{transform:`translate(${dx}px,${dy}px) scale(${sx},${sy}) rotate(0)`,opacity:0}],{duration:760,easing:"steps(7,end)"});
+      fly.onfinish=()=>{ov.remove();pw.style.visibility="";pw.animate([{opacity:0},{opacity:1}],{duration:260,easing:"steps(3,end)"})};
+      B.t.push(setTimeout(()=>pst.scrollIntoView({block:"center",behavior:"smooth"}),200));
+    };
+  }
+  B.ripFn=rip;
+  B.ro=new ResizeObserver(hs);B.ro.observe(host);
+  const [pv,nx]=[prev,next];void pv;void nx;
+  upd();
+  requestAnimationFrame(()=>requestAnimationFrame(()=>bk.classList.add("vis")));   // fade the book in (the scroll observer can't see a clipped element)
+  return true;
 }
 addEventListener("keydown",e=>{
   if(!book||(e.target.closest&&e.target.closest("input,textarea")))return;
@@ -720,7 +846,7 @@ async function buildGallery(i){
     const pages=(p.pages&&p.pages.length?p.pages.map(x=>typeof x==="string"?{src:x}:x):ms.filter(m=>kind(m)==="image")),extras=ms.filter(m=>kind(m)!=="image");
     if(pages.length>1){
       const r=await measure(pages[0]);if(tok!==gTok)return;
-      if(mountBook(pages,r)){
+      if(mountBook(pages,r,p)){
         if(extras.length){const it=await Promise.all(extras.map(async m=>({m,r:await measure(m)})));if(tok!==gTok)return;gItems=it;paintGallery()}
         return;
       }
@@ -1473,7 +1599,7 @@ tick();setInterval(tick,500);
   const tick=()=>{got++;pct()};
   const grab=u=>new Promise(r=>{const im=new Image();im.onload=im.onerror=()=>{(im.decode?im.decode().catch(()=>{}):Promise.resolve()).then(r)};im.src=u});
   const urls=ps=>{const o=new Set,add=u=>{if(typeof u==="string"&&/\.(png|jpe?g|webp|gif|avif|svg)(\?|$)/i.test(u))o.add(u)};
-    ps.forEach(p=>{add(p.cover);(p.pages||[]).forEach(add);(p.media||[]).forEach(m=>add(typeof m==="string"?m:m&&m.src));if(p.table){["menu","tee","box"].forEach(k=>Object.values(p.table[k]||{}).forEach(add));(p.table.prints||[]).forEach(add)}if(p.fold){add(p.fold.src)}if(p.fridge){(p.fridge.slides||[]).forEach(m=>m.type==="image"&&add(m.src));add(p.fridge.bg)}if(p.tv)add(p.tv.photo);});return[...o]};
+    ps.forEach(p=>{add(p.cover);(p.pages||[]).forEach(add);(p.media||[]).forEach(m=>add(typeof m==="string"?m:m&&m.src));if(p.table){["menu","tee","box"].forEach(k=>Object.values(p.table[k]||{}).forEach(add));(p.table.prints||[]).forEach(add)}if(p.fold){add(p.fold.src)}if(p.fridge){(p.fridge.slides||[]).forEach(m=>m.type==="image"&&add(m.src));add(p.fridge.bg)}if(p.tv)add(p.tv.photo);if(p.poster){add(p.poster.src);(p.poster.torn||[]).forEach(add)}});return[...o]};
   function reveal2(){
     const go=()=>{buildList();route();armed=true};
     go();
