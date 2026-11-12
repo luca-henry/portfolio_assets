@@ -88,7 +88,7 @@ main{flex:1;display:flex;flex-direction:column}
 .bk{position:relative;opacity:0}
 .bk.vis{opacity:1;transition:opacity .45s steps(4,end)}
 .bk-in{filter:drop-shadow(0 calc(1.2 * var(--u)) calc(2.4 * var(--u)) rgba(0,0,0,.28)) drop-shadow(0 calc(.15 * var(--u)) calc(.35 * var(--u)) rgba(0,0,0,.2))}
-@media (min-width:801px){.bk{margin:0 -1.6%}}
+@media (min-width:801px){.bk{margin:0 -1.6%}.dt.bkd{grid-template-columns:minmax(0,1fr);justify-items:center;gap:calc(2.5 * var(--u))}.dt.bkd .rc{order:-1;width:65%}.dt.bkd .dl{position:static;width:65%;display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.3fr) minmax(0,.9fr);column-gap:calc(2.5 * var(--u));align-items:start}.dt.bkd .dl .ht{grid-column:1;grid-row:1}.dt.bkd .dl h1{font-size:calc(5.2 * var(--u))}.dt.bkd .dl .ck{font-size:calc(2.6 * var(--u));margin:calc(1.2 * var(--u)) 0 0}.dt.bkd .dl .nt{margin-top:calc(1.2 * var(--u))}.dt.bkd .dl p{grid-column:2}.dt.bkd .dl .ar{grid-column:3;grid-row:1 / span 4;margin-top:0;flex-wrap:wrap;align-items:center}.dt.bkd .dl .ar a{flex:1 1 40%}.dt.bkd .dl .ar .bbx{flex:0 0 70%;width:70%;margin:var(--u) auto 0}}   /* magazine: the book sits in the middle of the page at about 65% of the width, the text sits under it */
 .bhs{position:absolute;pointer-events:none}
 .bhs.sg{clip-path:inset(0)}
 .stk,.stk-ov{aspect-ratio:11 / 8.5;background:#fff}
@@ -1543,7 +1543,7 @@ function detail(i){
   const lk=q=>q===p&&isSer(p)?"#magazine":"#project-"+q.slug,pv=grp[(gi-1+n)%n],nx=grp[(gi+1)%n];
   const paras=p.body.split(/\n\s*\n/).filter(Boolean);
   const body=paras.map((t,j)=>`<p style="--i:${j}">${esc(t).replace(/\n/g,"<br>")}</p>`).join("");
-  return `<div class="dt"><div class="dl"><h1>${esc(p.title)}</h1><div class="ck">/ ${esc(p.category)}</div>${body}${p.note?`<p class="nt" style="--i:${paras.length}">${esc(p.note)}</p>`:""}
+  return `<div class="dt${isBook(p)?" bkd":""}"><div class="dl"><div class="ht"><h1>${esc(p.title)}</h1><div class="ck">/ ${esc(p.category)}</div></div>${body}${p.note?`<p class="nt" style="--i:${paras.length}">${esc(p.note)}</p>`:""}
   <div class="ar"><a href="${lk(pv)}" aria-label="${isSer(p)?"Previous issue":"Previous project"}">${ARROW}</a><a class="r" href="${lk(nx)}" aria-label="${isSer(p)?"Next issue":"Next project"}">${ARROW}</a></div></div>
   <div class="rc">${isRing(p)||isPend(p)?'<div class="rgw"></div>':""}${p.table?'<div class="tbw"></div>':""}${p.fridge?'<div class="czw"></div>':""}${p.tv?'<div class="tvxw"></div>':""}${isBook(p)?'<div class="bkw"></div>':""}${p.fold&&p.fold.src?'<div class="fow"></div>':""}<div class="gl"></div></div></div>`;
 }
