@@ -132,6 +132,7 @@ main{flex:1;display:flex;flex-direction:column}
 .bp:hover{background:#fff;outline:var(--bw) solid #000;outline-offset:calc(var(--bw) * -1)}
 .bp:hover svg{filter:invert(1)}
 .bn{flex:1;text-align:center;font-family:Archivo,sans-serif;font-stretch:72%;font-weight:700;font-size:calc(3.7 * var(--u));letter-spacing:-.04em;line-height:1}
+.bh:empty{display:none}
 .bh{margin-top:calc(1 * var(--u));font-size:clamp(12px,calc(.82 * var(--u)),22px);font-style:italic}
 
 /* folded calendar / poster. Rows hinge on rows, panels hinge on panels, so it folds like a real map-fold. No overflow/filter/opacity on the 3D chain or it flattens. */
@@ -378,9 +379,12 @@ main,.view.on{min-height:0}
  .cb{flex:21 1 0;height:auto;min-height:calc(8 * var(--u))}
 }
 
-/* boombox: floats in the corner of a magazine page that has audio; click = play / pause, it thumps while it plays */
-.bbx{position:fixed;right:calc(2 * var(--u));bottom:calc(2 * var(--u));width:calc(18 * var(--u));z-index:30;display:block;padding:0;border:0;background:none;cursor:pointer;-webkit-tap-highlight-color:transparent;touch-action:manipulation;animation:bbIn .5s steps(7,end) backwards}
-.bbi{position:relative;display:block;width:100%;isolation:isolate}
+/* boombox: sits in the page (left column next to the arrows on desktop, under the book on a phone) so it never covers anything; click = play / pause, it hops with squash and stretch while it plays */
+.bbx{position:relative;display:block;flex:none;padding:0;border:0;background:none;cursor:pointer;-webkit-tap-highlight-color:transparent;touch-action:manipulation;animation:bbIn .5s steps(7,end) backwards}
+.ar.hasbb{align-items:center}
+.ar .bbx{width:30%;margin-left:calc(1 * var(--u))}
+.bkw .bbx{width:calc(40 * var(--u));margin:var(--g) auto 0}
+.bbi{position:relative;display:block;width:100%;isolation:isolate;transform-origin:50% 100%}
 .bbi img{display:block;width:100%;height:auto;position:relative;pointer-events:none;user-select:none;-webkit-user-select:none}
 .bbi i{position:absolute;display:block;pointer-events:none;border-radius:50%}
 .bbi .bs{width:25.18%;aspect-ratio:1;background-image:var(--bi);background-size:397.16% auto;z-index:1}
@@ -391,16 +395,24 @@ main,.view.on{min-height:0}
 .bbi .bw.r{left:65.95%;top:46.67%}
 .bbl{display:block;width:max-content;margin:calc(.9 * var(--u)) auto 0;padding:calc(.7 * var(--u)) calc(1.4 * var(--u));background:#000;color:#fff;font:700 calc(1.7 * var(--u))/1 Secondary,"Helvetica Neue",Helvetica,Arial,sans-serif;letter-spacing:.04em;text-transform:uppercase}
 .bbx:focus-visible .bbl{outline:3px solid #000;outline-offset:3px}
-.bbx.on .bbi{animation:bbB .46s steps(1,end) infinite}
-.bbx.on .bs{animation:bbP .46s steps(1,end) infinite}
-.bbx.on .bw{animation:bbW .92s steps(5,end) infinite}
-.bbx.on .bw.b{animation-delay:.46s}
-@keyframes bbIn{from{transform:translateY(130%)}to{transform:none}}
-@keyframes bbB{0%{transform:translateY(-2.5%) rotate(-.7deg)}18%{transform:none}50%{transform:translateY(-1.2%) rotate(.7deg)}68%{transform:none}}
-@keyframes bbP{0%{transform:scale(1.11)}16%{transform:scale(1.04)}36%{transform:scale(1.08)}56%{transform:scale(1)}}
+.bbx.on .bbi{animation:bbB .6s linear infinite}
+.bbx.on .bs{animation:bbP .6s steps(1,end) infinite}
+.bbx.on .bw{animation:bbW 1.2s steps(5,end) infinite}
+.bbx.on .bw.b{animation-delay:.6s}
+@keyframes bbIn{from{opacity:0;transform:translateY(40%)}to{opacity:1;transform:none}}
+/* squash (about to jump) > stretch (going up) > hang > stretch (coming down) > land and squash > settle */
+@keyframes bbB{
+ 0%{transform:scale(1.15,.82);animation-timing-function:cubic-bezier(.15,.75,.3,1)}
+ 22%{transform:translateY(-24%) scale(.88,1.16);animation-timing-function:ease-out}
+ 44%{transform:translateY(-30%) scale(1,1);animation-timing-function:ease-in}
+ 68%{transform:translateY(-8%) scale(.9,1.12);animation-timing-function:ease-in}
+ 82%{transform:scale(1.18,.8);animation-timing-function:ease-out}
+ 92%{transform:scale(.97,1.05);animation-timing-function:ease-in-out}
+ 100%{transform:scale(1.15,.82)}}
+@keyframes bbP{0%{transform:scale(1.04)}14%{transform:scale(1.11)}30%{transform:scale(1)}74%{transform:scale(1.02)}84%{transform:scale(1.12)}96%{transform:scale(1.03)}}
 @keyframes bbW{0%{opacity:1;transform:scale(1)}100%{opacity:0;transform:scale(2.1)}}
-@media (prefers-reduced-motion:reduce){.bbx{animation:none}.bbx.on .bbi,.bbx.on .bw{animation:none}.bbx.on .bs{animation-duration:.92s}}
-@media (max-width:800px){.bbx{width:calc(38 * var(--u));right:calc(3 * var(--u));bottom:calc(3 * var(--u))}.bbl{font-size:calc(3.4 * var(--u));padding:calc(1.4 * var(--u)) calc(2.6 * var(--u));margin-top:calc(1.6 * var(--u))}.bbi .bw{border-width:2px}}
+@media (prefers-reduced-motion:reduce){.bbx{animation:none}.bbx.on .bbi,.bbx.on .bw{animation:none}.bbx.on .bs{animation-duration:1.2s}}
+@media (max-width:800px){.bbl{font-size:calc(3.4 * var(--u));padding:calc(1.4 * var(--u)) calc(2.6 * var(--u));margin-top:calc(1.6 * var(--u))}.bbi .bw{border-width:2px}}
 #ld{position:fixed;inset:0;z-index:60;background:#fff;overflow:hidden}
 #ld b{position:absolute;left:0;top:0;transform-origin:0 0;font:700 200px/1 "Helvetica Neue",Helvetica,Arial,sans-serif;color:#000;white-space:nowrap;letter-spacing:0;will-change:transform}
 #sh{position:fixed;inset:0;z-index:50;pointer-events:none;display:flex;flex-direction:column;visibility:hidden}
@@ -634,7 +646,7 @@ const isBook=p=>p.format?/magazine|booklet|book|zine/i.test(p.format):/magazine|
 let book=null;
 function killBook(){if(book){const B=book.__b;if(B){B.dead=true;cancelAnimationFrame(B.raf);if(B.ro)B.ro.disconnect();if(B.kill)B.kill();(B.t||[]).forEach(clearTimeout);if(B.rs)removeEventListener("resize",B.rs);if(B.rz)removeEventListener("resize",B.rz);if(B.rt)removeEventListener("resize",B.rt);try{const r0=book.getRender();r0.dead=true;cancelAnimationFrame(r0.raf)}catch(e){}}try{book.destroy()}catch(e){}book=null}}
 let BOOM=null;
-function killBoom(){if(BOOM){try{BOOM.au.pause();BOOM.au.removeAttribute("src");BOOM.au.load()}catch(e){}BOOM.el.remove();BOOM=null}}
+function killBoom(){if(BOOM){try{BOOM.mq.removeEventListener("change",BOOM.on)}catch(e){}try{const ar=document.querySelector("#project .dl .ar");if(ar)ar.classList.remove("hasbb")}catch(e){}try{BOOM.au.pause();BOOM.au.removeAttribute("src");BOOM.au.load()}catch(e){}BOOM.el.remove();BOOM=null}}
 function mountBoombox(P){
   const a=P&&P.audio;if(!a||!a.src||!a.boombox)return;
   if(BOOM&&BOOM.src===a.src)return;
@@ -648,15 +660,26 @@ function mountBoombox(P){
   au.addEventListener("play",()=>ui(true));au.addEventListener("pause",()=>ui(false));
   au.addEventListener("ended",()=>{try{au.currentTime=0}catch(e){}ui(false)});
   el.onclick=()=>{if(au.paused){const pr=au.play();if(pr&&pr.catch)pr.catch(()=>ui(false))}else au.pause()};
-  document.body.appendChild(el);
-  BOOM={el,au,src:a.src};
+  BOOM={el,au,src:a.src,mq:matchMedia("(max-width:800px)")};
+  BOOM.on=()=>slotBoombox();BOOM.mq.addEventListener("change",BOOM.on);
+  slotBoombox();
+}
+/* desktop: in the left column, in the row with the big arrows. phone: under the magazine's controls. (the book rebuilds its own block, so this is also called after every rebuild) */
+function slotBoombox(){
+  if(!BOOM)return;
+  const el=BOOM.el,phone=BOOM.mq.matches,ar=document.querySelector("#project .dl .ar"),w=document.querySelector("#project .bkw");
+  if(ar)ar.classList.toggle("hasbb",!phone);
+  const host=phone?w:ar;
+  if(!host){return}
+  if(phone){const before=host.querySelector(".pst");if(el.parentNode!==host||el.nextElementSibling!==before)host.insertBefore(el,before)}
+  else if(el.parentNode!==host)host.appendChild(el)
 }
 const pad2=n=>String(n).padStart(2,"0");
 function mountBook(pages,r,P){
   const w=$("#project .bkw");if(!w||!window.St)return false;
   killBook();
   const rp=P&&P.poster,ri=rp?(rp.page||30)-1:-1;      // index of the left page of the rip-out pair
-  w.innerHTML=`<div class="bk"><div class="bk-in"></div></div><div class="bc"><button type="button" class="bp" aria-label="Previous page">${ARROW}</button><span class="bn" aria-live="polite"></span><button type="button" class="bp r" aria-label="Next page">${ARROW}</button></div><p class="bh">Grab any corner or edge to turn the page. Arrow keys work too.</p>${rp?`<div class="pst"><div class="pwr"><div class="pw"><i class="tp a"></i><i class="tp b"></i><div class="pt"><img src="${esc(rp.src)}" alt="" draggable="false"></div><div class="pbm"><img src="${esc(rp.src)}" alt="" draggable="false"></div></div></div><button type="button" class="psb" aria-expanded="false"><span class="lb">Click to unfold</span><span class="fp">+</span></button></div>`:""}`;
+  w.innerHTML=`<div class="bk"><div class="bk-in"></div></div><div class="bc"><button type="button" class="bp" aria-label="Previous page">${ARROW}</button><span class="bn" aria-live="polite"></span><button type="button" class="bp r" aria-label="Next page">${ARROW}</button></div><p class="bh"></p>${rp?`<div class="pst"><div class="pwr"><div class="pw"><i class="tp a"></i><i class="tp b"></i><div class="pt"><img src="${esc(rp.src)}" alt="" draggable="false"></div><div class="pbm"><img src="${esc(rp.src)}" alt="" draggable="false"></div></div></div><button type="button" class="psb" aria-expanded="false"><span class="lb">Click to unfold</span><span class="fp">+</span></button></div>`:""}`;
   const bk=w.querySelector(".bk"),host=w.querySelector(".bk-in");
   const bw=400,bh=Math.round(bw/r),n=pages.length;
   /* on a phone (upright or sideways) the book is allowed to be small enough to show a full two-page spread, like the real magazine */
@@ -789,6 +812,7 @@ function mountBook(pages,r,P){
   const [pv,nx]=[prev,next];void pv;void nx;
   upd();
   requestAnimationFrame(()=>requestAnimationFrame(()=>bk.classList.add("vis")));   // fade the book in (the scroll observer can't see a clipped element)
+  slotBoombox();
   return true;
 }
 addEventListener("keydown",e=>{
@@ -924,7 +948,7 @@ async function buildGallery(i){
   const ms=[...(p.cover&&!hasFold?[{src:p.cover,type:"image"}]:[]),...(p.media||[])];   // a fold-out project shows the fold-out first, then its other media as a grid
   if(hasFold){await mountFold(p,tok);if(tok!==gTok)return;if(!ms.length)return}
   if(isBook(p)){
-    const pages=(p.pages&&p.pages.length?p.pages.map(x=>typeof x==="string"?{src:x}:x):ms.filter(m=>kind(m)==="image")),extras=ms.filter(m=>kind(m)!=="image");
+    const pages=(p.pages&&p.pages.length?p.pages.map(x=>typeof x==="string"?{src:x}:x):ms.filter(m=>kind(m)==="image"&&!/boombox/i.test(m.src))),extras=ms.filter(m=>kind(m)!=="image");
     if(pages.length>1){
       const r=await measure(pages[0],{wait:25000,fb:.7727});if(tok!==gTok)return;   // a book must never guess its shape: wait for the real one
       if(mountBook(pages,r,p)){
