@@ -11,7 +11,7 @@
 /* font-weight range = the browser uses your file as-is instead of faking bold on top of it */
 @font-face{font-family:"Main";src:url("fonts/main_font.woff2") format("woff2"),url("fonts/main_font.woff") format("woff"),url("fonts/main_font.otf") format("opentype"),url("fonts/main_font.ttf") format("truetype");font-weight:100 900;font-style:normal;font-display:swap}
 @font-face{font-family:"Secondary";src:local("Helvetica Neue"),local("Helvetica"),url("fonts/secondary_font.woff2") format("woff2"),url("fonts/secondary_font.ttf") format("truetype");font-display:swap}
-:root{--c-def:url("cursors/default.png") 6 1,default;--c-ptr:url("cursors/pointer.png") 5 5,pointer;--c-open:url("cursors/hover.png") 18 17,grab;--c-fist:url("cursors/grab.png") 18 16,grabbing;--u:min(1vw,1.7778svh);--acc:#44EE55;--bg:#fff;--fg:#000;--mute:#8c8c8c;--pad:calc(2.6 * var(--u));--bw:clamp(3px,calc(.45 * var(--u)),12px);--ease:steps(7,end);--out:steps(4,end)}
+:root{--c-def:url("cursors/default.png") 5 1,default;--c-ptr:url("cursors/pointer.png") 5 4,pointer;--c-open:url("cursors/hover.png") 16 15,grab;--c-fist:url("cursors/grab.png") 16 14,grabbing;--u:min(1vw,1.7778svh);--acc:#D4FF00;--bg:#fff;--fg:#000;--mute:#8c8c8c;--pad:calc(2.6 * var(--u));--bw:clamp(3px,calc(.45 * var(--u)),12px);--ease:steps(7,end);--out:steps(4,end)}
 *{box-sizing:border-box;margin:0;padding:0}
 html{background:var(--bg);-webkit-text-size-adjust:100%;text-size-adjust:100%}
 a,button{-webkit-tap-highlight-color:transparent}
@@ -1607,6 +1607,7 @@ function setCur(i){
 let T=[],A=[],lraf=0;
 const FR=100;   // ms per drawn frame (100 = 10fps). Higher = choppier, lower = smoother.
 const lerp=(a,b,t)=>a+(b-a)*t,smooth=x=>1-Math.pow(1-x,4);
+const ACC=(()=>{const h=(getComputedStyle(document.documentElement).getPropertyValue("--acc")||"#fff").trim().replace("#",""),f=h.length===3?h.replace(/./g,"$&$&"):h,n=parseInt(f,16);return isNaN(n)?[255,255,255]:[n>>16&255,n>>8&255,n&255]})();   /* accent colour read from --acc, so the colour is changed in ONE place (the --acc line at the top) */
 const kw=st=>st>=187?"ultra-expanded":st>=137?"extra-expanded":st>=118?"expanded":st>=106?"semi-expanded":st>=94?"normal":st>=81?"semi-condensed":st>=69?"condensed":st>=56?"extra-condensed":"ultra-condensed";
 const probe=document.createElement("div");probe.style.cssText="position:absolute;visibility:hidden;height:0;width:var(--u)";document.body.appendChild(probe);
 function applyList(){
@@ -1616,7 +1617,7 @@ function applyList(){
   const G=M?{fs:6,py0:1.5,px0:2,py1:3,px1:2.5,h1:8}:{fs:2.3,py0:.5,px0:1,py1:1.6,px1:1.1,h1:3.6};
   const fs=G.fs*u,h0=fs*1.1,h1=G.h1*u;
   items.forEach(a=>{
-    const t=T[+a.dataset.i]||0,fb=a.firstElementChild,el=fb.firstElementChild,cr=Math.round(lerp(140,68,t)),cg=Math.round(lerp(140,238,t)),cb=Math.round(lerp(140,85,t));
+    const t=T[+a.dataset.i]||0,fb=a.firstElementChild,el=fb.firstElementChild,cr=Math.round(lerp(140,ACC[0],t)),cg=Math.round(lerp(140,ACC[1],t)),cb=Math.round(lerp(140,ACC[2],t));
     a.style.setProperty("--t",t);
     a.style.padding=`${lerp(G.py0,G.py1,t)*u}px ${lerp(G.px0,G.px1,t)*u}px`;
     a.style.color=`rgb(${cr},${cg},${cb})`;
