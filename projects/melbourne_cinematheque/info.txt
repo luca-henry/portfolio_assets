@@ -4,7 +4,8 @@ order: 1
 fold: calendar.jpg
 cols: 6
 rows: 4
-note: Small italic line shown under the description.
+note: Unfold the calendar to see every season.
 ---
-The main description text goes here, below the divider.
-You can write as many paragraphs as you like.
+This project was an identity built for the Melbourne Cinémathèque and the 2026 season calendar spreads. The Melbourne Cinémathèque is a non profit screening of repertory cinema on Wednesdays at ACMI in Fed Square. This project was made for my university CDS3001 Culture and Identity studio.   For me, film is all about expressing yourself, and the one thing every film has is colour. Each season gets it own loud two-tone halftone palette that are pushed into bitmaps that feel strange but carry on feeling recognisable. The type featured in the work is a pixel baroque set: PF Pixelscript (headings), Argent Pixel CF (secondary) and Big Caslon (body). 
+
+The Identity runs across a poster, an A1 fold-out calendar (shown to the right) for the full season and four animated screens.
