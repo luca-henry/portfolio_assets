@@ -16,6 +16,7 @@
 html{background:var(--bg);-webkit-text-size-adjust:100%;text-size-adjust:100%}
 a,button{-webkit-tap-highlight-color:transparent}
 html{cursor:var(--c-def)}
+body.press,body.press *{cursor:var(--c-fist)!important}
 a[href],button,summary,[role=button],label{cursor:var(--c-ptr)}
 body{min-height:100svh;display:flex;flex-direction:column;background:var(--bg);color:var(--fg);font-family:Secondary,"Helvetica Neue",Helvetica,Arial,sans-serif;letter-spacing:-.02em;-webkit-font-smoothing:antialiased}
 a{color:inherit;text-decoration:none}
@@ -1608,6 +1609,8 @@ let T=[],A=[],lraf=0;
 const FR=100;   // ms per drawn frame (100 = 10fps). Higher = choppier, lower = smoother.
 const lerp=(a,b,t)=>a+(b-a)*t,smooth=x=>1-Math.pow(1-x,4);
 const ACC=(()=>{const h=(getComputedStyle(document.documentElement).getPropertyValue("--acc")||"#fff").trim().replace("#",""),f=h.length===3?h.replace(/./g,"$&$&"):h,n=parseInt(f,16);return isNaN(n)?[255,255,255]:[n>>16&255,n>>8&255,n&255]})();   /* accent colour read from --acc, so the colour is changed in ONE place (the --acc line at the top) */
+/* pressing anything clickable swaps the pointing hand for the closed hand until you let go (kept on for a beat so a quick click still shows it) */
+{let pt=0;const on=e=>{if(e.button||e.pointerType==="touch")return;let ok=false;try{ok=/,\s*pointer\s*$/.test(getComputedStyle(e.target).cursor)}catch(x){}if(!ok)return;clearTimeout(pt);document.body.classList.add("press")},off=()=>{clearTimeout(pt);pt=setTimeout(()=>document.body.classList.remove("press"),160)};addEventListener("pointerdown",on,true);addEventListener("pointerup",off,true);addEventListener("pointercancel",off,true);addEventListener("blur",off)}
 const kw=st=>st>=187?"ultra-expanded":st>=137?"extra-expanded":st>=118?"expanded":st>=106?"semi-expanded":st>=94?"normal":st>=81?"semi-condensed":st>=69?"condensed":st>=56?"extra-condensed":"ultra-condensed";
 const probe=document.createElement("div");probe.style.cssText="position:absolute;visibility:hidden;height:0;width:var(--u)";document.body.appendChild(probe);
 function applyList(){
