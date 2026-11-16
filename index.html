@@ -76,6 +76,7 @@ main{flex:1;display:flex;flex-direction:column}
 .dl h1{font-family:Archivo,"Helvetica Neue",Arial,sans-serif;font-stretch:72%;font-weight:800;text-transform:uppercase;font-size:calc(7.2 * var(--u));line-height:.86;letter-spacing:-.045em}
 .ck{margin:calc(2.6 * var(--u)) 0 calc(2.4 * var(--u));font-family:Archivo,sans-serif;font-stretch:72%;font-weight:700;font-size:calc(3.7 * var(--u));letter-spacing:-.04em;color:#a6a6a6;line-height:1}
 .dl p{font-size:clamp(14px,calc(1.1 * var(--u)),30px);line-height:1.28;letter-spacing:.01em;max-width:62ch}
+.dl p + p{margin-top:1.1em}   /* a blank line in info.txt = a new paragraph = a visible gap */
 .dl .nt{margin-top:calc(2.2 * var(--u));font-size:clamp(12px,calc(.82 * var(--u)),22px);line-height:1.02;font-style:italic}
 .ar{display:flex;gap:calc(2 * var(--u));margin-top:calc(3.4 * var(--u))}
 .ar a{flex:1;background:#000;aspect-ratio:2.9/1;display:grid;place-items:center;padding:calc(.9 * var(--u)) calc(1 * var(--u))}
@@ -293,7 +294,18 @@ body.pbg{background:transparent}
 /* panel zoom */
 #zm{--g:calc(1.7 * var(--u));position:fixed;inset:0;z-index:40;background:#fff;display:flex;flex-direction:column;align-items:center;gap:var(--g);padding:calc(8 * var(--u)) var(--pad) var(--pad)}
 #zm .zs{flex:1;min-height:0;width:100%;display:flex;align-items:center;justify-content:center}
-#zm .zp{border:var(--bw) solid var(--fg);background-color:#fff;background-repeat:no-repeat}
+#zm .zp{position:relative;overflow:hidden;touch-action:none;border:var(--bw) solid var(--fg);background-color:#fff}
+#zm .zi{position:absolute;inset:0;background-repeat:no-repeat;transform-origin:0 0}
+#zm .zp.pan{cursor:var(--c-open)}#zm .zp.pan.dn{cursor:var(--c-fist)}
+/* thick + and - zoom buttons, left of the panel */
+#zm .zt{position:absolute;left:var(--pad);top:50%;transform:translateY(-50%);display:flex;flex-direction:column;gap:var(--g);z-index:2}
+.zbn{position:relative;width:max(44px,calc(6.4 * var(--u)));aspect-ratio:1;border:0;background:#000;cursor:var(--c-ptr);padding:0}
+.zbn::before,.zbn::after{content:"";position:absolute;left:50%;top:50%;background:#fff;transform:translate(-50%,-50%)}
+.zbn::before{width:54%;height:17%}.zbn.in::after{width:17%;height:54%}
+.zbn:hover{background:#fff;outline:var(--bw) solid #000;outline-offset:calc(var(--bw) * -1)}
+.zbn:hover::before,.zbn:hover::after{background:#000}
+.zbn:disabled{opacity:.22;pointer-events:none}
+@media (max-width:800px){#zm .zt{top:var(--pad);transform:none;flex-direction:row}}
 #zm .bc{width:100%;max-width:calc(60 * var(--u));margin-top:0}
 .zx{position:absolute;top:var(--pad);right:var(--pad);border:0;cursor:var(--c-ptr);background:#000;color:#fff;height:calc(4.4 * var(--u));padding:0 calc(1.6 * var(--u));font-family:Archivo,"Helvetica Neue",Arial,sans-serif;font-stretch:72%;font-weight:800;font-size:calc(2.6 * var(--u));letter-spacing:-.03em;text-transform:uppercase;line-height:1}
 .zx:hover{background:#fff;color:#000;outline:var(--bw) solid #000;outline-offset:calc(var(--bw) * -1)}
@@ -893,11 +905,35 @@ function foldTo(to,d){
    Optional in projects.json "fold":  "zoom": "bigger-image.jpg"  (loads on top of the normal one for extra sharpness)   "labels": ["Cover","4-18 Feb", ...]  (one per panel, reading order) */
 let zm=null;
 function closeZoom(){if(!zm)return;zm.el.remove();document.documentElement.style.overflow=zm.ov;zm=null}
+const ZSTEPS=[1,1.6,2.4,3.4,4.6];
+function zoomApply(){
+  const Z=zm;if(!Z)return;const zp=Z.el.querySelector(".zp"),zi=Z.el.querySelector(".zi");if(!zp||!zi)return;
+  const W=zp.clientWidth,H=zp.clientHeight;Z.tx=Math.min(0,Math.max(W-Z.z*W,Z.tx));Z.ty=Math.min(0,Math.max(H-Z.z*H,Z.ty));
+  zi.style.transform=Z.z===1?"":`translate(${Z.tx}px,${Z.ty}px) scale(${Z.z})`;zp.classList.toggle("pan",Z.z>1);
+  const [bi,bo]=[Z.el.querySelector(".zbn.in"),Z.el.querySelector(".zbn.out")];if(bi)bi.disabled=Z.z>=ZSTEPS[ZSTEPS.length-1]-.001;if(bo)bo.disabled=Z.z<=1.001;
+}
+function zoomSet(nz,fx,fy){      // zoom to nz keeping the point (fx,fy) of the panel where it is
+  const Z=zm;if(!Z)return;const zp=Z.el.querySelector(".zp");if(!zp)return;
+  nz=Math.max(1,Math.min(ZSTEPS[ZSTEPS.length-1],nz));if(fx==null){fx=zp.clientWidth/2;fy=zp.clientHeight/2}
+  const px=(fx-Z.tx)/Z.z,py=(fy-Z.ty)/Z.z;Z.z=nz;Z.tx=fx-nz*px;Z.ty=fy-nz*py;zoomApply();
+}
+function zoomStep(dir){
+  const Z=zm;if(!Z)return;let k=0;for(let i=0;i<ZSTEPS.length;i++)if(ZSTEPS[i]<=Z.z+.001)k=i;
+  zoomSet(ZSTEPS[Math.max(0,Math.min(ZSTEPS.length-1,k+dir))]);
+}
+function zoomBind(){                // drag to move around once zoomed in, wheel to zoom
+  const Z=zm;if(!Z)return;const zp=Z.el.querySelector(".zp");if(!zp)return;let d=null;
+  zp.onpointerdown=e=>{if(Z.z<=1||e.button)return;d={x:e.clientX,y:e.clientY,tx:Z.tx,ty:Z.ty};zp.setPointerCapture(e.pointerId);zp.classList.add("dn")};
+  zp.onpointermove=e=>{if(!d)return;Z.tx=d.tx+e.clientX-d.x;Z.ty=d.ty+e.clientY-d.y;zoomApply()};
+  const end=()=>{d=null;zp.classList.remove("dn")};zp.onpointerup=end;zp.onpointercancel=end;
+  zp.onwheel=e=>{e.preventDefault();const r=zp.getBoundingClientRect();zoomSet(Z.z*(e.deltaY<0?1.18:1/1.18),e.clientX-r.left,e.clientY-r.top)};
+}
 function zoomPanel(){
   const F=fold,Z=zm;if(!F||!Z)return;
   const {cols,rows,R}=F,n=cols*rows,i=Z.i,r=Math.floor(i/cols),c=i%cols,pr=(R*rows/cols).toFixed(4);
   const bg=(F.zoom?`url('${esc(F.zoom)}'),`:"")+`url('${esc(F.src)}')`;
-  Z.el.querySelector(".zs").innerHTML=`<div class="zp" style="aspect-ratio:${pr};width:min(92vw,calc(76vh * ${pr}));background-image:${bg};background-size:${cols*100}% ${rows*100}%;background-position:${cols>1?c/(cols-1)*100:0}% ${rows>1?r/(rows-1)*100:0}%"></div>`;
+  Z.el.querySelector(".zs").innerHTML=`<div class="zp" style="aspect-ratio:${pr};width:min(92vw,calc(76vh * ${pr}))"><div class="zi" style="background-image:${bg};background-size:${cols*100}% ${rows*100}%;background-position:${cols>1?c/(cols-1)*100:0}% ${rows>1?r/(rows-1)*100:0}%"></div></div>`;
+  Z.z=1;Z.tx=0;Z.ty=0;zoomApply();zoomBind();
   const lab=F.labels&&F.labels[i];Z.el.querySelector(".bn").textContent=(lab?lab+"  ":"")+pad2(i+1)+" / "+pad2(n);
 }
 function zoomGo(d){const F=fold;if(!zm||!F)return;const n=F.cols*F.rows;zm.i=(zm.i+d+n)%n;zoomPanel()}
@@ -905,18 +941,19 @@ function openZoom(i){
   if(!fold||zm)return;
   shutter(()=>{
     const el=document.createElement("div");el.id="zm";el.setAttribute("role","dialog");el.setAttribute("aria-modal","true");
-    el.innerHTML=`<button type="button" class="zx">Close ×</button><div class="zs"></div><div class="bc"><button type="button" class="bp" aria-label="Previous panel">${ARROW}</button><span class="bn" aria-live="polite"></span><button type="button" class="bp r" aria-label="Next panel">${ARROW}</button></div>`;
+    el.innerHTML=`<button type="button" class="zx">Close ×</button><div class="zt"><button type="button" class="zbn in" aria-label="Zoom in"></button><button type="button" class="zbn out" aria-label="Zoom out"></button></div><div class="zs"></div><div class="bc"><button type="button" class="bp" aria-label="Previous panel">${ARROW}</button><span class="bn" aria-live="polite"></span><button type="button" class="bp r" aria-label="Next panel">${ARROW}</button></div>`;
     document.body.appendChild(el);
     zm={el,i,ov:document.documentElement.style.overflow};document.documentElement.style.overflow="hidden";
     el.querySelector(".zx").onclick=()=>shutter(closeZoom);
     const [pv,nx]=el.querySelectorAll(".bp");pv.onclick=()=>zoomGo(-1);nx.onclick=()=>zoomGo(1);
+    el.querySelector(".zbn.in").onclick=()=>zoomStep(1);el.querySelector(".zbn.out").onclick=()=>zoomStep(-1);
     el.addEventListener("click",e=>{if(e.target===el||e.target.classList.contains("zs"))shutter(closeZoom)});
     zoomPanel();el.querySelector(".zx").focus();
   });
 }
 addEventListener("keydown",e=>{
   if(!zm)return;
-  if(e.key==="Escape")shutter(closeZoom);else if(e.key==="ArrowRight")zoomGo(1);else if(e.key==="ArrowLeft")zoomGo(-1);else return;
+  if(e.key==="Escape")shutter(closeZoom);else if(e.key==="ArrowRight")zoomGo(1);else if(e.key==="ArrowLeft")zoomGo(-1);else if(e.key==="+"||e.key==="=")zoomStep(1);else if(e.key==="-"||e.key==="_")zoomStep(-1);else return;
   e.preventDefault();
 });
 
