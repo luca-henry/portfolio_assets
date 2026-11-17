@@ -2,7 +2,11 @@ title: Letties
 category: brand identity
 order: 2
 format: table
-note: Small italic line shown under the description.
+note: Click on things off the rack to see them up close.
 ---
-The main description text goes here, below the divider.
-You can write as many paragraphs as you like.
+This project was an identity built for Letties, a greek restaurant. This project was made for my university CDS3001 Culture and Identity studio.
+
+Every Sunday night there is a family that follows a custom, they sit down to a homemade souvlaki dinner. The restaurant is build around that feeling of comfort that being together as a family creates. Walking into this restaurant is meant to feel more like walking into someone’s house, rather than a brand. The Logo is built on a statue of Apollo, who stands for harmony and tradition. The logo is drawn with greek typefaces and pushed into halftone effects with a single bold blue colour, its supported by Greek key borders and social tile backdrops.
+
+The Identity runs across a shopfront sign and window, a die-cut takeaway box, front and back menus and front and back t-shirts.
+
