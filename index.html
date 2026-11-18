@@ -398,8 +398,7 @@ main,.view.on{min-height:0}
 }
 
 /* hfash magazine page: a grid of covers, then a black box for every issue still to come */
-.mi{max-width:62%;margin-top:calc(2.6 * var(--u));font-size:max(calc(2.3 * var(--u)),15px);line-height:1.28;font-weight:500;letter-spacing:-.015em}
-@media (max-width:800px){.mi{max-width:none}}
+.mgi{max-width:62ch;margin-top:calc(1.8 * var(--u));font-size:clamp(14px,calc(1.1 * var(--u)),30px);line-height:1.28;letter-spacing:.01em}
 .yr{margin-top:calc(3 * var(--u))}
 .yh{background:#000;width:100%;height:calc(9 * var(--u));padding:calc(.6 * var(--u)) calc(.9 * var(--u))}
 .yh .fb{display:block;height:100%}.yh .fit{color:var(--acc)}
@@ -583,7 +582,7 @@ a.mt:focus-visible{outline:3px solid #000;outline-offset:4px}
   <!-- HFASH MAGAZINE (all the issues, built by JS) -->
   <section id="magazine" class="view">
     <h1 class="banner" aria-label="HFASH Magazine"><div class="fb"><span class="fit" aria-hidden="true">HFASH MAGAZINE</span></div></h1>
-    <p class="mi">hfash is a biannual magazine about UK street culture, made in Melbourne. It's about the music that gets passed around on burnt CDs and tapes, grime, football, and the clothes that go with all of it. I'm the editor and designer. Every issue is below, sorted by year.</p>
+    <p class="mgi">hfash is a quarterly magazine covering whatever I'm interested in at the time. Each issue is a mix of different topics, and I'm the editor and designer. All the issues are below, sorted by year.</p>
     <div id="mg"></div>
   </section>
 
