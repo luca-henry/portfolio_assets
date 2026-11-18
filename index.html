@@ -598,8 +598,8 @@ a.mt:focus-visible{outline:3px solid #000;outline-offset:4px}
     <div class="at">
       <div class="blk" aria-hidden="true"><div class="fb"><span class="fit">ABOUT</span></div></div>
       <!-- Replace img src with your photos. If the file is missing, a placeholder shows. -->
-      <div class="ph shot"><img src="img/portrait-1.jpg" alt="Portrait of Luca Henry" onerror="this.remove()"><span>PHOTO</span></div>
-      <div class="ph shot inv"><img src="img/portrait-2.jpg" alt="" onerror="this.remove()"><span style="color:#fff">PHOTO</span></div>
+      <div class="ph shot"><img src="img/portrait-1.jpg?v=2" alt="Portrait of Luca Henry" onerror="this.remove()"><span>PHOTO</span></div>
+      <div class="ph shot inv"><img src="img/portrait-2.jpg?v=2" alt="" onerror="this.remove()"><span style="color:#fff">PHOTO</span></div>
     </div>
     <div class="ab">
       <div class="meb" aria-hidden="true"><div class="fb"><span class="fit">ME</span></div></div>
@@ -1113,7 +1113,7 @@ async function makeMerch(src){
   const mk=(w,h)=>{const c=document.createElement("canvas");c.width=w;c.height=h;return[c,c.getContext("2d")]};
   const logo=(x,w,cx,top)=>{const h=w*L.naturalHeight/L.naturalWidth;x.save();x.globalCompositeOperation="multiply";x.drawImage(L,cx-w/2,top,w,h);x.restore()};
   const FAB="#dcdad6",EDGE="#b9b6b0";
-  const TB2=await Promise.all([ldImg("img/tee-blank-front.png"),ldImg("img/tee-blank-back.png")]);
+  const TB2=await Promise.all([ldImg("img/tee-blank-front.png?v=2"),ldImg("img/tee-blank-back.png?v=2")]);
   const photoTee=(im,back)=>{   // a real blank tee photo (img/tee-blank-front.png / -back.png) with the logo printed on it
     const S=3,[c,x]=mk(im.naturalWidth*S,im.naturalHeight*S),W=c.width,H=c.height;x.imageSmoothingQuality="high";x.drawImage(im,0,0,W,H);
     if(back)logo(x,W*.42,W*.5,H*.2);else logo(x,W*.16,W*.64,H*.3);   // back: big across the shoulders; front: small, wearer's left chest (right as you look at it)
