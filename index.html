@@ -288,6 +288,8 @@ body.pbg{background:transparent}
 .rg .gl2{position:absolute;left:14%;right:14%;top:72%;height:16%;background:radial-gradient(closest-side,rgba(214,177,92,.28),transparent);pointer-events:none}
 .rg .hint{opacity:.75;text-align:center;flex:1}
 @media (max-width:800px){.rg{height:min(110vw,calc(100svh - 24 * var(--u)))}.rg.pgl{height:min(110vw,max(50vw,calc(100svh - var(--rgt,0px) - 3 * var(--u))))}.rgw{margin-bottom:calc(3 * var(--u))}.rg .bar,.rg .ep{font-size:calc(2.6 * var(--u))}.rg .bar button{padding:calc(2 * var(--u)) calc(3 * var(--u))}}
+/* phone, pendant project: the chain and pendant sit straight under the title (they used to be after all the text, far below the screen) */
+@media (max-width:800px){.dt.pdd{display:flex;flex-direction:column;align-items:stretch;gap:0}.dt.pdd .dl{display:contents}.dt.pdd .ht{order:0}.dt.pdd .rc{order:1;margin-top:calc(3 * var(--u))}.dt.pdd .dl>p{order:2}.dt.pdd .dl>p:first-of-type{margin-top:calc(2 * var(--u))}.dt.pdd .dl>.ar{order:3;margin-top:calc(6 * var(--u))}}
 .fow{--g:calc(1.7 * var(--u));margin-bottom:var(--g)}
 .fo{position:relative}
 .fo-stage{position:relative;perspective:2200px;perspective-origin:50% 22%}
@@ -1639,7 +1641,7 @@ function detail(i){
   const lk=q=>q===p&&isSer(p)?"#magazine":"#project-"+q.slug,pv=grp[(gi-1+n)%n],nx=grp[(gi+1)%n];
   const paras=p.body.split(/\n\s*\n/).filter(Boolean);
   const body=paras.map((t,j)=>`<p style="--i:${j}">${esc(t).replace(/\n/g,"<br>")}</p>`).join("");
-  return `<div class="dt${isBook(p)?" bkd":""}"><div class="dl"><div class="ht"><h1>${esc(p.title)}</h1><div class="ck">/ ${esc(p.category)}</div></div>${body}${p.note?`<p class="nt" style="--i:${paras.length}">${esc(p.note)}</p>`:""}
+  return `<div class="dt${isBook(p)?" bkd":""}${isPend(p)?" pdd":""}"><div class="dl"><div class="ht"><h1>${esc(p.title)}</h1><div class="ck">/ ${esc(p.category)}</div></div>${body}${p.note?`<p class="nt" style="--i:${paras.length}">${esc(p.note)}</p>`:""}
   <div class="ar"><a href="${lk(pv)}" aria-label="${isSer(p)?"Previous issue":"Previous project"}">${ARROW}</a><a class="r" href="${lk(nx)}" aria-label="${isSer(p)?"Next issue":"Next project"}">${ARROW}</a></div></div>
   <div class="rc">${isRing(p)||isPend(p)?'<div class="rgw"></div>':""}${p.table?'<div class="tbw"></div>':""}${p.fridge?'<div class="czw"></div>':""}${p.tv?'<div class="tvxw"></div>':""}${isBook(p)?'<div class="bkw"></div>':""}${p.fold&&p.fold.src?'<div class="fow"></div>':""}<div class="gl"></div></div></div>`;
 }
@@ -1932,7 +1934,8 @@ tick();setInterval(tick,500);
 (function(){
   const ld=$("#ld"),lab=ld.querySelector("b");
   const motion=matchMedia("(prefers-reduced-motion:no-preference)").matches;
-  let total=1,got=0;
+  /* the counter eases towards real progress (bytes of the cover images actually received) instead of jumping per file, and never shows 100% until the site is ready */
+  const t0=performance.now(),steps={json:0,font:0},prog={};let nCov=0,shown=0,fin=false;
   /* the percentage is stretched until its ink fills the whole screen, so it changes shape as it counts */
   const cvx=document.createElement("canvas").getContext("2d");
   const fitLd=()=>{
@@ -1945,13 +1948,21 @@ tick();setInterval(tick,500);
     const top=(box-(m.fontBoundingBoxAscent+m.fontBoundingBoxDescent))/2+asc-m.actualBoundingBoxAscent;
     lab.style.transform=`translate(${mx+m.actualBoundingBoxLeft*sx}px,${my-top*sy}px) scale(${sx},${sy})`;
   };
-  const pct=()=>{lab.textContent=Math.min(100,Math.round(got/total*100))+"%";fitLd()};
+
   addEventListener("resize",fitLd);fitLd();
-  const tick=()=>{got++;pct()};
-  const grab=u=>new Promise(r=>{const im=new Image(),to=setTimeout(r,4000);im.onload=im.onerror=()=>{(im.decode?im.decode().catch(()=>{}):Promise.resolve()).then(()=>{clearTimeout(to);r()})};im.src=u});   // a slow or stuck file is given up on after 4 s
+
+  const grab=u=>new Promise(res=>{
+    let ended=false;const end=()=>{if(ended)return;ended=true;clearTimeout(to);const q=prog[u];if(q)q[0]=q[1]=Math.max(q[0],q[1]);else prog[u]=[1,1];const im=new Image();im.src=u;res()};   // the file is now in the cache, so the image element created here costs nothing
+    const to=setTimeout(end,4000);   // a slow or stuck file is given up on after 4 s (it keeps loading in the background)
+    fetch(u).then(async r=>{
+      const L=+r.headers.get("content-length")||0,q=prog[u]=[0,L||300000],rd=r.body&&r.body.getReader();
+      if(!rd){await r.blob();return}
+      for(;;){const x=await rd.read();if(x.done)break;q[0]+=x.value.length;if(q[0]>q[1])q[1]=q[0]*1.05}
+    }).catch(()=>{}).then(end);
+  });
   /* two tiers: what the first screens need is fetched behind the loader (that is what the percentage counts); everything else, like the later pages of the magazine, is fetched quietly in the background after the site is up */
   const urls=ps=>{const A=new Set,C=new Set,R=new Set,ok=u=>typeof u==="string"&&/\.(png|jpe?g|webp|gif|avif|svg)(\?|$)/i.test(u),a=u=>{if(ok(u))A.add(u)},r=u=>{if(ok(u))R.add(u)};
-    ps.forEach(p=>{if(ok(p.cover))C.add(p.cover);a(p.cover);
+    ps.forEach(p=>{const f=ok(p.cover)?p.cover:(p.fold?null:[...(p.pages||[]),...(p.media||[])].map(x=>typeof x==="string"?x:x&&x.src).find(ok));if(f)C.add(f);a(p.cover);   // the loader waits for each project's cover, or else its first picture (never the big fold-out)
       [...(p.pages||[]).map(x=>typeof x==="string"?x:x&&x.src),...(p.media||[]).map(m=>typeof m==="string"?m:m&&m.src)].forEach((u,i)=>(i<4?a:r)(u));
       if(p.table){["menu","tee","box"].forEach(k=>Object.values(p.table[k]||{}).forEach(a));(p.table.prints||[]).forEach(a)}if(p.fold){a(p.fold.src)}if(p.fridge){(p.fridge.slides||[]).forEach(m=>m.type==="image"&&a(m.src));a(p.fridge.bg)}if(p.tv)a(p.tv.photo);if(p.poster)r(p.poster.src)});
     return[[...C],[...A].filter(u=>!C.has(u)).concat([...R].filter(u=>!A.has(u)&&!C.has(u)))]};   // [covers: the loader waits for these; everything else: fetched quietly afterwards, first-screen assets of each project before the later pages]
@@ -1966,12 +1977,27 @@ tick();setInterval(tick,500);
     ld.style.pointerEvents="none";
     ld.animate([{clipPath:"inset(0 0 0 0)"},{clipPath:"inset(0 0 0 100%)"}],{duration:520,easing:"steps(7,end)",fill:"both"}).finished.then(()=>ld.remove());
   }
-  const fontP=(document.fonts?document.fonts.load("900 100px Main","LUCA").catch(()=>{}):Promise.resolve());
-  const work=fetch("projects/projects.json").then(r=>r.json()).then(d=>{P=d.projects||[]}).catch(()=>{P=[]}).then(()=>{prep();
-    const [u,rest]=urls(P);later=rest;total=u.length+1;pct();
-    return Promise.all([fontP.then(tick),...u.map(x=>grab(x).then(tick))]);
+  const fontP=(document.fonts?document.fonts.load("900 100px Main","LUCA").catch(()=>{}):Promise.resolve()).then(()=>{steps.font=1});
+  const work=fetch("projects/projects.json").then(r=>r.json()).then(d=>{P=d.projects||[]}).catch(()=>{P=[]}).then(()=>{prep();steps.json=1;
+    const [u,rest]=urls(P);later=rest;nCov=u.length;
+    return Promise.all([fontP,...u.map(grab)]);
   });
-  Promise.race([work,new Promise(r=>setTimeout(r,5000))]).then(()=>{got=total;pct();setTimeout(reveal2,motion?600:0)});   // never hold the site for more than 5 s; whatever has not arrived keeps loading behind it
+  const calc=()=>{
+    let L=0,T=0,k=0;for(const u in prog){L+=prog[u][0];T+=prog[u][1];k++}
+    const bytes=steps.json?(nCov?L/Math.max(T+(nCov-k)*300000,1):1):0;   // covers that have not answered yet count as an average-sized file
+    const real=.05*steps.json+.03*steps.font+.92*bytes,creep=Math.min(.12,(performance.now()-t0)/1000*.03);   // creep: a small head start while the first answers are on their way
+    return Math.max(real,creep);
+  };
+  const frame=()=>{
+    const target=fin?1:Math.min(.99,calc()),gap=target-shown;
+    if(gap>0)shown+=Math.min(gap,Math.max(gap*.12,.0015));
+    const t=Math.round(shown*100)+"%";if(t!==lab.textContent){lab.textContent=t;fitLd()}
+    if(!(fin&&shown>=1))requestAnimationFrame(frame);
+  };
+  frame();
+  Promise.race([work,new Promise(r=>setTimeout(r,5000))]).then(()=>{   // never hold the site for more than 5 s; whatever has not arrived keeps loading behind it
+    fin=true;const w0=performance.now(),iv=setInterval(()=>{if(shown>=.995||performance.now()-w0>1500){clearInterval(iv);setTimeout(reveal2,motion?250:0)}},50);
+  });
 })();
 </script>
 </body>
