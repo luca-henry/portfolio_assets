@@ -1350,17 +1350,6 @@ function mountFridge(p,tok){
   const open=i0=>{
     if(T.zm||!slides.length)return;let i=Math.max(0,Math.min(slides.length-1,i0|0));
     openZoom(i,slides.map(m=>({src:m.src,type:m.type,caption:m.caption})));return;
-    const z=document.createElement("div");z.id="tz";
-    z.innerHTML=`<button type="button" class="x">Close ×</button><div class="zs"><div class="czm"></div></div>${slides.length>1?'<button type="button" class="pza l" aria-label="Previous">←</button><button type="button" class="pza r" aria-label="Next">→</button>':""}<p class="zc"></p>`;
-    const h=z.querySelector(".czm"),zc=z.querySelector(".zc");
-    const show=()=>{const m=slides[i],st="width:auto;height:auto;max-width:86vw;max-height:76svh;display:block";
-      h.innerHTML=m.type==="video"?`<video src="${esc(m.src)}" autoplay loop muted playsinline style="${st}"></video>`:`<img src="${esc(m.src)}" alt="${esc(m.caption)}" draggable="false" style="${st}">`;
-      zc.textContent=m.caption+(slides.length>1?` / ${i+1} of ${slides.length}`:"")};
-    const go=d=>{i=(i+d+slides.length)%slides.length;show()};show();
-    z.addEventListener("click",e=>{const t=e.target;if(t===z||t.classList.contains("zs")||t.classList.contains("x"))close();else if(t.classList.contains("pza"))go(t.classList.contains("r")?1:-1)});
-    T.zkey=e=>{if(e.key==="ArrowRight")go(1);else if(e.key==="ArrowLeft")go(-1)};
-    document.body.appendChild(z);T.zm=z;z.querySelector(".x").focus({preventScroll:true});
-    if(mq)z.animate([{clipPath:"inset(100% 0 0 0)"},{clipPath:"inset(0 0 0 0)"}],{duration:340,easing:"steps(6,end)",fill:"both"});
   };
   T.key=e=>{if(!T.zm)return;if(e.key==="Escape")close();else if(T.zkey)T.zkey(e)};document.addEventListener("keydown",T.key);
   cz.querySelectorAll(".czp").forEach(b=>b.addEventListener("click",()=>open(+b.dataset.i)));
@@ -1922,4 +1911,3 @@ tick();setInterval(tick,500);
 </script>
 </body>
 </html>
-
