@@ -1085,7 +1085,7 @@ function objBox(h,B,H,live){
   const faces=["front","back","left","right","top","bottom"];
   h.className+=" lbx";
   h.innerHTML=`<div class="bi">${faces.map(k=>`<div class="face" data-f="${k}">${B[k]?tImg(B[k],"Takeaway box "+k):""}</div>`).join("")}</div>`;
-  const bi=h.firstChild,b={x:-18,y:-32,vx:0,vy:0,drag:false};let rw=1.2,rd=.8,hh=H;
+  const bi=h.firstChild,b={x:-30,y:-32,vx:0,vy:0,drag:false};let rw=1.2,rd=.8,hh=H;
   const size=nh=>{
     if(nh)hh=nh;const W=hh*rw,D=hh*rd;
     const pf={front:`translateZ(${D/2}px)`,back:`rotateY(180deg) translateZ(${D/2}px)`,right:`rotateY(90deg) translateZ(${W/2}px)`,left:`rotateY(-90deg) translateZ(${W/2}px)`,top:`rotateX(90deg) translateZ(${hh/2}px)`,bottom:`rotateX(-90deg) translateZ(${hh/2}px)`},
@@ -1113,7 +1113,14 @@ async function makeMerch(src){
   const mk=(w,h)=>{const c=document.createElement("canvas");c.width=w;c.height=h;return[c,c.getContext("2d")]};
   const logo=(x,w,cx,top)=>{const h=w*L.naturalHeight/L.naturalWidth;x.save();x.globalCompositeOperation="multiply";x.drawImage(L,cx-w/2,top,w,h);x.restore()};
   const FAB="#dcdad6",EDGE="#b9b6b0";
+  const TB2=await Promise.all([ldImg("img/tee-blank-front.png"),ldImg("img/tee-blank-back.png")]);
+  const photoTee=(im,back)=>{   // a real blank tee photo (img/tee-blank-front.png / -back.png) with the logo printed on it
+    const S=3,[c,x]=mk(im.naturalWidth*S,im.naturalHeight*S),W=c.width,H=c.height;x.imageSmoothingQuality="high";x.drawImage(im,0,0,W,H);
+    if(back)logo(x,W*.42,W*.5,H*.2);else logo(x,W*.16,W*.64,H*.3);   // back: big across the shoulders; front: small, wearer's left chest (right as you look at it)
+    return c.toDataURL("image/png");
+  };
   const tee=back=>{
+    if(TB2[back?1:0])return photoTee(TB2[back?1:0],back);
     const [c,x]=mk(1000,1100);
     const neck=back?"C 420 105, 580 105, 640 70":"C 420 175, 580 175, 640 70";
     const body=new Path2D(`M360 70 ${neck} L840 120 L990 340 L855 425 L800 350 L790 1040 Q500 1062 210 1040 L200 350 L145 425 L10 340 L160 120 Z`);
@@ -1167,7 +1174,7 @@ function mountTable(p,tok){
   const bh=tb.querySelector('[data-k="box"] .host');
   if(bh){
     bh.style.display="block";bh.className+=" lbs";
-    const face=B.front||B.back||B.left||B.right||B.top;
+    const face=(t._gen&&B.top)||B.front||B.back||B.left||B.right||B.top;   // the pile shows the lid (with the logo) when the box is drawn from the logo
     tRatio(face).then(r=>{if(TB!==T)return;const ar=r||1.2;bh.innerHTML=[0,1,2].map(()=>`<span class="bk2" style="width:${[100,92,84][0]}%;aspect-ratio:${ar}">${face?tImg(face,"Takeaway box"):""}</span>`).join("");bh.querySelectorAll(".bk2").forEach((x,i)=>x.style.width=[100,94,88][i]+"%")});
   }
   /* full-screen view */
