@@ -1764,6 +1764,7 @@ function fit(){
     if(el.closest("#pl"))return;
     vfReset(el);vfSplit(el);
     const b=el.parentElement,cs=getComputedStyle(el);el.style.transform="none";el.style.setProperty("--bh",b.clientHeight+"px");
+    if(el._ls){const R0=el.getBoundingClientRect();el._c=R0.width?el._ls.map(s=>{const r=s.getBoundingClientRect();return (r.left+r.width/2-R0.left)/R0.width}):null}   // each letter's resting centre as a fraction of the word (fractions, so no pixel rounding)
     const W=el.offsetWidth,H=el.offsetHeight,fs=parseFloat(cs.fontSize);if(!W||!H)return;
     cv.font=`${cs.fontWeight} 200px ${cs.fontFamily}`;  // measure big, then scale down: small sizes round to whole pixels
     const st=parseFloat(cs.fontStretch)||100;           // measure at the same width as the page text
@@ -1777,7 +1778,7 @@ function fit(){
     const sx=b.clientWidth/W*.99,sy=b.clientHeight/(ink*1.06);
     const ty=(b.clientHeight-ink*sy)/2-top*sy;
     el.style.transform=el._tf=`translate(${b.clientWidth*.005}px,${ty}px) scale(${sx},${sy})`;
-    el._tx=b.clientWidth*.005;el._ty=ty;el._sy=sy;
+    el._tx=b.clientWidth*.005;el._ty=ty;el._sy=sy;el._sx=el._rsx=sx;
   });
   vfCollect();
 }
@@ -1787,7 +1788,7 @@ function fit(){
    re-scaled every frame so it always keeps filling its box. Change VF.wght / VF.wdth to pick how far the letters move (values outside
    the font's own range are clamped by the browser), VF.reach for how many letters the wave covers and VF.ease for how fast it follows. */
 const VF={wght:300,wdth:125,reach:1.8,ease:.22};
-let vfList=[],vfPt=null,vfRaf=0;
+let vfList=[],vfPt=null,vfSx=null,vfRaf=0;
 function vfOK(el){return !el.closest("#pl")&&!(el.id&&el.id.slice(0,3)==="clk")}
 function vfSplit(el){
   if(!vfOK(el)||el._vt===el.textContent&&el._ls)return;
@@ -1806,30 +1807,30 @@ function vfCollect(){
 }
 function vfStep(){
   vfRaf=0;let busy=false;
+  if(vfPt){vfSx=vfSx==null?vfPt.x:vfSx+(vfPt.x-vfSx)*.4;if(Math.abs(vfPt.x-vfSx)<.3)vfSx=vfPt.x;else busy=true}else vfSx=null;   // the pointer is eased too, so a fast flick glides instead of jumping
   vfList.forEach(el=>{
     const b=el.parentElement,B=b.getBoundingClientRect(),ls=el._ls,n=ls.length;
     const hit=vfPt&&B.width>0&&vfPt.x>=B.left&&vfPt.x<=B.right&&vfPt.y>=B.top&&vfPt.y<=B.bottom;
     const active=ls.length&&el._g.some(g=>g>0);
     if(!hit&&!active)return;
     let tg=null;
-    if(hit){
-      const W=el.offsetWidth,R=el.getBoundingClientRect(),f=(vfPt.x-R.left)/(R.width||1)*W;   // pointer position in the word's own unscaled pixels
-      tg=ls.map(s=>{const d=(f-(s.offsetLeft+s.offsetWidth/2))/(W/n)/VF.reach;return Math.exp(-d*d)});
+    if(hit&&el._c){
+      const R=el.getBoundingClientRect(),f=(vfSx-R.left)/(R.width||1);   // pointer as a fraction of the word; compared with the RESTING letter centres so the wave never feeds back on itself
+      tg=el._c.map(c=>{const d=(f-c)*n/VF.reach;return Math.exp(-d*d)});
     }
     const cs=getComputedStyle(el),rw=parseFloat(cs.fontWeight)||400,rs=parseFloat(cs.fontStretch)||100;
     let any=false;
     ls.forEach((s,i)=>{
-      let g=el._g[i];const t=tg?tg[i]:0;g+=(t-g)*VF.ease;if(Math.abs(t-g)<.004)g=t;el._g[i]=g;
+      let g=el._g[i];const t=tg?tg[i]:0;g+=(t-g)*VF.ease;if(Math.abs(t-g)<.004)g=t;else busy=true;el._g[i]=g;
       if(g>0){any=true;s.style.fontVariationSettings=`"wght" ${(rw+(VF.wght-rw)*g).toFixed(1)},"wdth" ${(rs+(VF.wdth-rs)*g).toFixed(1)}`}
       else s.style.removeProperty("font-variation-settings");
     });
     if(any){
-      const sx=b.clientWidth*.99/(el.offsetWidth||1);
-      el.style.transform=`translate(${el._tx}px,${el._ty}px) scale(${sx},${el._sy})`;busy=true;
-    }else if(el._tf)el.style.transform=el._tf;
-    if(hit)busy=true;
+      const R=el.getBoundingClientRect(),W=R.width/(el._sx||1),sx=b.clientWidth*.99/(W||1);   // unscaled width from the float rect (offsetWidth is whole pixels and would make the scale jump)
+      el._sx=sx;el.style.transform=`translate(${el._tx}px,${el._ty}px) scale(${sx},${el._sy})`;
+    }else if(el._tf){el.style.transform=el._tf;el._sx=el._rsx}
   });
-  if(busy||vfPt)vfKick();
+  if(busy)vfKick();
 }
 function vfKick(){if(!vfRaf)vfRaf=requestAnimationFrame(vfStep)}
 if(!matchMedia("(prefers-reduced-motion:reduce)").matches){
