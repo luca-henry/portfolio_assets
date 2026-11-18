@@ -89,6 +89,9 @@ for (const d of found) {
       const m = path.parse(f.name).name.toLowerCase().match(/^(menu|tee|box)[-_ ](front|back|left|right|top|bottom)$/);
       if (m && f.type === "image") { table[m[1]][m[2]] = f.src; tableUsed.add(f); }
     }
+    // logo.png (a transparent logo) is all you need for the t-shirts and the takeaway box: the site draws them with the logo on. Real tee-/box- images still win if you add them.
+    const lg = files.find(f => f.type === "image" && path.parse(f.name).name.toLowerCase() === "logo");
+    if (lg) table.logo = lg.src;
     table.prints = files.filter(f => f.type === "image" && !isCover(f) && !tableUsed.has(f)).map(f => f.src);
     files.forEach(f => tableUsed.add(f));
   }
