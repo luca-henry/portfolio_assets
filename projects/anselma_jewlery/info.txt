@@ -3,7 +3,7 @@ category: brand identity - 2026
 order: 3
 format: pendant
 tone: silver
-note: Small italic line shown under the description.
+note: Drag and move the chain.
 ---
 This project was an early stage proof of concept brand identity for Anselma Forlano, a Melbourne jeweller and artist. I offered my services to Anselma and built it as a style guide, based on what I could find online about their works.
 
