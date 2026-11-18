@@ -1106,8 +1106,42 @@ function objBox(h,B,H,live){
   paint();
   return{size,tick(){if(!b.drag&&(Math.abs(b.vx)>.02||Math.abs(b.vy)>.02)){b.x=Math.max(-80,Math.min(80,b.x+b.vx));b.y+=b.vy;b.vx*=.94;b.vy*=.94}paint()}};
 }
+/* LOGO-ONLY MERCH: from one logo.png the site draws a plain tee (small logo at the chest, big logo on the back) and a plain takeaway box (logo on the top) */
+const ldImg=src=>new Promise(r=>{const i=new Image();i.onload=()=>r(i);i.onerror=()=>r(null);i.src=src});
+async function makeMerch(src){
+  const L=await ldImg(src);if(!L)return null;
+  const mk=(w,h)=>{const c=document.createElement("canvas");c.width=w;c.height=h;return[c,c.getContext("2d")]};
+  const logo=(x,w,cx,top)=>{const h=w*L.naturalHeight/L.naturalWidth;x.save();x.globalCompositeOperation="multiply";x.drawImage(L,cx-w/2,top,w,h);x.restore()};
+  const FAB="#dcdad6",EDGE="#b9b6b0";
+  const tee=back=>{
+    const [c,x]=mk(1000,1100);
+    const neck=back?"C 420 105, 580 105, 640 70":"C 420 175, 580 175, 640 70";
+    const body=new Path2D(`M360 70 ${neck} L840 120 L990 340 L855 425 L800 350 L790 1040 Q500 1062 210 1040 L200 350 L145 425 L10 340 L160 120 Z`);
+    x.fillStyle=FAB;x.fill(body);
+    const g=x.createLinearGradient(0,0,1000,0);g.addColorStop(0,"rgba(0,0,0,.07)");g.addColorStop(.5,"rgba(255,255,255,.07)");g.addColorStop(1,"rgba(0,0,0,.07)");x.fillStyle=g;x.fill(body);
+    x.strokeStyle=EDGE;x.lineWidth=4;x.lineJoin="round";x.stroke(body);
+    x.beginPath();x.moveTo(360,70);x.bezierCurveTo(420,back?105:175,580,back?105:175,640,70);x.strokeStyle="#c4c1bb";x.lineWidth=16;x.stroke();   // collar
+    x.lineWidth=3;x.strokeStyle=EDGE;[[855,425,800,350],[145,425,200,350]].forEach(([a,b,c2,d])=>{x.beginPath();x.moveTo(a,b);x.lineTo(c2,d);x.stroke()});   // sleeve seams
+    x.beginPath();x.moveTo(210,1010);x.quadraticCurveTo(500,1032,790,1010);x.stroke();   // hem
+    if(back)logo(x,520,500,200);else logo(x,190,660,260);   // front: small, on the wearer's left chest (the right as you look at it)
+    return c.toDataURL("image/png");
+  };
+  const BOX="#f3f2ee";
+  const face=(w,h,withLogo)=>{
+    const [c,x]=mk(w,h);x.fillStyle=BOX;x.fillRect(0,0,w,h);
+    x.strokeStyle="#c9c6bf";x.lineWidth=6;x.strokeRect(3,3,w-6,h-6);
+    if(withLogo)logo(x,Math.min(w*.62,h*.74*L.naturalWidth/L.naturalHeight),w/2,(h-Math.min(w*.62,h*.74*L.naturalWidth/L.naturalHeight)*L.naturalHeight/L.naturalWidth)/2);
+    return c.toDataURL("image/png");
+  };
+  return{tee:{front:tee(false),back:tee(true)},box:{front:face(1200,1000),back:face(1200,1000),left:face(800,1000),right:face(800,1000),top:face(1200,800,true),bottom:face(1200,800)}};
+}
 function mountTable(p,tok){
   const el=$("#project .tbw");if(!el)return;
+  if(p.table&&p.table.logo&&!p.table._gen){
+    p.table._gen=1;const te=p.table.tee||{},bo=p.table.box||{};
+    makeMerch(p.table.logo).then(g=>{if(!g||tok!==gTok)return;p.table.tee={...g.tee,...te};p.table.box={...g.box,...bo};mountTable(p,tok)});
+    return;
+  }
   const t=p.table||{},M=t.menu||{},E=t.tee||{},B=t.box||{},pr=t.prints||[];
   const hasBox=["front","back","left","right","top","bottom"].some(k=>B[k]);
   const cell=(k,w,cap,i)=>`<button type="button" class="lc" data-k="${k}" ${i!==undefined?`data-i="${i}"`:""} style="--w:${w}%" aria-label="Open ${cap}"><span class="host"></span><span class="cap">${cap}</span></button>`;
