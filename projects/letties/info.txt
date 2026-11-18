@@ -1,5 +1,5 @@
 title: Letties
-category: brand identity - 2025
+category: brand identity - 2023
 order: 2
 format: table
 note: Click on things off the rack to see them up close.
