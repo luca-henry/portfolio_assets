@@ -1,9 +1,13 @@
 title: Anselma Jewellery
-category: brand identity
+category: brand identity - 2026
 order: 3
 format: pendant
 tone: silver
 note: Small italic line shown under the description.
 ---
-The main description text goes here, below the divider.
-You can write as many paragraphs as you like.
+This project was an early stage proof of concept brand identity for Anselma Forlano, a Melbourne jeweller and artist. I offered my services to Anselma and built it as a style guide, based on what I could find online about their works.
+
+Anselma’s writing style is in the way they'd talk to a close friend who happens to love medieval relics with a funny and bit risqué and completely earnest style. Their work talks about shame and longing out loud rather than dressing it up, so the identity follows a Baroque style with a modernist twist.
+
+The logo merges their initials, A and F, into one curved baroque icon. It is textured with metallic surfaces from the materials they work with. A simplified version holds up at small sizes, like a jewellery stamp, a hang tag or an Instagram profile picture.
+
