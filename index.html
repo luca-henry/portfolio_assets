@@ -16,6 +16,7 @@
 html{background:var(--bg);-webkit-text-size-adjust:100%;text-size-adjust:100%}
 a,button{-webkit-tap-highlight-color:transparent}
 html{cursor:var(--c-def)}
+body:has(#home.on){cursor:var(--c-ptr)}
 body.press,body.press *{cursor:var(--c-fist)!important}
 a[href],button,summary,[role=button],label{cursor:var(--c-ptr)}
 body{min-height:100svh;display:flex;flex-direction:column;background:var(--bg);color:var(--fg);font-family:Secondary,"Helvetica Neue",Helvetica,Arial,sans-serif;letter-spacing:-.02em;-webkit-font-smoothing:antialiased}
@@ -397,6 +398,8 @@ main,.view.on{min-height:0}
 }
 
 /* hfash magazine page: a grid of covers, then a black box for every issue still to come */
+.mi{max-width:62%;margin-top:calc(2.6 * var(--u));font-size:max(calc(2.3 * var(--u)),15px);line-height:1.28;font-weight:500;letter-spacing:-.015em}
+@media (max-width:800px){.mi{max-width:none}}
 .yr{margin-top:calc(3 * var(--u))}
 .yh{background:#000;width:100%;height:calc(9 * var(--u));padding:calc(.6 * var(--u)) calc(.9 * var(--u))}
 .yh .fb{display:block;height:100%}.yh .fit{color:var(--acc)}
@@ -580,6 +583,7 @@ a.mt:focus-visible{outline:3px solid #000;outline-offset:4px}
   <!-- HFASH MAGAZINE (all the issues, built by JS) -->
   <section id="magazine" class="view">
     <h1 class="banner" aria-label="HFASH Magazine"><div class="fb"><span class="fit" aria-hidden="true">HFASH MAGAZINE</span></div></h1>
+    <p class="mi">hfash is a biannual magazine about UK street culture, made in Melbourne. It's about the music that gets passed around on burnt CDs and tapes, grime, football, and the clothes that go with all of it. I'm the editor and designer. Side B was the pre-release issue, and the rest are still to come.</p>
     <div id="mg"></div>
   </section>
 
@@ -1744,6 +1748,13 @@ function fit(){
 
 /* hash routing: #home #projects #about #contact #project-<folder name> */
 const VIEWS=["home","projects","about","contact","magazine"];
+/* LANDING PAGE: a click (or tap) anywhere on it goes to the projects page. The nav links keep doing their own thing. */
+document.addEventListener("click",e=>{
+  if(e.defaultPrevented||e.button||e.metaKey||e.ctrlKey||e.shiftKey||e.altKey)return;
+  const h=document.getElementById("home");if(!h||!h.classList.contains("on"))return;
+  if(e.target.closest&&e.target.closest("nav,a[href],button"))return;
+  location.hash="#projects";
+});
 function route(){
   killBook();killBoom();killFold();killTable();killRing();killFridge();killTV();gTok++;
   document.documentElement.style.removeProperty("--bg");
