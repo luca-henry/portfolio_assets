@@ -1948,17 +1948,17 @@ tick();setInterval(tick,500);
   const pct=()=>{lab.textContent=Math.min(100,Math.round(got/total*100))+"%";fitLd()};
   addEventListener("resize",fitLd);fitLd();
   const tick=()=>{got++;pct()};
-  const grab=u=>new Promise(r=>{const im=new Image();im.onload=im.onerror=()=>{(im.decode?im.decode().catch(()=>{}):Promise.resolve()).then(r)};im.src=u});
+  const grab=u=>new Promise(r=>{const im=new Image(),to=setTimeout(r,4000);im.onload=im.onerror=()=>{(im.decode?im.decode().catch(()=>{}):Promise.resolve()).then(()=>{clearTimeout(to);r()})};im.src=u});   // a slow or stuck file is given up on after 4 s
   /* two tiers: what the first screens need is fetched behind the loader (that is what the percentage counts); everything else, like the later pages of the magazine, is fetched quietly in the background after the site is up */
-  const urls=ps=>{const A=new Set,R=new Set,ok=u=>typeof u==="string"&&/\.(png|jpe?g|webp|gif|avif|svg)(\?|$)/i.test(u),a=u=>{if(ok(u))A.add(u)},r=u=>{if(ok(u))R.add(u)};
-    ps.forEach(p=>{a(p.cover);
+  const urls=ps=>{const A=new Set,C=new Set,R=new Set,ok=u=>typeof u==="string"&&/\.(png|jpe?g|webp|gif|avif|svg)(\?|$)/i.test(u),a=u=>{if(ok(u))A.add(u)},r=u=>{if(ok(u))R.add(u)};
+    ps.forEach(p=>{if(ok(p.cover))C.add(p.cover);a(p.cover);
       [...(p.pages||[]).map(x=>typeof x==="string"?x:x&&x.src),...(p.media||[]).map(m=>typeof m==="string"?m:m&&m.src)].forEach((u,i)=>(i<4?a:r)(u));
       if(p.table){["menu","tee","box"].forEach(k=>Object.values(p.table[k]||{}).forEach(a));(p.table.prints||[]).forEach(a)}if(p.fold){a(p.fold.src)}if(p.fridge){(p.fridge.slides||[]).forEach(m=>m.type==="image"&&a(m.src));a(p.fridge.bg)}if(p.tv)a(p.tv.photo);if(p.poster)r(p.poster.src)});
-    return[[...A],[...R].filter(u=>!A.has(u))]};
+    return[[...C],[...A].filter(u=>!C.has(u)).concat([...R].filter(u=>!A.has(u)&&!C.has(u)))]};   // [covers: the loader waits for these; everything else: fetched quietly afterwards, first-screen assets of each project before the later pages]
   let later=[];
   const quiet=()=>{const c=navigator.connection;if(!later.length||(c&&c.saveData))return;let i=0;
     const next=()=>{if(i>=later.length)return;const im=new Image();im.fetchPriority="low";im.decoding="async";im.onload=im.onerror=()=>setTimeout(next,40);im.src=later[i++]};
-    for(let k=0;k<2;k++)next()};
+    for(let k=0;k<3;k++)next()};
   function reveal2(){
     const go=()=>{buildList();buildMag();route();armed=true};
     go();setTimeout(quiet,1500);
@@ -1971,7 +1971,7 @@ tick();setInterval(tick,500);
     const [u,rest]=urls(P);later=rest;total=u.length+1;pct();
     return Promise.all([fontP.then(tick),...u.map(x=>grab(x).then(tick))]);
   });
-  Promise.race([work,new Promise(r=>setTimeout(r,20000))]).then(()=>setTimeout(reveal2,motion?600:0));   // never hold the site for more than 20 s
+  Promise.race([work,new Promise(r=>setTimeout(r,5000))]).then(()=>{got=total;pct();setTimeout(reveal2,motion?600:0)});   // never hold the site for more than 5 s; whatever has not arrived keeps loading behind it
 })();
 </script>
 </body>
