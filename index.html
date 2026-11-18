@@ -38,6 +38,7 @@ main{flex:1;display:flex;flex-direction:column}
 
 /* stretched display type: JS scales .fit to fill its .fb box */
 .fb{position:relative;overflow:hidden}
+.fb{touch-action:pan-y}
 .fit{position:absolute;left:0;top:0;white-space:nowrap;transform-origin:0 0;line-height:1;letter-spacing:-.02em;font-family:Main,Archivo,"Arial Black",Impact,sans-serif;font-weight:900;font-stretch:100%}
 .fit.wide{font-family:Archivo,"Helvetica Neue",Arial,sans-serif;font-stretch:125%;font-weight:500}
 .fit.wide.bold{font-weight:800}
@@ -1761,6 +1762,7 @@ function fit(){
   applyList();fitTitle();
   document.querySelectorAll(".view.on .fit").forEach(el=>{
     if(el.closest("#pl"))return;
+    vfReset(el);vfSplit(el);
     const b=el.parentElement,cs=getComputedStyle(el);el.style.transform="none";el.style.setProperty("--bh",b.clientHeight+"px");
     const W=el.offsetWidth,H=el.offsetHeight,fs=parseFloat(cs.fontSize);if(!W||!H)return;
     cv.font=`${cs.fontWeight} 200px ${cs.fontFamily}`;  // measure big, then scale down: small sizes round to whole pixels
@@ -1774,8 +1776,70 @@ function fit(){
     const top=base-asc,ink=asc+desc;
     const sx=b.clientWidth/W*.99,sy=b.clientHeight/(ink*1.06);
     const ty=(b.clientHeight-ink*sy)/2-top*sy;
-    el.style.transform=`translate(${b.clientWidth*.005}px,${ty}px) scale(${sx},${sy})`;
+    el.style.transform=el._tf=`translate(${b.clientWidth*.005}px,${ty}px) scale(${sx},${sy})`;
+    el._tx=b.clientWidth*.005;el._ty=ty;el._sy=sy;
   });
+  vfCollect();
+}
+/* VARIABLE FONT WAVE
+   The big headings are split into letters. While the mouse (or a finger) is over one, the letters nearest the pointer ease towards the peak
+   weight / width of the variable font and fall back off over the neighbouring letters, like a ripple that follows the pointer. The word is
+   re-scaled every frame so it always keeps filling its box. Change VF.wght / VF.wdth to pick how far the letters move (values outside
+   the font's own range are clamped by the browser), VF.reach for how many letters the wave covers and VF.ease for how fast it follows. */
+const VF={wght:300,wdth:125,reach:1.8,ease:.22};
+let vfList=[],vfPt=null,vfRaf=0;
+function vfOK(el){return !el.closest("#pl")&&!(el.id&&el.id.slice(0,3)==="clk")}
+function vfSplit(el){
+  if(!vfOK(el)||el._vt===el.textContent&&el._ls)return;
+  const t=el.textContent;el._vt=t;el.textContent="";
+  el._ls=[...t].map(ch=>{const s=document.createElement("span");s.textContent=ch;el.appendChild(s);return s});
+  el._g=el._ls.map(()=>0);
+}
+function vfReset(el){
+  if(!el._ls)return;
+  el._ls.forEach(s=>s.style.removeProperty("font-variation-settings"));
+  el._g=el._ls.map(()=>0);if(el._tf)el.style.transform=el._tf;
+}
+function vfCollect(){
+  vfList.forEach(e=>{if(!e.isConnected||!e.closest(".view.on"))vfReset(e)});
+  vfList=[...document.querySelectorAll(".view.on .fit")].filter(e=>e._ls&&vfOK(e));
+}
+function vfStep(){
+  vfRaf=0;let busy=false;
+  vfList.forEach(el=>{
+    const b=el.parentElement,B=b.getBoundingClientRect(),ls=el._ls,n=ls.length;
+    const hit=vfPt&&B.width>0&&vfPt.x>=B.left&&vfPt.x<=B.right&&vfPt.y>=B.top&&vfPt.y<=B.bottom;
+    const active=ls.length&&el._g.some(g=>g>0);
+    if(!hit&&!active)return;
+    let tg=null;
+    if(hit){
+      const W=el.offsetWidth,R=el.getBoundingClientRect(),f=(vfPt.x-R.left)/(R.width||1)*W;   // pointer position in the word's own unscaled pixels
+      tg=ls.map(s=>{const d=(f-(s.offsetLeft+s.offsetWidth/2))/(W/n)/VF.reach;return Math.exp(-d*d)});
+    }
+    const cs=getComputedStyle(el),rw=parseFloat(cs.fontWeight)||400,rs=parseFloat(cs.fontStretch)||100;
+    let any=false;
+    ls.forEach((s,i)=>{
+      let g=el._g[i];const t=tg?tg[i]:0;g+=(t-g)*VF.ease;if(Math.abs(t-g)<.004)g=t;el._g[i]=g;
+      if(g>0){any=true;s.style.fontVariationSettings=`"wght" ${(rw+(VF.wght-rw)*g).toFixed(1)},"wdth" ${(rs+(VF.wdth-rs)*g).toFixed(1)}`}
+      else s.style.removeProperty("font-variation-settings");
+    });
+    if(any){
+      const sx=b.clientWidth*.99/(el.offsetWidth||1);
+      el.style.transform=`translate(${el._tx}px,${el._ty}px) scale(${sx},${el._sy})`;busy=true;
+    }else if(el._tf)el.style.transform=el._tf;
+    if(hit)busy=true;
+  });
+  if(busy||vfPt)vfKick();
+}
+function vfKick(){if(!vfRaf)vfRaf=requestAnimationFrame(vfStep)}
+if(!matchMedia("(prefers-reduced-motion:reduce)").matches){
+  const mv=e=>{vfPt={x:e.clientX,y:e.clientY};vfKick()},end=()=>{vfPt=null;vfKick()};
+  addEventListener("pointermove",mv,{passive:true});
+  addEventListener("pointerdown",mv,{passive:true});
+  addEventListener("pointerup",e=>{if(e.pointerType!=="mouse")end()},{passive:true});
+  addEventListener("pointercancel",end,{passive:true});
+  addEventListener("blur",end);
+  document.documentElement.addEventListener("mouseleave",end);
 }
 
 /* hash routing: #home #projects #about #contact #project-<folder name> */
