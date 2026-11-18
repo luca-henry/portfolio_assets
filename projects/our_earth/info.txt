@@ -1,9 +1,13 @@
 title: Our Earth
-category: motion
+category: motion - 2024
 order: 5
 format: tv
 tvscreen: 12.7,8.1 87.4,8.1 87.4,69.3 12.7,69.3
 tvpower: 60.5,81
 glow: 0.6
+note: Click on the tv to play.
 ---
-Our Earth. Press power and the TV blinks on.
+This project was a kinetic type motion protest about our actions towards the planet. It runs for a minute and a half, one word at a time reading: "Earth is slowly dying. It's us. Us killing ourselves."
+
+The aim was to get us to realise as a human race the impact that our actions are having on our own living place, and the results that are going to happen from this. Not enough is being done to change the world for better, and this was a project to aim to bring attention to that.
+
