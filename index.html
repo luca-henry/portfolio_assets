@@ -408,6 +408,10 @@ main,.view.on{min-height:0}
 .mt .cv img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;display:block}
 .mt .cap{display:block;margin-top:calc(.7 * var(--u));font-weight:700;font-size:calc(1.35 * var(--u));line-height:1.15;letter-spacing:-.01em;text-transform:uppercase;color:#000}
 .mt.soon .cv{display:flex;align-items:center;justify-content:center}
+.mt .xx{position:absolute;inset:0;width:100%;height:100%;display:block;z-index:2;pointer-events:none}
+.mt .xx path{fill:none;vector-effect:non-scaling-stroke;stroke-linecap:butt}
+.mt .xx .n{stroke:var(--acc);stroke-width:clamp(10px,calc(2 * var(--u)),30px)}
+.mt.soon .no{position:relative;z-index:1}
 .mt .no{font-weight:700;font-size:calc(6 * var(--u));letter-spacing:-.04em;line-height:1;color:#000}
 a.mt:hover .cap,a.mt:focus-visible .cap{text-decoration:underline;text-underline-offset:.15em}
 a.mt:focus-visible{outline:3px solid #000;outline-offset:4px}
@@ -1641,7 +1645,7 @@ function buildMag(){
   const yearOf=p=>+p.year||(issueNo(p)?dueOf(issueNo(p)).y:FIRST[0]-1);     // info.txt:  year: 2026
   const real=p=>{const n=issueNo(p),lb=((n?"No."+n:"Pre-release")+" / "+p.title).toUpperCase(),c=coverOf(p);
     return `<a class="mt" href="#project-${p.slug}" aria-label="Open ${esc(p.title)}${n?", issue "+n:", the pre-release issue"}"><span class="cv">${c?`<img src="${esc(c)}" alt="" decoding="async">`:""}</span><span class="cap">${esc(lb)}</span></a>`};
-  const soon=n=>`<div class="mt soon" role="img" aria-label="Issue ${n}, out at the end of ${dueOf(n).m.toLowerCase()} ${dueOf(n).y}"><span class="cv"><span class="no" aria-hidden="true">NO.${n}</span></span><span class="cap" aria-hidden="true">END OF ${dueOf(n).m} ${dueOf(n).y}</span></div>`;
+  const soon=n=>`<div class="mt soon" role="img" aria-label="Issue ${n}, out at the end of ${dueOf(n).m.toLowerCase()} ${dueOf(n).y}"><span class="cv"><svg class="xx" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true"><path class="n" d="M0 0L100 100M100 0L0 100"/></svg><span class="no" aria-hidden="true">NO.${n}</span></span><span class="cap" aria-hidden="true">END OF ${dueOf(n).m} ${dueOf(n).y}</span></div>`;
   const yrs=new Map(),add=(y,k,t)=>{if(!yrs.has(y))yrs.set(y,[]);yrs.get(y).push({k,t})};
   ser.forEach(p=>add(yearOf(p),issueNo(p),real(p)));
   const last=Math.max(FIRST[0],...ser.map(yearOf));
