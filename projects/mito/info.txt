@@ -1,9 +1,11 @@
 title: Mito
-category: brand identity
+category: brand identity - 2026
 order: 4
 format: fridge
-note: Meat made easy.
+note: Slide the freezer lids open and pick up a pack.
 ---
-A brand identity for lab-grown meat that makes it look and feel like food first. A chunky wordmark and a red square that divides like a cell carry the brand, and a pixel typeface carries the science.
+This project is a brand identity for Mito, which is a lab-grown stem cell meat brand. This work started as lab-grown meat has a problem of perception. Most people are put off by the science of the food before they even see it as food. The aim of this project is was to reframe lab-grown meat into a friendly and inviting identity.
 
-Slide the freezer lids open and pick up a pack.
+The logo is a thick wordmark that is supported by a simple red square that divides itself like a cell. The logo’s aim was to stay minimal and food-forward, while the secondary elements carry the scientific look of it. It features a  pixel typeface, Bo Microfont (altered), paired with Early Sans Variable for body text. The palette is near black, white and a vivid red, with three greys.
+
+On the right you can see some mockup’s of 2 developed projects.
