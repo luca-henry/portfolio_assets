@@ -334,8 +334,8 @@ body.pbg{background:transparent}
 .blk{background:#000;padding:calc(2.6 * var(--u)) calc(3.2 * var(--u)) calc(2.9 * var(--u)) calc(2.7 * var(--u))}
 .blk .fb,.meb .fb{height:100%}.blk .fit,.meb .fit{color:var(--acc)}
 .shot{height:100%;background:#eee}
-.shot img{filter:grayscale(1)}
-.shot.inv{background:#000}.shot.inv img{filter:grayscale(1) invert(1) contrast(1.1)}
+.shot img{filter:grayscale(1);object-fit:fill}   /* photos are squished (not cropped) to fill the box */
+.shot.inv{background:#000}
 .shot span{font-size:9cqw}
 .ab{display:grid;grid-template-columns:29.5fr 35fr 35fr;height:calc(23 * var(--u));margin-top:0}
 .meb{background:#000;padding:calc(1.1 * var(--u)) calc(3.3 * var(--u)) calc(3 * var(--u));margin-top:-1px}
@@ -536,9 +536,8 @@ a.mt:focus-visible{outline:3px solid #000;outline-offset:4px}
  .at>.shot{animation:blockY .4s var(--ease) .1s backwards}
  .at>.inv{animation-delay:.2s}
  .shot img{animation:zoom .6s var(--out) .15s backwards;transition:scale .4s steps(4,end)}
- .shot:not(.inv):hover img{filter:grayscale(1) invert(1) contrast(1.1)}
- .shot.inv:hover img{filter:grayscale(1)}
- .ab p{animation:blockY .45s var(--ease) .35s backwards}
+ .shot:hover img{filter:grayscale(1) invert(1) contrast(1.1)}
+  .ab p{animation:blockY .45s var(--ease) .35s backwards}
  .ab p+p{animation-delay:.45s}
 
  /* contact: the highlight is black and stretches out from the centre in 5 jumps */
@@ -600,12 +599,12 @@ a.mt:focus-visible{outline:3px solid #000;outline-offset:4px}
       <div class="blk" aria-hidden="true"><div class="fb"><span class="fit">ABOUT</span></div></div>
       <!-- Replace img src with your photos. If the file is missing, a placeholder shows. -->
       <div class="ph shot"><img src="img/portrait-1.jpg" alt="Portrait of Luca Henry" onerror="this.remove()"><span>PHOTO</span></div>
-      <div class="ph shot inv"><img src="img/portrait-1.jpg" alt="" onerror="this.remove()"><span style="color:#fff">PHOTO</span></div>
+      <div class="ph shot inv"><img src="img/portrait-2.jpg" alt="" onerror="this.remove()"><span style="color:#fff">PHOTO</span></div>
     </div>
     <div class="ab">
       <div class="meb" aria-hidden="true"><div class="fb"><span class="fit">ME</span></div></div>
-      <p>Lorem ipsum dolor sit amet consectetur adipiscing elit qui enim pariatur optio minim consequat consectetur tempor excepturi excepteur sint dolorem distinctio adipiscing dignissimos et mollitia laborum cillum placeat non distinctio repellendus non duis et optio sint qui minim lorem fuga laboris molestias voluptas eiusmod molestias imperdiet labore blanditiis quidem qui.</p>
-      <p>Lorem ipsum dolor sit amet consectetur adipiscing elit qui enim pariatur optio minim consequat consectetur tempor excepturi excepteur sint dolorem distinctio adipiscing dignissimos et mollitia laborum cillum placeat non distinctio repellendus non duis et optio sint qui minim.</p>
+      <p>I'm Luca, a Melbourne designer studying a Bachelor of Design at Monash Caulfield, from 2022 to 2027. I specialise in brand identity, but I'm happy working across all of it, from print and packaging to motion and magazines. The work here includes identities for a cinema season, a souvlaki restaurant, a lab-grown meat brand and a jeweller, a motion piece about the planet, and hfash, a quarterly magazine I edit and design myself. I know the whole Adobe suite well, and I also work in Figma, photography and video game design.</p>
+      <p>Outside of design I'm into music, film, sport and picking up random hobbies, and I like being around people. That mix shows up in the work, whether it's a magazine about street culture or a film calendar in loud colour. I like jumping between very different projects, which is why this site goes from a souvlaki restaurant to a motion piece about the end of the world. I'm looking for an internship or a full-time role starting in 2027, so if you like what you see, get in touch.</p>
     </div>
   </section>
 
